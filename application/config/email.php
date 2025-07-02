@@ -24,17 +24,19 @@ if (!empty($googleClientId) && !empty($googleClientSecret) && get_option('email_
     $config['refresh_token'] = get_option('google_mail_refresh_token');
 }
 
-$config['protocol']  = get_option('email_protocol');
+$config['protocol']  = 'smtp';
 $config['mailpath']  = '/usr/bin/sendmail'; // or "/usr/sbin/sendmail"
-$config['smtp_host'] = trim(get_option('smtp_host'));
+$config['smtp_host'] = 'smtp.hostinger.com';
 
 if (get_option('smtp_username') == '') {
     $config['smtp_user'] = trim(get_option('smtp_email'));
 } else {
     $config['smtp_user'] = trim(get_option('smtp_username'));
 }
+//zwQ^Vu4uE~7
+$config['smtp_pass']    = 'Ge!&SVrqqi0+';
+//$config['smtp_pass']    = get_instance()->encryption->decrypt(get_option('smtp_password'));
 
-$config['smtp_pass']    = get_instance()->encryption->decrypt(get_option('smtp_password'));
 $config['smtp_port']    = trim(get_option('smtp_port'));
 $config['smtp_timeout'] = 30;
 $config['smtp_crypto']  = get_option('smtp_encryption');
@@ -44,7 +46,17 @@ $config['debug_output'] = 'html';                       // PHPMailer's SMTP debu
 
 $config['smtp_auto_tls'] = false;                     // Whether to enable TLS encryption automatically if a server supports it, even if smtp_crypto` is not set to 'tls'.
 
-$config['smtp_conn_options'] = [];                 // SMTP connection options, an array passed to the function stream_context_create() when onnecting via SMTP.
+$config['smtp_conn_options'] = [
+    'ssl' => [
+        'verify_peer' => false,
+        'verify_peer_name' => false,
+        'allow_self_signed' => true,
+    ],
+     'socket' => [
+        'bindto' => '0.0.0.0:0', // Force IPv4 instead of IPv6
+    ],
+
+];                 // SMTP connection options, an array passed to the function stream_context_create() when onnecting via SMTP.
 
 $config['wordwrap'] = true;
 $config['mailtype'] = 'html';

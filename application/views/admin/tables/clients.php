@@ -75,7 +75,7 @@ return App_table::find('clients')
             $row[] = $aRow['userid'];
 
             // Company
-            $company  = e($aRow['company']);
+            $company  = ($aRow['company']);
             $isPerson = false;
 
             if ($company == '') {
@@ -111,13 +111,13 @@ return App_table::find('clients')
             $row[] = $company;
 
             // Primary contact
-            $row[] = ($aRow['contact_id'] ? '<a href="' . admin_url('clients/client/' . $aRow['userid'] . '?contactid=' . $aRow['contact_id']) . '" target="_blank">' . e(trim($aRow['fullname'])) . '</a>' : '');
+            $row[] = ($aRow['contact_id'] ? '<a href="' . admin_url('clients/client/' . $aRow['userid'] . '?contactid=' . $aRow['contact_id']) . '" target="_blank">' . (trim($aRow['fullname'])) . '</a>' : '');
 
             // Primary contact email
-            $row[] = ($aRow['email'] ? '<a href="mailto:' . e($aRow['email']) . '">' . e($aRow['email']) . '</a>' : '');
+            $row[] = ($aRow['email'] ? '<a href="mailto:' . ($aRow['email']) . '">' . ($aRow['email']) . '</a>' : '');
 
             // Primary contact phone
-            $row[] = ($aRow['phonenumber'] ? '<a href="tel:' . e($aRow['phonenumber']) . '">' . e($aRow['phonenumber']) . '</a>' : '');
+            $row[] = ($aRow['phonenumber'] ? '<a href="tel:' . ($aRow['phonenumber']) . '">' . ($aRow['phonenumber']) . '</a>' : '');
 
             // Toggle active/inactive customer
             $toggleActive = '<div class="onoffswitch" data-toggle="tooltip" data-title="' . _l('customer_active_inactive_help') . '">
@@ -141,7 +141,7 @@ return App_table::find('clients')
 
             $row[] = $groupsRow;
 
-            $row[] = e(_dt($aRow['datecreated']));
+            $row[] = (_dt($aRow['datecreated']));
 
             // Custom fields add values
             foreach ($customFieldsColumns as $customFieldColumn) {

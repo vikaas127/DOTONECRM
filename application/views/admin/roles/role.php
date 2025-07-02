@@ -65,7 +65,7 @@
                                  echo '<a href="' . admin_url('staff/profile/' . $staff['staffid']) . '">' . staff_profile_image($staff['staffid'], [
                                    'staff-profile-image-small',
                                  ]) . '</a>';
-                                 echo ' <a href="' . admin_url('staff/member/' . $staff['staffid']) . '">' . e($staff['firstname'] . ' ' . $staff['lastname']) . '</a>';
+                                 echo ' <a href="' . admin_url('staff/member/' . $staff['staffid']) . '">' . ($staff['firstname'] . ' ' . $staff['lastname']) . '</a>';
                                  ?>
                                         </td>
                                     </tr>

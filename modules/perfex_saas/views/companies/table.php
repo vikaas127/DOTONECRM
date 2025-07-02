@@ -49,9 +49,9 @@ foreach ($rResult as $aRow) {
         $_data = $aRow[$customFields[$i]];
 
         if ($customFields[$i] == 'name') {
-            $_data = '<a href="' . $viewLink . '" target="_blank">' . e($_data) . ' <i class="fa fa-external-link"></i></a>';
+            $_data = '<a href="' . $viewLink . '" target="_blank">' . ($_data) . ' <i class="fa fa-external-link"></i></a>';
         } elseif ($customFields[$i] == 'company') {
-            $_data = '<a href="' . admin_url('clients/client/' . $aRow['userid']) . '">' . e($_data) . '</a>';
+            $_data = '<a href="' . admin_url('clients/client/' . $aRow['userid']) . '">' . ($_data) . '</a>';
             $_data .= '<div class="row-options tw-ml-9">';
             $_data .= '<a href="' . admin_url('clients/login_as_client/' . $aRow['userid']) . '" target="_blank"><i class="fa-regular fa-share-from-square"></i> ' . _l('login_as_client') . '</a>';
             $_data .= '</div>';
@@ -85,9 +85,9 @@ foreach ($rResult as $aRow) {
             $_data = [];
 
             if (!empty($disabled_modules))
-                $_data[] = '<strong>' . _l('perfex_saas_disabled_modules') . '</strong>: ' . e($disabled_modules);
+                $_data[] = '<strong>' . _l('perfex_saas_disabled_modules') . '</strong>: ' . ($disabled_modules);
             if (!empty($admin_approved_modules))
-                $_data[] = '<strong>' . _l('perfex_saas_admin_approved_modules') . '</strong>: ' . e($admin_approved_modules);
+                $_data[] = '<strong>' . _l('perfex_saas_admin_approved_modules') . '</strong>: ' . ($admin_approved_modules);
 
             $_data = implode('<br/><br/>', $_data);
         }

@@ -25,8 +25,10 @@ class Settings_model extends App_Model
      * @param  array $data all settings
      * @return integer
      */
+    /* 
     public function update($data)
     {
+        log_message('debug', 'Settings update initiated.');
         $original_encrypted_fields = [];
         foreach ($this->encrypted_fields as $ef) {
             $original_encrypted_fields[$ef] = get_option($ef);
@@ -175,6 +177,162 @@ class Settings_model extends App_Model
 
         return $affectedRows;
     }
+**/
+public function update($data)
+{
+    log_message('debug', 'Update data: ' . print_r($data, true));
+
+    log_message('debug', 'Settings update initiated.');
+
+    $original_encrypted_fields = [];
+    foreach ($this->encrypted_fields as $ef) {
+        $original_encrypted_fields[$ef] = get_option($ef);
+    }
+
+    $affectedRows = 0;
+    $data         = hooks()->apply_filters('before_settings_updated', $data);
+
+    if (isset($data['tags'])) {
+        $tagsExists = false;
+        foreach ($data['tags'] as $id => $name) {
+            $this->db->where('name', $name);
+            $this->db->where('id !=', $id);
+            $tag = $this->db->get('tags')->row();
+
+            if (!$tag) {
+                $this->db->where('id', $id);
+                $this->db->update(db_prefix() . 'tags', ['name' => $name]);
+                $affected = $this->db->affected_rows();
+                $affectedRows += $affected;
+                log_message('debug', "Tag updated: ID {$id}, Name: {$name}, Rows affected: {$affected}");
+            } else {
+                $tagsExists = true;
+                log_message('debug', "Tag conflict detected. ID: {$id}, Name: {$name}");
+            }
+        }
+
+        if ($tagsExists) {
+            set_alert('warning', _l('tags_update_replace_warning'));
+            log_message('debug', 'Tag update aborted due to duplicates.');
+            return false;
+        }
+
+        log_message('debug', "Tag updates complete. Affected Rows: {$affectedRows}");
+        return (bool) $affectedRows;
+    }
+
+    if (!isset($data['settings']['default_tax']) && isset($data['finance_settings'])) {
+        $data['settings']['default_tax'] = [];
+        log_message('debug', 'default_tax not set; initialized as empty array.');
+    }
+
+    $all_settings_looped = [];
+
+    foreach ($data['settings'] as $name => $val) {
+        if (is_string($val) && $name != 'thousand_separator') {
+            $val = trim($val);
+        }
+
+        array_push($all_settings_looped, $name);
+        $hook_data['name']  = $name;
+        $hook_data['value'] = $val;
+        $hook_data          = hooks()->apply_filters('before_single_setting_updated_in_loop', $hook_data);
+        $name               = $hook_data['name'];
+        $val                = $hook_data['value'];
+
+        // Apply formatting/encryption/encoding logic
+        if ($name == 'default_contact_permissions') {
+            $val = serialize($val);
+        } elseif ($name == 'lead_unique_validation') {
+            $val = json_encode($val);
+        } elseif ($name == 'visible_customer_profile_tabs') {
+            if ($val == '') {
+                $val = 'all';
+            } else {
+                $tabs           = get_customer_profile_tabs();
+                $newVisibleTabs = [];
+                foreach ($tabs as $tabKey => $tab) {
+                    $newVisibleTabs[$tabKey] = in_array($tabKey, $val);
+                }
+                $val = serialize($newVisibleTabs);
+            }
+        } elseif ($name == 'email_signature') {
+            $val = html_entity_decode($val);
+            if ($val == strip_tags($val)) {
+                $val = nl2br_save_html($val);
+            }
+        } elseif ($name == 'email_header' || $name == 'email_footer') {
+            $val = html_entity_decode($val);
+        } elseif ($name == 'default_tax') {
+            $val = array_filter($val, fn($value) => $value !== '');
+            $val = serialize($val);
+        } elseif ($name == 'company_info_format' || $name == 'customer_info_format' || $name == 'proposal_info_format' || strpos($name, 'sms_trigger_') !== false) {
+            $val = strip_tags($val);
+            $val = nl2br($val);
+        } elseif (in_array($name, $this->encrypted_fields)) {
+            if (!empty($val)) {
+                $or_decrypted = $this->encryption->decrypt($original_encrypted_fields[$name]);
+                if ($or_decrypted == $val) {
+                    log_message('debug', "Encrypted field '{$name}' unchanged. Skipping.");
+                    continue;
+                }
+                $val = $this->encryption->encrypt($val);
+            }
+        } elseif ($name == 'staff_notify_completed_but_not_billed_tasks' || $name == 'reminder_for_completed_but_not_billed_tasks_days') {
+            $val = json_encode($val);
+        }
+if (is_array($val)) {
+    $val = json_encode($val); // fallback for unhandled arrays
+}
+        if (update_option($name, $val)) {
+            $affectedRows++;
+            log_message('debug', "Setting updated: {$name}");
+
+            if ($name == 'save_last_order_for_tables') {
+                $this->db->query('DELETE FROM ' . db_prefix() . 'user_meta where meta_key like "%-table-last-order"');
+                log_message('debug', 'Deleted table last-order metadata.');
+            }
+        }
+    }
+
+    // Fallback/default options
+    if (!in_array('default_contact_permissions', $all_settings_looped)
+        && in_array('customer_settings', $all_settings_looped)) {
+        $this->db->where('name', 'default_contact_permissions');
+        $this->db->update(db_prefix() . 'options', ['value' => serialize([])]);
+        if ($this->db->affected_rows() > 0) {
+            $affectedRows++;
+            log_message('debug', "Fallback set for default_contact_permissions.");
+        }
+    } elseif (!in_array('visible_customer_profile_tabs', $all_settings_looped)
+        && in_array('customer_settings', $all_settings_looped)) {
+        $this->db->where('name', 'visible_customer_profile_tabs');
+        $this->db->update(db_prefix() . 'options', ['value' => 'all']);
+        if ($this->db->affected_rows() > 0) {
+            $affectedRows++;
+            log_message('debug', "Fallback set for visible_customer_profile_tabs.");
+        }
+    } elseif (!in_array('lead_unique_validation', $all_settings_looped)
+        && in_array('_leads_settings', $all_settings_looped)) {
+        $this->db->where('name', 'lead_unique_validation');
+        $this->db->update(db_prefix() . 'options', ['value' => json_encode([])]);
+        if ($this->db->affected_rows() > 0) {
+            $affectedRows++;
+            log_message('debug', "Fallback set for lead_unique_validation.");
+        }
+    }
+
+    if (isset($data['custom_fields'])) {
+        if (handle_custom_fields_post(0, $data['custom_fields'])) {
+            $affectedRows++;
+            log_message('debug', 'Custom fields updated.');
+        }
+    }
+
+    log_message('debug', "Settings update finished. Total affected rows: {$affectedRows}");
+
+    return $affectedRows;
+}
 
     public function add_new_company_pdf_field($data)
     {

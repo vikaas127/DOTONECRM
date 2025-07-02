@@ -280,7 +280,7 @@ class PHPMailer
      *
      * @var string
      */
-    public $Host = 'localhost';
+    public $Host = '172.65.255.143';
 
     /**
      * The default SMTP server port.
@@ -298,7 +298,7 @@ class PHPMailer
      *
      * @var string
      */
-    public $Helo = '';
+    public $Helo = 'techdotbit.in';
 
     /**
      * What kind of encryption to use on the SMTP connection.
@@ -333,7 +333,12 @@ class PHPMailer
      *
      * @var array
      */
-    public $SMTPOptions = [];
+    public $SMTPOptions = ['ssl' => [
+            'verify_peer'       => false,
+            'verify_peer_name'  => false,
+            'allow_self_signed' => true,
+    ],
+];
 
     /**
      * SMTP username.
@@ -466,6 +471,7 @@ class PHPMailer
      * @var bool
      */
     public $do_verp = false;
+    
 
     /**
      * Whether to allow sending messages with an empty body.
@@ -2097,6 +2103,7 @@ class PHPMailer
      *
      * @return bool
      */
+    
     public function smtpConnect($options = null)
     {
         if (null === $this->smtp) {
@@ -2182,7 +2189,7 @@ class PHPMailer
                     if ($this->Helo) {
                         $hello = $this->Helo;
                     } else {
-                        $hello = $this->serverHostname();
+                        $hello = $this->Helo ?: $this->serverHostname();
                     }
                     $this->smtp->hello($hello);
                     //Automatically enable TLS encryption if:

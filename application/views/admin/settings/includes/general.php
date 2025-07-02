@@ -12,53 +12,10 @@
             ['id' => 'settings-form', 'class' => isset($tab['update_url']) ? 'custom-update-url' : '']
         );
         ?>
-        <div class="row">
-            <!-- Existing Content -->
-
-            <!-- Add the PWA Install Button Here -->
-            <div class="col-md-12">
-                <h4 class="tw-font-semibold tw-mt-0 tw-text-neutral-800">
-                    Install the PWA
-                </h4>
-                <button id="installPwaButton" class="btn btn-primary" style="display: none;">
-                    Install App
-                </button>
-            </div>
-        </div>
+       
         <?php echo form_close(); ?>
 
-        <!-- PWA Install Script -->
-        <script>
-        let deferredPrompt;
-
-        // Listen for the 'beforeinstallprompt' event
-        window.addEventListener('beforeinstallprompt', (e) => {
-            // Prevent the default mini-infobar from appearing
-            e.preventDefault();
-            // Save the event for later use
-            deferredPrompt = e;
-
-            // Make the install button visible
-            const installButton = document.getElementById('installPwaButton');
-            installButton.style.display = 'block';
-
-            // Add a click event listener to the install button
-            installButton.addEventListener('click', () => {
-                // Show the installation prompt
-                deferredPrompt.prompt();
-                // Wait for the user's response
-                deferredPrompt.userChoice.then((choiceResult) => {
-                    if (choiceResult.outcome === 'accepted') {
-                        console.log('User accepted the install prompt');
-                    } else {
-                        console.log('User dismissed the install prompt');
-                    }
-                    // Clear the deferred prompt
-                    deferredPrompt = null;
-                });
-            });
-        });
-        </script>
+       
     </div>
 </div>
 

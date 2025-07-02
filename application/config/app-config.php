@@ -17,7 +17,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
 * environments.
 *
 */
-define('APP_BASE_URL_DEFAULT', 'https://82.29.165.22/');
+define('APP_BASE_URL_DEFAULT', 'https://techdotbit.in');
 
 /*
 * --------------------------------------------------------------------------

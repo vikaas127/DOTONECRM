@@ -33,7 +33,7 @@ else
 <div class=" panel_s tw-p-4 tw-py-2
     <?= $package->is_default == '1' ? 'tw-bg-neutral-300' : 'tw-bg-neutral-100' ?> tw-flex tw-flex-col
     tw-justify-between"
-    <?= str_starts_with($package_group, 'private_') ? '' : 'data-package-group="' . e($package_group ?? '') . '"'; ?>>
+    <?= str_starts_with($package_group, 'private_') ? '' : 'data-package-group="' . ($package_group ?? '') . '"'; ?>>
     <div class="panel_body tw-flex tw-flex-col tw-items-center tw-justify-center text-center">
         <h3>
             <?= $package->name; ?>

@@ -81,6 +81,8 @@ class Authentication extends ClientsController
             redirect(site_url());
         }
 
+        $requiredFields = get_required_fields_for_registration();
+       
         $honeypot = get_option('enable_honeypot_spam_validation') == 1;
 
         $fields = [
@@ -94,6 +96,32 @@ class Authentication extends ClientsController
             $this->form_validation->set_rules($fields['company'], _l('client_company'), 'required');
         }
 
+    
+        
+        $emailRules = 'trim|is_unique[' . db_prefix() . 'contacts.email]|valid_email';
+
+        foreach(['contact', 'company'] as $fieldsKey) {
+            foreach($requiredFields[$fieldsKey] as $key => $field) {
+                $formKey = strafter($key, '_');
+
+                if(isset($fields[$formKey])) {
+                    $formKey = $fields[$formKey];
+                }
+                
+                if($key !== 'contact_email'){
+                    if($field['is_required']) {
+                        $this->form_validation->set_rules($formKey, $field['label'], 'required');
+                    }
+                } else {
+                    if($field['is_required']) {
+                        $emailRules .= '|required';
+                    }
+
+                    $this->form_validation->set_rules($formKey, $field['label'], $emailRules);
+                }
+            }
+        }
+
         if (is_gdpr() && get_option('gdpr_enable_terms_and_conditions') == 1) {
             $this->form_validation->set_rules(
                 'accept_terms_and_conditions',
@@ -102,10 +130,7 @@ class Authentication extends ClientsController
                 ['required' => _l('terms_and_conditions_validation')]
             );
         }
-
-        $this->form_validation->set_rules($fields['firstname'], _l('client_firstname'), 'required');
-        $this->form_validation->set_rules($fields['lastname'], _l('client_lastname'), 'required');
-        $this->form_validation->set_rules($fields['email'], _l('client_email'), 'trim|required|is_unique[' . db_prefix() . 'contacts.email]|valid_email');
+       
         $this->form_validation->set_rules('password', _l('clients_register_password'), 'required');
         $this->form_validation->set_rules('passwordr', _l('clients_register_password_repeat'), 'required|matches[password]');
 
@@ -165,32 +190,43 @@ class Authentication extends ClientsController
 
                 define('CONTACT_REGISTERING', true);
 
+                log_message('debug', 'Registration Data: ' . print_r($data, true));
+
                 $clientid = $this->clients_model->add([
-                      'billing_street'      => $data['address'],
-                      'billing_city'        => $data['city'],
-                      'billing_state'       => $data['state'],
-                      'billing_zip'         => $data['zip'],
-                      'billing_country'     => $countryId,
+
+                    //   'billing_street'      => $data['address'],
+                    //   'billing_city'        => $data['city'],
+                    //   'billing_state'       => $data['state'],
+                    //   'billing_zip'         => $data['zip'],
+                    //   'billing_country'     => $countryId,
                       'firstname'           => $data[$fields['firstname']],
                       'lastname'            => $data[$fields['lastname']],
+
                       'email'               => $data[$fields['email']],
                       'contact_phonenumber' => $data['contact_phonenumber'] ,
-                      'website'             => $data['website'],
-                      'title'               => $data['title'],
+                    //   'website'             => $data['website'],
+                    //   'title'               => $data['title'],
                       'password'            => $data['passwordr'],
                       'company'             => $data[$fields['company']],
                       'vat'                 => isset($data['vat']) ? $data['vat'] : '',
-                      'phonenumber'         => $data['phonenumber'],
-                      'country'             => $data['country'],
-                      'city'                => $data['city'],
-                      'address'             => $data['address'],
-                      'zip'                 => $data['zip'],
-                      'state'               => $data['state'],
+                    //   'phonenumber'         => $data['phonenumber'],
+                      'sector'       =>$data['sector'],
+                      'industry'       =>$data['industry'],
+                      'continue_from_date'            => $data['continue_from_date'],
+
+                    //   'country'             => $data['country'],
+                    //   'city'                => $data['city'],
+                    //   'address'             => $data['address'],
+                    //   'zip'                 => $data['zip'],
+                    //   'state'               => $data['state'],
                       'custom_fields'       => isset($data['custom_fields']) && is_array($data['custom_fields']) ? $data['custom_fields'] : [],
                       'default_language'    => (get_contact_language() != '') ? get_contact_language() : get_option('active_language'),
                 ], true);
 
                 if ($clientid) {
+                    log_message('debug', 'Client Registered: Client ID - ' . $clientid);
+                    log_message('debug', 'Registration saved Data: ' . print_r($data, true));
+
                     hooks()->do_action('after_client_register', $clientid);
 
                     if (get_option('customers_register_require_confirmation') == '1') {
@@ -226,6 +262,7 @@ class Authentication extends ClientsController
             }
         }
 
+        $data['requiredFields'] = $requiredFields;
         $data['title']     = _l('clients_register_heading');
         $data['bodyclass'] = 'register';
         $data['honeypot']  = $honeypot;
@@ -345,10 +382,6 @@ class Authentication extends ClientsController
 
         set_contact_language($lang);
 
-        if (isset($_SERVER['HTTP_REFERER']) && !empty($_SERVER['HTTP_REFERER'])) {
-            redirect($_SERVER['HTTP_REFERER']);
-        } else {
-            redirect(site_url());
-        }
+        //redirect(previous_url() ?: $_SERVER['HTTP_REFERER']);
     }
 }

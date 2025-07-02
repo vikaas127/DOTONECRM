@@ -105,8 +105,8 @@
                                                 if (count($contacts_logged_in_today) > 0) {
                                                     foreach ($contacts_logged_in_today as $contact) {
                                                         $url          = admin_url('clients/client/' . $contact['userid'] . '?contactid=' . $contact['id']);
-                                                        $fullName     = e($contact['firstname'] . ' ' . $contact['lastname']);
-                                                        $dateLoggedIn = e(_dt($contact['last_login']));
+                                                        $fullName     = ($contact['firstname'] . ' ' . $contact['lastname']);
+                                                        $dateLoggedIn = (_dt($contact['last_login']));
                                                         $html         = "<a href='$url' target='_blank'>$fullName</a><br /><small>$dateLoggedIn</small><br />";
                                                         $contactsTemplate .= html_escape('<p class="mbot5">' . $html . '</p>');
                                                     } ?>

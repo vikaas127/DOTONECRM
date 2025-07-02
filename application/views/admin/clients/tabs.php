@@ -14,7 +14,7 @@
             <?=isset($tab['badge']['type']) &&  $tab['badge']['type'] != '' ? "bg-{$tab['badge']['type']}" : 'bg-info' ?>"
               <?=(isset($tab['badge']['type']) &&  $tab['badge']['type'] == '') ||
                       isset($tab['badge']['color']) ? "style='background-color: {$tab['badge']['color']}'" : '' ?>>
-              <?= e($tab['badge']['value']) ?>
+              <?= ($tab['badge']['value']) ?>
           </span>
         <?php } ?>
       </a>

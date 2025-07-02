@@ -1478,5 +1478,5 @@ function perfex_saas_group_pricing_by_interval_alias($data)
  */
 function perfex_saas_ecape_js_attr($string)
 {
-    return e(addslashes($string));
+    return (addslashes($string));
 }

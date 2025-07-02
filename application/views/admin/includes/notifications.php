@@ -34,7 +34,7 @@
                 if ($notification['fromuserid'] != 0) {
                     echo staff_profile_image($notification['fromuserid'], ['staff-profile-image-small', 'img-circle notification-image', 'pull-left']);
                 } else {
-                    echo '<img src="' . e(contact_profile_image_url($notification['fromclientid'])) . '" class="client-profile-image-small img-circle pull-left notification-image">';
+                    echo '<img src="' . (contact_profile_image_url($notification['fromclientid'])) . '" class="client-profile-image-small img-circle pull-left notification-image">';
                 }
             }
             ?>
@@ -62,9 +62,9 @@
             if (($notification['fromcompany'] == null && $notification['fromuserid'] != 0)
             || ($notification['fromcompany'] == null && $notification['fromclientid'] != 0)) {
                 if ($notification['fromuserid'] != 0) {
-                    $description = e($notification['from_fullname']) . ' - ' . $description;
+                    $description = ($notification['from_fullname']) . ' - ' . $description;
                 } else {
-                    $description = e($notification['from_fullname']) . ' - ' . $description . '<br /><span class="label inline-block mtop5 label-info">' . _l('is_customer_indicator') . '</span>';
+                    $description = ($notification['from_fullname']) . ' - ' . $description . '<br /><span class="label inline-block mtop5 label-info">' . _l('is_customer_indicator') . '</span>';
                 }
             }
             echo '<span class="notification-title">' . $description . '</span>'; ?><br />
