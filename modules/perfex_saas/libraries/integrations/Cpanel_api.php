@@ -127,7 +127,7 @@ class Cpanel_api
     }
 
     public function createDatabaseUser($databaseUser, $databasePassword, $dbType = 'Mysql', $prefixSize = 8)
-    {
+    {log_message('info', "Creating DB user: {$databaseUser} (type: {$dbType})");
         $params = [
             'name' => $this->addPrefix($databaseUser),
             'password' => $databasePassword,

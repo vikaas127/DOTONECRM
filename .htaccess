@@ -1,6 +1,13 @@
 RewriteEngine on
-RewriteCond $1 !^(index\.php|resources|robots\.txt)
+
+# Only rewrite if the request is NOT already for index.php
+RewriteCond %{REQUEST_URI} !^/index\.php
+
+# Skip existing files and directories
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.*)$ index.php?/$1 [L,QSA]
+
+# Rewrite everything else to index.php
+RewriteRule ^(.*)$ index.php/$1 [L]
+
 AddDefaultCharset utf-8

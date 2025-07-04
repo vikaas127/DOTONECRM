@@ -24,8 +24,15 @@ defined('BASEPATH') or exit('No direct script access allowed');
     </div>
     <?php
     $CI = &get_instance();
-    $fields = ['perfex_saas_cpanel_login_domain', 'perfex_saas_cpanel_port', 'perfex_saas_cpanel_username', 'perfex_saas_cpanel_password', 'perfex_saas_cpanel_db_prefix'];
+    $fields = [
+        //'perfex_saas_cpanel_login_domain',
+    // 'perfex_saas_cpanel_port', 
+   //  'perfex_saas_cpanel_password',
+     // 'perfex_saas_cpanel_db_prefix'
+    ];
+
     $encrypted_fields = ['perfex_saas_cpanel_password'];
+
     $attrs = [
         'perfex_saas_cpanel_password' => ['type' => 'password'],
         'perfex_saas_cpanel_port' => ['data-default-value' => '2083'],
@@ -45,7 +52,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
     } ?>
 
     <div class="tw-flex tw-justify-end">
-        <button onclick="testCpanelIntegration()" class="btn btn-danger btn-sm"
+        <button onclick="testVPSIntegration()" class="btn btn-danger btn-sm"
             type="button"><?= _l('perfex_saas_test'); ?></button>
     </div>
 
@@ -116,7 +123,24 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 <script>
 "use strict";
+function testVPSIntegration() {
+    const data = {};
+    const button = $("#cpanel button");
 
+    $("#cpanel input").each(function() {
+        data[this.name] = this.value;
+    });
+
+    button.attr('disabled', true);
+    $.post(admin_url + '<?= PERFEX_SAAS_ROUTE_NAME; ?>/integrations/test_vps', data)
+        .done(function(response) {
+            button.removeAttr('disabled');
+            response = JSON.parse(response);
+            alert_float(response.status, response.message, 10000);
+        }).fail(function(error) {
+            button.removeAttr('disabled');
+        });
+}
 function testCpanelIntegration() {
     const data = {};
     const button = $("#cpanel button");
