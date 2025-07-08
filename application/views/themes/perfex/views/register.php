@@ -420,6 +420,7 @@ input.form-control:focus, input[type=color]:focus, input[type=date]:focus, input
                                             <label class="control-label" for="sector">
                                                 <?php if ($requiredFields['company']['sector']['is_required']) { ?>
                                                     <span class="text-danger">*</span>
+                                                    <?php echo _l('sector'); ?>
                                                 <?php } ?>
                                                 <?php echo $requiredFields['company']['sector']['label']; ?>
                                             </label>
@@ -473,6 +474,7 @@ input.form-control:focus, input[type=color]:focus, input[type=date]:focus, input
                                             <label class="control-label" for="industry">
                                                 <?php if ($requiredFields['company']['industry']['is_required']) { ?>
                                                     <span class="text-danger">*</span>
+                                                    <?php echo _l('industry'); ?>
                                                 <?php } ?>
                                                 <?php echo $requiredFields['company']['industry']['label']; ?>
                                             </label>

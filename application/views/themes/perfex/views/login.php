@@ -226,10 +226,9 @@ input.form-control:focus, input[type=color]:focus, input[type=date]:focus, input
         <?php echo form_open($this->uri->uri_string(), ['class' => 'login-form']); ?>
         <?php hooks()->do_action('clients_login_form_start'); ?>
     
-                <h1 class="tw-font-semibold login-heading text-center">
-                    <?php
-                    echo _l(get_option('allow_registration') == 1 ? 'clients_login_heading_register' : 'clients_login_heading_no_register');
-                    ?>
+                <h1 class="tw-font-semibold  text-center" style="font-size:25px">
+                    
+                            <?php echo _l('admin_auth_login_heading'); ?>
                 </h1>
                 <!-- <div class="d-flex tab-buttons">
                     <a href="<?php echo site_url('authentication/login'); ?>" class="btn-link active">Vendor</a>
@@ -292,7 +291,10 @@ input.form-control:focus, input[type=color]:focus, input[type=date]:focus, input
                         <?php echo _l('clients_login_login_string'); ?>
                     </button>
                 </div>
-
+                 <p class="text-left">
+                            Login as 
+                              <a href="<?php echo site_url('admin/authentication'); ?>" class="btn-link">Company</a>
+                </p>
                 <p style="margin-top: 15px; color:#337ab7;" class="text-center">
                     <?php if (get_option('allow_registration') == 1) { ?>
                         Don't have an account with us, 
