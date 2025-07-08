@@ -21,6 +21,8 @@ $lang['go_back']              = 'Go Back';
 $lang['error_uploading_file'] = 'Error uploading file';
 $lang['load_more']            = 'Load More';
 $lang['cant_delete_default']  = 'Cant delete default %s';
+$lang['sector']='Sector';
+$lang['industry']='Industry';
 
 # Invoice General
 $lang['invoice_status_paid']                   = 'Paid';

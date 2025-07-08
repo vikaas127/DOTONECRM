@@ -299,7 +299,11 @@ input.form-control:focus, input[type=color]:focus, input[type=date]:focus, input
             
                                     <?php } ?>
 
-</div>                       
+</div>  
+</div>
+<div class="row">
+
+
                                 <div class="col-md-6">
                                     <!-- <h4 class="bold register-contact-info-heading"><?php // echo _l('client_register_contact_info'); ?>
                                     </h4> -->
@@ -323,6 +327,8 @@ input.form-control:focus, input[type=color]:focus, input[type=date]:focus, input
                                         <?php echo form_error($fields['lastname']); ?>
                                     </div>
                                 </div>
+                                </div>
+                                <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group register-email-group">
                                         <label class="control-label" for="<?php echo ($fields['email']); ?>"><span
@@ -346,6 +352,8 @@ input.form-control:focus, input[type=color]:focus, input[type=date]:focus, input
                                         <?php echo form_error('contact_phonenumber'); ?>
                                     </div>
                                 </div>
+                                </div>
+                                <div class="row">
                                 <div class="col-md-6">
                                 <div class="form-group  register-continue_from_date-group ">
                                     <label class="control-label" for="continue_from_date">
@@ -381,6 +389,7 @@ input.form-control:focus, input[type=color]:focus, input[type=date]:focus, input
                                         <?php echo form_error('country'); ?>
                                     </div>
                                 </div>
+                                </div>
                                     <!-- <div class="form-group register-website-group">
                                         <label class="control-label" for="website">
                                             <?php if($requiredFields['contact']['contact_website']['is_required']) { ?>
@@ -404,6 +413,7 @@ input.form-control:focus, input[type=color]:focus, input[type=date]:focus, input
                                             value="<?php echo set_value('title'); ?>">
                                         <?php echo form_error('title'); ?>
                                     </div> -->
+                                    <div class="row">
                                 <div class="col-md-6">
                                        <?php
                                         $sectors = [
@@ -420,9 +430,8 @@ input.form-control:focus, input[type=color]:focus, input[type=date]:focus, input
                                             <label class="control-label" for="sector">
                                                 <?php if ($requiredFields['company']['sector']['is_required']) { ?>
                                                     <span class="text-danger">*</span>
-                                                    <?php echo _l('sector'); ?>
                                                 <?php } ?>
-                                                <?php echo $requiredFields['company']['sector']['label']; ?>
+                                            <?php echo _l('sector'); ?>
                                             </label>
                                             <select data-none-selected-text="<?php echo _l('dropdown_non_selected_tex'); ?>"
                                                     data-live-search="true" name="sector" class="form-control" id="sector">
@@ -474,9 +483,9 @@ input.form-control:focus, input[type=color]:focus, input[type=date]:focus, input
                                             <label class="control-label" for="industry">
                                                 <?php if ($requiredFields['company']['industry']['is_required']) { ?>
                                                     <span class="text-danger">*</span>
-                                                    <?php echo _l('industry'); ?>
                                                 <?php } ?>
-                                                <?php echo $requiredFields['company']['industry']['label']; ?>
+                                                                                            <?php echo _l('industry'); ?>
+
                                             </label>
                                             <select data-none-selected-text="<?php echo _l('dropdown_non_selected_tex'); ?>"
                                                     data-live-search="true" name="industry" class="form-control" id="industry">
@@ -491,6 +500,8 @@ input.form-control:focus, input[type=color]:focus, input[type=date]:focus, input
                                             <?php echo form_error('industry'); ?>
                                         </div>
                                 </div>
+                                </div>
+                                <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group register-password-group">
                                         <label class="control-label" for="password"><span class="text-danger">*</span>
@@ -499,6 +510,7 @@ input.form-control:focus, input[type=color]:focus, input[type=date]:focus, input
                                         <?php echo form_error('password'); ?>
                                     </div>
                                 </div>
+                                
                                 <div class="col-md-6">
                                    <div class="form-group register-password-repeat-group">
                                         <label class="control-label" for="passwordr"><span class="text-danger">*</span>
@@ -510,8 +522,8 @@ input.form-control:focus, input[type=color]:focus, input[type=date]:focus, input
                                         <?php echo render_custom_fields('contacts', '', ['show_on_client_portal' => 1]); ?>
                                     </div>
                                 </div>
-                                  
-                             
+                                  </div>
+
                                     <!-- <h4 class="bold register-company-info-heading"><?php // echo _l('client_register_company_info'); ?>
                                     </h4> -->
                                    
@@ -579,7 +591,6 @@ input.form-control:focus, input[type=color]:focus, input[type=date]:focus, input
                                     <div class="register-company-custom-fields">
                                         <?php echo render_custom_fields('customers', '', ['show_on_client_portal' => 1]); ?>
                                     </div>
-                                </div>
                                 <?php if (is_gdpr() && get_option('gdpr_enable_terms_and_conditions') == 1) { ?>
                                 <div class="col-md-12 register-terms-and-conditions-wrapper">
                                     <div class="text-center">
