@@ -35,6 +35,7 @@ class Companies extends AdminController
     /**
      * Create a new company.
      */
+    /*
     function create()
     {
         // Check permission to creat
@@ -119,7 +120,92 @@ class Companies extends AdminController
         // Show form to create a new company
         $data['title'] = _l('perfex_saas_companies');
         $this->load->view('companies/form', $data);
+    }*/
+function create()
+{
+    // Check permission to create
+    if (!staff_can('create', 'perfex_saas_companies')) {
+        log_message('error', 'Unauthorized access attempt to create company');
+        return access_denied('perfex_saas_companies');
     }
+
+    // Save company data
+    if ($this->input->post()) {
+        log_message('info', 'Create company request received');
+
+        // Perform validation and save the new company
+        $this->load->library('form_validation');
+        $this->form_validation->set_rules('name', _l('perfex_saas_name'), 'required');
+        $this->form_validation->set_rules('clientid',  _l('perfex_saas_customer'), 'required');
+        $this->form_validation->set_rules('db_scheme', _l('perfex_saas_db_scheme'), 'required');
+
+        if ($this->form_validation->run() !== false) {
+            $form_data = $this->input->post(NULL, true);
+            try {
+                log_message('info', 'Validation passed for company: ' . json_encode($form_data));
+
+                // Get the client invoice
+                $invoice  = $this->perfex_saas_model->get_company_invoice($form_data['clientid']);
+
+                if (!isset($invoice->db_scheme) || empty($invoice->db_scheme)) {
+                    log_message('error', 'No invoice scheme found for client ID: ' . $form_data['clientid']);
+                    throw new \Exception(_l('perfex_saas_no_invoice_client'), 1);
+                }
+
+                $form_data['dsn'] = '';
+                $db_scheme = $form_data['db_scheme'];
+
+                // Use the invoice package db scheme
+                if ($db_scheme == 'package') {
+                    log_message('info', 'Using package DB scheme');
+                    $form_data['dsn'] = '';
+                }
+
+                if ($db_scheme == 'single' || $db_scheme == 'multitenancy') {
+                    log_message('info', 'Using ' . $db_scheme . ' DB scheme');
+                    $invoice->db_scheme = $db_scheme;
+                    $form_data['dsn'] = '';
+                }
+
+                if ($db_scheme == 'shard') {
+                    log_message('info', 'Using shard DB scheme. Validating DSN');
+
+                    $validation = perfex_saas_is_valid_dsn($form_data['db_pools']);
+                    $dsn_string = perfex_saas_dsn_to_string($form_data['db_pools']);
+
+                    if ($validation !== true) {
+                        log_message('error', 'Invalid DSN: ' . $dsn_string . ' | Reason: ' . $validation);
+                        throw new \Exception($validation . ' using dsn: ' . str_ireplace(';', "; ", $dsn_string), 1);
+                    }
+
+                    $form_data['dsn'] = $dsn_string;
+                }
+
+                // Save only, deployment will be made as another job
+                $_id = $this->perfex_saas_model->create_or_update_company($form_data, $invoice);
+                if ($_id) {
+                    log_message('info', 'Company created successfully with ID: ' . $_id);
+                    set_alert('success', _l('added_successfully', _l('perfex_saas_company')));
+                    return redirect(admin_url(PERFEX_SAAS_ROUTE_NAME . '/companies'));
+                }
+
+                log_message('error', _l('perfex_saas_error_completing_action') . ':' . json_encode($this->db->error()));
+                throw new \Exception(_l('perfex_saas_error_completing_action'), 1);
+
+            } catch (\Exception $e) {
+                log_message('error', 'Exception during company creation: ' . $e->getMessage());
+                set_alert('danger', $e->getMessage());
+                return perfex_saas_redirect_back();
+            }
+        } else {
+            log_message('error', 'Company creation validation failed: ' . json_encode($this->form_validation->error_array()));
+        }
+    }
+
+    // Show form to create a new company
+    $data['title'] = _l('perfex_saas_companies');
+    $this->load->view('companies/form', $data);
+}
 
     /**
      * Edit an existing company.

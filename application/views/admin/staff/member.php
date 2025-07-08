@@ -458,7 +458,9 @@
                                             onclick="init_task_modal(<?php echo ($t['task_id']); ?>); return false;"><?php echo ($t['name']); ?></a>
                                     </td>
                                     <td data-order="<?php echo ($t['start_time']); ?>">
-                                        <?php echo ($t['start_time'], true); ?></td>
+                                        <?php echo ($t['start_time']); ?>
+                                    </td>
+
                                     <td data-order="<?php echo ($t['end_time']); ?>">
                                         <?php
                                  // Allow admins or timer user to stop forgotten timers by staff member
@@ -490,17 +492,17 @@
                                         <?php
                                  $rel_data   = get_relation_data($t['rel_type'], $t['rel_id']);
                                  $rel_values = get_relation_values($rel_data, $t['rel_type']);
-                                 echo '<a href="' . e($rel_values['link']) . '">' . e($rel_values['name']) . '</a>';
+                                 echo '<a href="' . ($rel_values['link']) . '">' . ($rel_values['name']) . '</a>';
                                  ?>
                                     </td>
                                     <td><?php echo (app_format_money($t['hourly_rate'], $base_currency)); ?></td>
                                     <td>
-                                        <?php echo '<b>' . e(seconds_to_time_format($t['end_time'] - $t['start_time'])) . '</b>'; ?>
+                                        <?php echo '<b>' . (seconds_to_time_format($t['end_time'] - $t['start_time'])) . '</b>'; ?>
                                     </td>
                                     <td data-order="<?php echo (sec2qty($t['total'])); ?>">
                                         <?php
                                  $total_logged_time[] = ['total' => $t['total'], 'hourly_rate' => $t['hourly_rate']];
-                                 echo '<b>' . e(sec2qty($t['total'])) . '</b>';
+                                 echo '<b>' . (sec2qty($t['total'])) . '</b>';
                                  ?>
                                     </td>
                                     <td>
@@ -523,7 +525,7 @@
                                     <td></td>
                                     <td></td>
                                     <td></td>
-                                    <td align="right"><?php echo '<b>' . _l('total_by_hourly_rate') . ':</b> ' . e(app_format_money(
+                                    <td align="right"><?php echo '<b>' . _l('total_by_hourly_rate') . ':</b> ' . (app_format_money(
                                   collect($total_logged_time)->reduce(function ($carry, $item) {
                                       return $carry + (sec2qty($item['total']) * (float) $item['hourly_rate']);
                                   }, 0),
@@ -531,12 +533,12 @@
                               )); ?>
                                     </td>
                                     <td align="right">
-                                        <?php echo '<b>' . _l('total_logged_hours_by_staff') . ':</b> ' . e(seconds_to_time_format(
+                                        <?php echo '<b>' . _l('total_logged_hours_by_staff') . ':</b> ' . (seconds_to_time_format(
                                             collect($total_logged_time)->pluck('total')->sum()
                                         )); ?>
                                     </td>
                                     <td align="right">
-                                        <?php echo '<b>' . _l('total_logged_hours_by_staff') . ':</b> ' . e(sec2qty(
+                                        <?php echo '<b>' . _l('total_logged_hours_by_staff') . ':</b> ' . (sec2qty(
                                             collect($total_logged_time)->pluck('total')->sum()
                                         )); ?>
                                     </td>

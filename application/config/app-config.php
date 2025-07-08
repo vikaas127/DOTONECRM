@@ -17,7 +17,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
 * environments.
 *
 */
-define('APP_BASE_URL_DEFAULT', 'https://techdotbit.in');
+define('APP_BASE_URL_DEFAULT', 'https://techdotbit.in/');
 
 /*
 * --------------------------------------------------------------------------
@@ -53,7 +53,7 @@ define('APP_DB_PASSWORD_DEFAULT', 'vikaas_TDB_@97');
 /**
  * The name of the database you want to connect to
  */
-define('APP_DB_NAME_DEFAULT', 'DOTONECRM');
+define('APP_DB_NAME_DEFAULT', 'dotonecrm');
 
 /**
  * @since  2.3.0

@@ -34,12 +34,12 @@ if (get_option('smtp_username') == '') {
     $config['smtp_user'] = trim(get_option('smtp_username'));
 }
 //zwQ^Vu4uE~7
-$config['smtp_pass']    = 'Ge!&SVrqqi0+';
-//$config['smtp_pass']    = get_instance()->encryption->decrypt(get_option('smtp_password'));
+//$config['smtp_pass']    = '';
+$config['smtp_pass']    = get_instance()->encryption->decrypt(get_option('smtp_password'));
 
 $config['smtp_port']    = trim(get_option('smtp_port'));
-$config['smtp_timeout'] = 30;
-$config['smtp_crypto']  = get_option('smtp_encryption');
+$config['smtp_timeout'] = 130;
+$config['smtp_crypto']  = 'tls';
 $config['smtp_debug']   = 0;                        // PHPMailer's SMTP debug info level: 0 = off, 1 = commands, 2 = commands and data, 3 = s 2 plus connection status, 4 = low level data output.
 
 $config['debug_output'] = 'html';                       // PHPMailer's SMTP debug output: 'html', 'echo', 'error_log' or user defined unction with parameter $str and $level. NULL or '' means 'echo' on CLI, 'html' otherwise.
@@ -48,9 +48,9 @@ $config['smtp_auto_tls'] = false;                     // Whether to enable TLS e
 
 $config['smtp_conn_options'] = [
     'ssl' => [
-        'verify_peer' => false,
-        'verify_peer_name' => false,
-        'allow_self_signed' => true,
+       // 'verify_peer' => false,
+      //  'verify_peer_name' => false,
+        //'allow_self_signed' => true,
     ],
      'socket' => [
         'bindto' => '0.0.0.0:0', // Force IPv4 instead of IPv6

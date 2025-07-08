@@ -375,7 +375,7 @@
                             </a>
                             <br />
                             <span class="inline-block tw-mt-1">
-                                <?php echo '<span class="bold">' . e(_d($recurring->date)) . '</span>'; ?><br />
+                                <?php echo '<span class="bold">' . (_d($recurring->date)) . '</span>'; ?><br />
                                 <?php echo format_invoice_status($recurring->status, '', false); ?>
                             </span>
                         </li>
@@ -452,7 +452,7 @@
                       }
 
                       if (!empty($activity['full_name'])) {
-                          $_formatted_activity = e($activity['full_name']) . ' - ' . $_formatted_activity;
+                          $_formatted_activity = ($activity['full_name']) . ' - ' . $_formatted_activity;
                       }
 
                       echo $_formatted_activity;

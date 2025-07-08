@@ -59,7 +59,7 @@
                             </label>
                             <?php
                       if (isset($permission['help']) && array_key_exists($capability, $permission['help'])) {
-                          echo '<i class="fa-regular fa-circle-question" data-toggle="tooltip" data-title="' . e($permission['help'][$capability]) . '"></i>';
+                          echo '<i class="fa-regular fa-circle-question" data-toggle="tooltip" data-title="' . ($permission['help'][$capability]) . '"></i>';
                       } ?>
                         </div>
                     </div>

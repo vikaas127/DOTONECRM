@@ -65,12 +65,12 @@ if (isset($invoice->scheduled_email) && $invoice->scheduled_email) { ?>
                 </span>
                 <?php
             if ($recurring_invoice->cycles == 0 || $recurring_invoice->cycles != $recurring_invoice->total_cycles) {
-                echo '<span class="label label-info tw-ml-1"><i class="fa-regular fa-circle-question fa-fw tw-mr-1" data-toggle="tooltip" data-title="' . _l('recurring_recreate_hour_notice', _l('invoice')) . '"></i> ' . _l('next_invoice_date', '&nbsp;<b>' . e(_d($next_date)) . '</b>') . '</span>';
+                echo '<span class="label label-info tw-ml-1"><i class="fa-regular fa-circle-question fa-fw tw-mr-1" data-toggle="tooltip" data-title="' . _l('recurring_recreate_hour_notice', _l('invoice')) . '"></i> ' . _l('next_invoice_date', '&nbsp;<b>' . (_d($next_date)) . '</b>') . '</span>';
             }
          } ?>
             </div>
             <?php if ($invoice->is_recurring_from != null) { ?>
-            <?php echo '<p class="text-muted' . ($show_recurring_invoice_info ? ' mtop15': '') . '">' . _l('invoice_recurring_from', '<a href="' . admin_url('invoices/list_invoices/' . $invoice->is_recurring_from) . '" onclick="init_invoice(' . $invoice->is_recurring_from . ');return false;">' . e(format_invoice_number($invoice->is_recurring_from)) . '</a></p>'); ?>
+            <?php echo '<p class="text-muted' . ($show_recurring_invoice_info ? ' mtop15': '') . '">' . _l('invoice_recurring_from', '<a href="' . admin_url('invoices/list_invoices/' . $invoice->is_recurring_from) . '" onclick="init_invoice(' . $invoice->is_recurring_from . ');return false;">' . (format_invoice_number($invoice->is_recurring_from)) . '</a></p>'); ?>
             <?php } ?>
         </div>
         <div class="clearfix"></div>
@@ -82,7 +82,7 @@ if (isset($invoice->scheduled_email) && $invoice->scheduled_email) { ?>
             <h4 class="font-medium mtop15 mbot20"><?php echo _l('related_to_project', [
          _l('invoice_lowercase'),
          _l('project_lowercase'),
-         '<a href="' . admin_url('projects/view/' . $invoice->project_id) . '" target="_blank">' . e($invoice->project_data->name) . '</a>',
+         '<a href="' . admin_url('projects/view/' . $invoice->project_id) . '" target="_blank">' . ($invoice->project_data->name) . '</a>',
          ]); ?></h4>
         </div>
         <?php } ?>
@@ -91,7 +91,7 @@ if (isset($invoice->scheduled_email) && $invoice->scheduled_email) { ?>
                 <?php
                     $tags = get_tags_in($invoice->id, 'invoice');
                     if (count($tags) > 0) {
-                        echo '<i class="fa fa-tag" aria-hidden="true" data-toggle="tooltip" data-title="' . e(implode(', ', $tags)) . '"></i>';
+                        echo '<i class="fa fa-tag" aria-hidden="true" data-toggle="tooltip" data-title="' . (implode(', ', $tags)) . '"></i>';
                     }
                 ?>
                 <a href="<?php echo admin_url('invoices/invoice/' . $invoice->id); ?>">
@@ -192,7 +192,7 @@ if (isset($invoice->scheduled_email) && $invoice->scheduled_email) { ?>
                     <?php } ?>
                     <?php
                         foreach ($items->taxes() as $tax) {
-                            echo '<tr class="tax-area"><td class="bold !tw-text-neutral-700">' . e($tax['taxname']) . ' (' . e(app_format_number($tax['taxrate'])) . '%)</td><td>' . e(app_format_money($tax['total_tax'], $invoice->currency_name)) . '</td></tr>';
+                            echo '<tr class="tax-area"><td class="bold !tw-text-neutral-700">' . ($tax['taxname']) . ' (' . (app_format_number($tax['taxrate'])) . '%)</td><td>' . (app_format_money($tax['total_tax'], $invoice->currency_name)) . '</td></tr>';
                         }
                     ?>
                     <?php if ((int)$invoice->adjustment != 0) { ?>

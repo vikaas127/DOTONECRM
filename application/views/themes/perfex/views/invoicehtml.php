@@ -379,7 +379,7 @@
                                     </span>
                                 </div>
                                 <?php } else {
-                             echo '<h4 class="bold mbot25">' . e(_l('invoice_html_total_pay', app_format_money($invoice->total_left_to_pay, $invoice->currency_name))) . '</h4>';
+                             echo '<h4 class="bold mbot25">' . (_l('invoice_html_total_pay', app_format_money($invoice->total_left_to_pay, $invoice->currency_name))) . '</h4>';
                          } ?>
                             </div>
                             <div id="pay_button">
