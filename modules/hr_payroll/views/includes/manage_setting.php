@@ -26,6 +26,10 @@
 								$icon['data_integration'] = '<span class="fa fa-chain-broken"></span>';
 								$icon['permissions'] = '<span class="fa fa-unlock-alt"></span>';
 								$icon['insurance_list'] = '<span class="fa-brands fa-get-pocket"></span>';
+								$icon['reimbursement_list'] = '<span class="fa-solid fa-hand-holding-dollar"></span>';
+
+                                $icon['benefit_list'] = '<span class="fa-solid fa-gift"></span>';
+
 								$icon['reset_data'] = '<span class="fa fa-window-close-o"></span>';
 								$icon['currency_rates'] = '<span class="fa-solid fa-scale-unbalanced"></span>';
 
@@ -50,6 +54,9 @@
 								echo new_html_entity_decode($icon[$gr] .' '. _l($gr)); 
 
 							}elseif($gr == 'insurance_list'){
+								echo new_html_entity_decode($icon[$gr] .' '. _l($gr)); 
+
+							}elseif($gr == 'reimbursement_list'){
 								echo new_html_entity_decode($icon[$gr] .' '. _l($gr)); 
 
 							}elseif($gr == 'company_contributions_list'){
@@ -101,6 +108,7 @@
 
 <?php 
 $viewuri = $_SERVER['REQUEST_URI'];
+
  ?>
 
 <?php if(!(strpos($viewuri,'admin/hr_payroll/setting?group=income_tax_rates') === false)){ 
@@ -123,10 +131,15 @@ $viewuri = $_SERVER['REQUEST_URI'];
 	require 'modules/hr_payroll/assets/js/settings/permissions_js.php';
 }elseif(!(strpos($viewuri,'admin/hr_payroll/setting?group=insurance_list') === false)){
 	require 'modules/hr_payroll/assets/js/settings/insurance_list_js.php';
+}elseif(!(strpos($viewuri,'admin/hr_payroll/setting?group=reimbursement_list') === false)){
+	require 'modules/hr_payroll/assets/js/settings/reimbursement_list_js.php';
 }elseif(!(strpos($viewuri,'admin/hr_payroll/setting?group=currency_rates') === false)){
 	require 'modules/hr_payroll/assets/js/settings/currency_rates_js.php';
 }
 
  ?>
+
+
+
 </body>
 </html>

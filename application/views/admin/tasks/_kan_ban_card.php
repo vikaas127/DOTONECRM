@@ -18,7 +18,7 @@
                    $relName = task_rel_name($task['rel_name'], $task['rel_id'], $task['rel_type']);
                    $link    = task_rel_link($task['rel_id'], $task['rel_type']);
 
-                   echo '<a class="tw-text-neutral-600 tw-truncate -tw-mt-1 tw-block tw-text-sm" data-toggle="tooltip" title="' . _l('task_related_to') . '" href="' . e($link) . '">' . e($relName) . '</a>';
+                   echo '<a class="tw-text-neutral-600 tw-truncate -tw-mt-1 tw-block tw-text-sm" data-toggle="tooltip" title="' . _l('task_related_to') . '" href="' .($link) . '">' .($relName) . '</a>';
                }
                ?>
             </div>

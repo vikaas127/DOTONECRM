@@ -4,7 +4,7 @@
 <div id="wrapper">
 
 	<div class="content">
-		<div class="panel_s">
+	<div class="panel_s">
 			<?php echo form_open_multipart(admin_url('hr_payroll/view_payslip_detail'),array('id'=>'spreadsheet-test-form'));?>
 			<div id="luckysheet"></div>
 			<?php 

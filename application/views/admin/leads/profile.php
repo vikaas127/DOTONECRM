@@ -154,36 +154,36 @@
                     <dt class="lead-field-heading tw-font-medium tw-text-neutral-500">
                         <?php echo _l('lead_add_edit_name'); ?></dt>
                     <dd class="tw-text-neutral-900 tw-mt-1 lead-name">
-                        <?php echo(isset($lead) && $lead->name != '' ? e($lead->name) : '-') ?></dd>
+                        <?php echo(isset($lead) && $lead->name != '' ? ($lead->name) : '-') ?></dd>
                     <dt class="lead-field-heading tw-font-medium tw-text-neutral-500"><?php echo _l('lead_title'); ?>
                     </dt>
                     <dd class="tw-text-neutral-900 tw-mt-1">
-                        <?php echo(isset($lead) && $lead->title != '' ? e($lead->title) : '-') ?>
+                        <?php echo(isset($lead) && $lead->title != '' ? ($lead->title) : '-') ?>
                     </dd>
                     <dt class="lead-field-heading tw-font-medium tw-text-neutral-500">
                         <?php echo _l('lead_add_edit_email'); ?></dt>
                     <dd class="tw-text-neutral-900 tw-mt-1">
-                        <?php echo(isset($lead) && $lead->email != '' ? '<a href="mailto:' . e($lead->email) . '">' . e($lead->email) . '</a>' : '-') ?>
+                        <?php echo(isset($lead) && $lead->email != '' ? '<a href="mailto:' . ($lead->email) . '">' . ($lead->email) . '</a>' : '-') ?>
                     </dd>
                     <dt class="lead-field-heading tw-font-medium tw-text-neutral-500"><?php echo _l('lead_website'); ?>
                     </dt>
                     <dd class="tw-text-neutral-900 tw-mt-1">
-                        <?php echo(isset($lead) && $lead->website != '' ? '<a href="' . e(maybe_add_http($lead->website)) . '" target="_blank">' . e($lead->website) . '</a>' : '-') ?>
+                        <?php echo(isset($lead) && $lead->website != '' ? '<a href="' . (maybe_add_http($lead->website)) . '" target="_blank">' . ($lead->website) . '</a>' : '-') ?>
                     </dd>
                     <dt class="lead-field-heading tw-font-medium tw-text-neutral-500">
                         <?php echo _l('lead_add_edit_phonenumber'); ?></dt>
                     <dd class="tw-text-neutral-900 tw-mt-1">
-                        <?php echo(isset($lead) && $lead->phonenumber != '' ? '<a href="tel:' . e($lead->phonenumber) . '">' . e($lead->phonenumber) . '</a>' : '-') ?>
+                        <?php echo(isset($lead) && $lead->phonenumber != '' ? '<a href="tel:' . ($lead->phonenumber) . '">' . ($lead->phonenumber) . '</a>' : '-') ?>
                     </dd>
                     <dt class="lead-field-heading tw-font-medium tw-text-neutral-500"><?php echo _l('lead_value'); ?>
                     </dt>
                     <dd class="tw-text-neutral-900 tw-mt-1">
-                        <?php echo(isset($lead) && $lead->lead_value != 0 ? e(app_format_money($lead->lead_value, $base_currency->id)) : '-') ?>
+                        <?php echo(isset($lead) && $lead->lead_value != 0 ? (app_format_money($lead->lead_value, $base_currency->id)) : '-') ?>
                     </dd>
                     <dt class="lead-field-heading tw-font-medium tw-text-neutral-500"><?php echo _l('lead_company'); ?>
                     </dt>
                     <dd class="tw-text-neutral-900 tw-mt-1">
-                        <?php echo(isset($lead) && $lead->company != '' ? e($lead->company) : '-') ?></dd>
+                        <?php echo(isset($lead) && $lead->company != '' ? ($lead->company) : '-') ?></dd>
                     <dt class="lead-field-heading tw-font-medium tw-text-neutral-500"><?php echo _l('lead_address'); ?>
                     </dt>
                     <dd class="tw-text-neutral-900 tw-mt-1">
@@ -191,20 +191,20 @@
                     <dt class="lead-field-heading tw-font-medium tw-text-neutral-500"><?php echo _l('lead_city'); ?>
                     </dt>
                     <dd class="tw-text-neutral-900 tw-mt-1">
-                        <?php echo(isset($lead) && $lead->city != '' ? e($lead->city) : '-') ?></dd>
+                        <?php echo(isset($lead) && $lead->city != '' ? ($lead->city) : '-') ?></dd>
                     <dt class="lead-field-heading tw-font-medium tw-text-neutral-500"><?php echo _l('lead_state'); ?>
                     </dt>
                     <dd class="tw-text-neutral-900 tw-mt-1">
-                        <?php echo(isset($lead) && $lead->state != '' ? e($lead->state) : '-') ?>
+                        <?php echo(isset($lead) && $lead->state != '' ? ($lead->state) : '-') ?>
                     </dd>
                     <dt class="lead-field-heading tw-font-medium tw-text-neutral-500"><?php echo _l('lead_country'); ?>
                     </dt>
                     <dd class="tw-text-neutral-900 tw-mt-1">
-                        <?php echo(isset($lead) && $lead->country != 0 ? e(get_country($lead->country)->short_name) : '-') ?>
+                        <?php echo(isset($lead) && $lead->country != 0 ? (get_country($lead->country)->short_name) : '-') ?>
                     </dd>
                     <dt class="lead-field-heading tw-font-medium tw-text-neutral-500"><?php echo _l('lead_zip'); ?></dt>
                     <dd class="tw-text-neutral-900 tw-mt-1">
-                        <?php echo(isset($lead) && $lead->zip != '' ? e($lead->zip) : '-') ?></dd>
+                        <?php echo(isset($lead) && $lead->zip != '' ? ($lead->zip) : '-') ?></dd>
                 </dl>
             </div>
             <div class="col-md-4 col-xs-12 lead-information-col">
@@ -220,7 +220,7 @@
                     <dd class="tw-text-neutral-900 tw-mt-2 mbot15">
                         <?php
                             if (isset($lead)) {
-                                echo $lead->status_name != '' ? ('<span class="lead-status-' . e($lead->status) . ' label' . (empty($lead->color) ? ' label-default': '') . '" style="color:' . e($lead->color) . ';border:1px solid ' . adjust_hex_brightness($lead->color, 0.4) . ';background: ' . adjust_hex_brightness($lead->color, 0.04) . ';">' . e($lead->status_name) . '</span>') : '-';
+                                echo $lead->status_name != '' ? ('<span class="lead-status-' . ($lead->status) . ' label' . (empty($lead->color) ? ' label-default': '') . '" style="color:' . ($lead->color) . ';border:1px solid ' . adjust_hex_brightness($lead->color, 0.4) . ';background: ' . adjust_hex_brightness($lead->color, 0.04) . ';">' . ($lead->status_name) . '</span>') : '-';
                             } else {
                                 echo '-';
                             }
@@ -229,19 +229,19 @@
                     <dt class="lead-field-heading tw-font-medium tw-text-neutral-500">
                         <?php echo _l('lead_add_edit_source'); ?></dt>
                     <dd class="tw-text-neutral-900 tw-mt-1 mbot15">
-                        <?php echo(isset($lead) && $lead->source_name != '' ? e($lead->source_name) : '-') ?></dd>
+                        <?php echo(isset($lead) && $lead->source_name != '' ? ($lead->source_name) : '-') ?></dd>
                     <?php if (!is_language_disabled()) { ?>
                     <dt class="lead-field-heading tw-font-medium tw-text-neutral-500">
                         <?php echo _l('localization_default_language'); ?>
                     </dt>
                     <dd class="tw-text-neutral-900 tw-mt-1 mbot15">
-                        <?php echo(isset($lead) && $lead->default_language != '' ? e(ucfirst($lead->default_language)) : _l('system_default_string')) ?>
+                        <?php echo(isset($lead) && $lead->default_language != '' ? (ucfirst($lead->default_language)) : _l('system_default_string')) ?>
                     </dd>
                     <?php } ?>
                     <dt class="lead-field-heading tw-font-medium tw-text-neutral-500">
                         <?php echo _l('lead_add_edit_assigned'); ?></dt>
                     <dd class="tw-text-neutral-900 tw-mt-1 mbot15">
-                        <?php echo(isset($lead) && $lead->assigned != 0 ? e(get_staff_full_name($lead->assigned)) : '-') ?>
+                        <?php echo(isset($lead) && $lead->assigned != 0 ? (get_staff_full_name($lead->assigned)) : '-') ?>
                     </dd>
                     <dt class="lead-field-heading tw-font-medium tw-text-neutral-500"><?php echo _l('tags'); ?></dt>
                     <dd class="tw-text-neutral-900 tw-mt-1 mbot10">
@@ -260,12 +260,12 @@
                     <dt class="lead-field-heading tw-font-medium tw-text-neutral-500">
                         <?php echo _l('leads_dt_datecreated'); ?></dt>
                     <dd class="tw-text-neutral-900 tw-mt-1">
-                        <?php echo(isset($lead) && $lead->dateadded != '' ? '<span class="text-has-action" data-toggle="tooltip" data-title="' . e(_dt($lead->dateadded)) . '">' . e(time_ago($lead->dateadded)) . '</span>' : '-') ?>
+                        <?php echo(isset($lead) && $lead->dateadded != '' ? '<span class="text-has-action" data-toggle="tooltip" data-title="' . (_dt($lead->dateadded)) . '">' . (time_ago($lead->dateadded)) . '</span>' : '-') ?>
                     </dd>
                     <dt class="lead-field-heading tw-font-medium tw-text-neutral-500">
                         <?php echo _l('leads_dt_last_contact'); ?></dt>
                     <dd class="tw-text-neutral-900 tw-mt-1">
-                        <?php echo(isset($lead) && $lead->lastcontact != '' ? '<span class="text-has-action" data-toggle="tooltip" data-title="' . e(_dt($lead->lastcontact)) . '">' . e(time_ago($lead->lastcontact)) . '</span>' : '-') ?>
+                        <?php echo(isset($lead) && $lead->lastcontact != '' ? '<span class="text-has-action" data-toggle="tooltip" data-title="' . (_dt($lead->lastcontact)) . '">' . (time_ago($lead->lastcontact)) . '</span>' : '-') ?>
                     </dd>
                     <dt class="lead-field-heading tw-font-medium tw-text-neutral-500"><?php echo _l('lead_public'); ?>
                     </dt>

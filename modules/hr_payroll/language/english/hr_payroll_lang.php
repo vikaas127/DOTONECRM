@@ -49,7 +49,7 @@ $lang['ps_it_rebate_value']													= 'Income tax rebate value';
 $lang['ps_commission_amount']												= 'Commission amount';
 $lang['ps_bonus_kpi']														= 'Bonus kpi';
 $lang['ps_total_cost']														= 'Total cost';
-$lang['ps_total_insurance']													= 'Total insurance';
+$lang['ps_total_insurance']													= 'Total Benefits';
 $lang['employee_details']													= 'Employee Details';
 $lang['monthly_pay_for']													= 'Monthly Pay for';
 $lang['deduction_list']														= 'Deduction list';
@@ -167,7 +167,7 @@ $lang['hr_payroll_employee']	 											= 'HR payroll employees';
 $lang['hr_payroll_attendance']	 											= 'HR payroll attendances';
 $lang['hr_payroll_deduction']	 											= 'HR payroll deductions';
 $lang['hr_payroll_bonus_kpi']	 											= 'HR payroll bonus kpi';
-$lang['hr_payroll_insurrance']	 											= 'HR payroll insurances';
+$lang['hr_payroll_insurrance']	 											= 'HR payroll benefits';
 $lang['hr_payroll_payslip']	 												= 'HR payroll payslips';
 $lang['hr_payroll_payslip_template']	 									= 'HR payroll payslip templates';
 $lang['hr_payroll_income_tax']	 											= 'HR payroll income taxes';
@@ -178,9 +178,9 @@ $lang['deduction_manage']	 												= 'Deductions';
 $lang['hrp_deduction_manage']	 											= 'Deductions';
 $lang['hrp_income_tax']	 													= 'Income taxes';
 $lang['income_tax']	 														= 'Income taxes';
-$lang['hrp_insurrance']	 													= 'Insurance';
-$lang['insurance_list']	 													= 'Insurance List';
-$lang['hrp_salary_insurances']	 											= 'Staff insurance';
+$lang['hrp_insurrance']	 													= 'Benefit';
+$lang['insurance_list']	 													= 'Benefit List';
+$lang['hrp_salary_insurances']	 											= 'Staff benefit';
 $lang['probationary_effective']	 											= 'Effective date of CT1';
 $lang['probationary_expiration']	 										= 'Expiration date of CT1';
 $lang['primary_effective']	 												= 'Effective date of CT2';
@@ -196,7 +196,7 @@ $lang['file_xlsx_commissions2']	 											= 'Can only be updated (the column i
 $lang['hrp_reports']	 													= 'Reports';
 $lang['hr_payslip_report']	 												= 'Payroll report';
 $lang['hr_income_summary_report']	 										= 'Income summary report';
-$lang['hr_insurance_cost_summary_report']	 								= 'Insurance cost summary report';
+$lang['hr_insurance_cost_summary_report']	 								= 'Benefit cost summary report';
 $lang['month_1']        													= 'January';
 $lang['month_2']        													= 'February';
 $lang['month_3']        													= 'March';
@@ -252,7 +252,7 @@ $lang['an_error_occurred_while_creating_a_payslip_to_download']             = 'A
 $lang['copy_from_last_month']             									= 'Copy from last month';
 $lang['hrp_copy']             												= 'Copy';
 $lang['No_data_for_the_previous_month']             						= 'No data for the previous month';
-$lang['hrp_reset_data_title']             							= 'All related data: Employees, attendances, Commissions, Deductions, Bonus kpi, Insurance, Payslips will be deleted';
+$lang['hrp_reset_data_title']             							= 'All related data: Employees, attendances, Commissions, Deductions, Bonus kpi, Benefits, Payslips will be deleted';
 $lang['hrp_probation_contract']             								= 'Probation contract';
 $lang['hrp_formal_contract']             									= 'Formal contract';
 $lang['hrp_salary']             											= 'Salary';
@@ -302,3 +302,38 @@ $lang['hrp_updated_at']	 								 = 'Updated At';
 $lang['hrp_get_online_currency_rates']	 								 = 'Get Online Currency Rates';
 $lang['hrp_edit_currency_rate']	 								 = 'Edit Currency Rate';
 $lang['hrp_to']	 								 = 'To';
+
+$lang['hrp_reimbursement_manage'] = 'Manage Reimbursements';
+$lang['hrp_salary_reimbursements'] = 'Salary Reimbursements';
+$lang['hr_payroll_reimbursement']= "Reimbursement";
+
+
+$lang['reimbursement_list'] = 'Reimbursement List';
+$lang['reimbursement_type'] = 'Reimbursement Type';
+$lang['name_in_payslip'] = 'Name in Payslip';
+$lang['is_fbp_component'] = 'Is FBP Component';
+$lang['restrict_fbp_override'] = 'Restrict FBP Override';
+$lang['unclaimed_handling'] = 'Unclaimed Handling';
+$lang['max_monthly_amount'] = 'Maximum Monthly Amount';
+$lang['is_active'] = 'Is Active';
+$lang['carry_forward_encash_year_end'] = 'Carry Forward / Encash at Year End';
+$lang['encash_monthly'] = 'Encash Monthly';
+$lang['add_reimbursement'] = 'Add Reimbursement';
+$lang['edit_reimbursement'] = 'Edit Reimbursement';
+$lang['view_reimbursement'] = 'View Reimbursement';
+$lang['code'] = 'Code';
+$lang['basis'] = 'Basis';
+$lang['benefit_plan_type'] = 'Benefit Plan Type';
+$lang['associated_section'] = 'Associated Section';
+$lang['add_insurance'] = 'Add Insurance';
+$lang['edit_insurance'] = 'Edit Insurance';
+$lang['view_insurance'] = 'View Insurance';
+$lang['select'] = 'Select';
+$lang['include_employer_contribution'] = 'Include Employer Contribution';
+$lang['is_superannuation_fund'] = 'Is Superannuation Fund';
+$lang['calculate_pro_rata'] = 'Calculate Pro Rata';
+
+
+
+
+

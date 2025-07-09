@@ -112,7 +112,7 @@
                     data-none-selected-text="<?php echo _l('dropdown_non_selected_tex'); ?>">
                     <?php
                      if (isset($subscription) && $subscription->project_id) {
-                         echo '<option value="' . $subscription->project_id . '" selected>' . e(get_project_name_by_id($subscription->project_id)) . '</option>';
+                         echo '<option value="' . $subscription->project_id . '" selected>' .(get_project_name_by_id($subscription->project_id)) . '</option>';
                      }
                    ?>
                 </select>

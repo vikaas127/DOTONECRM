@@ -21,7 +21,7 @@
                     <?php
                         $custom_fields = get_custom_fields('credit_note', ['show_on_table' => 1]);
                         foreach ($custom_fields as $field) {
-                            echo '<td class="bold">' . e($field['name']) . '</td>';
+                            echo '<td class="bold">' .($field['name']) . '</td>';
                         }
                     ?>
                     <th><span class="bold"><?php echo _l('credit_amount'); ?></span></th>

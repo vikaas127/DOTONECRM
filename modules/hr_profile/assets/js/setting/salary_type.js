@@ -4,49 +4,78 @@ appValidateForm($('#salary_form_manage'), {
     warehouse_name: 'required',
     
 });
+function new_salary_form() {
+  'use strict';
 
-function new_salary_form(){
-    'use strict';
+  $('#salary_form').modal('show');
+  $('.edit-title').addClass('hide');
+  $('.add-title').removeClass('hide');
+  $('#additional_salary_form').html('');
 
-    $('#salary_form').modal('show');
-    $('.edit-title').addClass('hide');
-    $('.add-title').removeClass('hide');
-    $('#additional_salary_form').html('');
+  // Clear values
+  $('#form_name').val('');
+  $('#salary_val').val('');
+  $('#calculation_type').selectpicker('val', '0').change(); // default to Flat
+  $('#pay_type').selectpicker('val', 'Fixed');
 
-    $('#salary_form input[name="form_name"]').val('');
-    $('#salary_form input[name="salary_val"]').val('');
-
-    $("input[data-type='currency']").on({
-        keyup: function() {        
-          formatCurrency($(this));
-        },
-      blur: function() { 
-          formatCurrency($(this), "blur");
-      }
-    });
+  // Reset checkboxes to checked
+  const checkboxes = [
+    'active', 'is_part_of_structure', 'is_tax_deducted_monthly',
+    'is_prorated', 'consider_for_epf', 'consider_for_esi', 'show_in_payslip'
+  ];
+  checkboxes.forEach(id => {
+    $('#' + id).prop('checked', true);
+  });
 }
-function edit_salary_form(invoker,id){
-    'use strict';
-    $('#additional_salary_form').html('');
-    
-    $('#additional_salary_form').append(hidden_input('id',id));
-    $('#salary_form input[name="form_name"]').val($(invoker).data('name'));
-    $('#salary_form input[name="salary_val"]').val($(invoker).data('amount'));
-    $('#salary_form select[name="tax"]').val($(invoker).data('taxable'));
-    $('#salary_form select[name="tax"]').change();
-    $('#salary_form').modal('show');
-    $('.add-title').addClass('hide');
-    $('.edit-title').removeClass('hide');
 
-    $("input[data-type='currency']").on({
-        keyup: function() {        
-          formatCurrency($(this));
-        },
-      blur: function() { 
-          formatCurrency($(this), "blur");
-      }
-    });
+function edit_salary_form(invoker, id) {
+  'use strict';
+
+  $('#additional_salary_form').html('');
+  $('#additional_salary_form').append(hidden_input('id', id));
+
+  $('#form_name').val($(invoker).data('name'));
+  $('#salary_val').val($(invoker).data('salary'));
+  $('#calculation_type').selectpicker('val', $(invoker).data('calculation-type')).change();
+  $('#pay_type').selectpicker('val', 'Fixed'); // Adjust if dynamic later
+
+  // Set checkboxes based on data attributes
+  const checkboxes = [
+    'active', 'is_part_of_structure', 'is_tax_deducted_monthly',
+    'is_prorated', 'consider_for_epf', 'consider_for_esi', 'show_in_payslip'
+  ];
+  checkboxes.forEach(id => {
+    const val = $(invoker).data(id.replace(/_/g, '-'));
+    $('#' + id).prop('checked', val == 1);
+  });
+
+  $('.edit-title').removeClass('hide');
+  $('.add-title').addClass('hide');
+  $('#salary_form').modal('show');
 }
+
+// Dynamically update label based on calculation type
+function update_amount_label(type) {
+  if (parseInt(type) === 0) {
+    $('label[for="percentage"]').text('Amount');
+  } else {
+    $('label[for="percentage"]').text('Percentage (%)');
+  }
+}
+
+function toggle_calculation_fields(type) {
+  update_amount_label(type); // Only change label; field remains the same
+}
+
+$(function () {
+  $('#calculation_type').on('change', function () {
+    toggle_calculation_fields($(this).val());
+  });
+
+  // Set default on page load
+  update_amount_label($('#calculation_type').val());
+});
+
 
 function formatNumber(n) {
     'use strict';

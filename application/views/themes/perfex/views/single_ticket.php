@@ -3,7 +3,7 @@
     <?php if ($ticket->project_id) { ?>
     <div class="col-md-12 single-ticket-project-area">
         <div class="alert alert-info">
-            <?php echo _l('ticket_linked_to_project', '<a href="' . site_url('clients/project/' . $ticket->project_id) . '"><b>' . e(get_project_name_by_id($ticket->project_id)) . '</b></a>') ; ?>
+            <?php echo _l('ticket_linked_to_project', '<a href="' . site_url('clients/project/' . $ticket->project_id) . '"><b>' .(get_project_name_by_id($ticket->project_id)) . '</b></a>') ; ?>
         </div>
     </div>
     <?php } ?>
@@ -22,10 +22,10 @@
                         </h4>
                         <div class="tw-divide-solid tw-divide-y tw-divide-neutral-100 tw-mt-4 [&>p:last-child]:tw-pb-0">
                             <p class="tw-py-2.5 tw-mb-0 tw-text-neutral-500">
-                                <?php echo _l('clients_ticket_single_department', '<span class="tw-font-medium tw-text-neutral-700">' . e($ticket->department_name) . '</span>'); ?>
+                                <?php echo _l('clients_ticket_single_department', '<span class="tw-font-medium tw-text-neutral-700">' .($ticket->department_name) . '</span>'); ?>
                             </p>
                             <p class="tw-py-2.5 tw-mb-0 tw-text-neutral-500">
-                                <?php echo _l('clients_ticket_single_submitted', '<span class="tw-font-medium tw-text-neutral-700">' . e(_dt($ticket->date)) . '</span>'); ?>
+                                <?php echo _l('clients_ticket_single_submitted', '<span class="tw-font-medium tw-text-neutral-700">' .(_dt($ticket->date)) . '</span>'); ?>
                             </p>
                             <p class="tw-py-2.5 tw-mb-0 tw-text-neutral-500">
                                 <?php echo _l('ticket_dt_submitter'); ?>:
@@ -78,11 +78,11 @@
                                 </div>
                             </div>
                             <p class="tw-py-2.5 tw-mb-0 tw-text-neutral-500">
-                                <?php echo _l('clients_ticket_single_priority', '<span class="tw-font-medium tw-text-neutral-700">' . e(ticket_priority_translate($ticket->priorityid)) . '</span>'); ?>
+                                <?php echo _l('clients_ticket_single_priority', '<span class="tw-font-medium tw-text-neutral-700">' .(ticket_priority_translate($ticket->priorityid)) . '</span>'); ?>
                             </p>
                             <?php if (get_option('services') == 1 && !empty($ticket->service_name)) { ?>
                             <p class="tw-py-2.5 tw-mb-0 tw-text-neutral-500">
-                                <?php echo _l('service') . ': <span class="tw-font-medium tw-text-neutral-700">' . e($ticket->service_name) . '</span>'; ?>
+                                <?php echo _l('service') . ': <span class="tw-font-medium tw-text-neutral-700">' .($ticket->service_name) . '</span>'; ?>
                             </p>
                             <?php } ?>
                             <?php

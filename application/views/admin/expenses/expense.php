@@ -119,7 +119,7 @@
                                     data-live-search="true" data-width="100%"
                                     data-none-selected-text="<?php echo _l('dropdown_non_selected_tex'); ?>">
                                     <?php if (isset($expense) && $expense->project_id) {
-                         echo '<option value="' . $expense->project_id . '" selected>' . e(get_project_name_by_id($expense->project_id)) . '</option>';
+                         echo '<option value="' . $expense->project_id . '" selected>' .(get_project_name_by_id($expense->project_id)) . '</option>';
                      }
                            ?>
                                 </select>
@@ -325,7 +325,7 @@
                             <div class="form-group recurring-cycles">
                                 <label for="cycles"><?php echo _l('recurring_total_cycles'); ?>
                                     <?php if (isset($expense) && $expense->total_cycles > 0) {
-                         echo '<small>' . e(_l('cycles_passed', $expense->total_cycles)) . '</small>';
+                         echo '<small>' .(_l('cycles_passed', $expense->total_cycles)) . '</small>';
                      }
                            ?>
                                 </label>
@@ -333,7 +333,7 @@
                                     <input type="number" class="form-control" <?php if ($value == 0) {
                                echo ' disabled';
                            } ?> name="cycles" id="cycles" value="<?php echo ($value); ?>" <?php if (isset($expense) && $expense->total_cycles > 0) {
-                               echo 'min="' . e($expense->total_cycles) . '"';
+                               echo 'min="' .($expense->total_cycles) . '"';
                            } ?>>
                                     <div class="input-group-addon">
                                         <div class="checkbox">

@@ -66,6 +66,20 @@
 										<option value="1"><?php echo _l('hr_yes'); ?></option>
 									</select>
 								</div>
+								<div class="form-group">
+									<label for="pay_type" class="control-label"><?php echo _l('hr_pay_type'); ?></label>
+									<select name="pay_type" class="selectpicker" id="pay_type" data-width="100%" data-none-selected-text="<?php echo _l('dropdown_non_selected_tex'); ?>"> 
+										<option value="0"><?php echo _l('hr_fixed_pay'); ?></option>
+										<option value="1"><?php echo _l('hr_variable_pay'); ?></option>
+									</select>
+								</div>
+								<div class="form-group">
+									<label for="calculation_type" class="control-label"><?php echo _l('hr_calculation_type'); ?></label>
+									<select name="calculation_type" class="selectpicker" id="calculation_type" data-width="100%" data-none-selected-text="<?php echo _l('dropdown_non_selected_tex'); ?>"> 
+										<option value="0"><?php echo _l('hr_flat_amount'); ?></option>
+										<option value="1"><?php echo _l('hr_percentage_of_basis'); ?></option>
+									</select>
+								</div>
 
 							</div>
 						</div>

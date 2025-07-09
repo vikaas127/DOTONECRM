@@ -25,7 +25,7 @@
                             <?=isset($tab['badge']['type']) && $tab['badge']['type'] != '' ? "bg-{$tab['badge']['type']}" : 'bg-info' ?>"
                         <?=(isset($tab['badge']['type']) && $tab['badge']['type'] == '') ||
                                     isset($tab['badge']['color']) ? "style='background-color: {$tab['badge']['color']}'" : '' ?>>
-                        <?= e($tab['badge']['value']) ?>
+                        <?= ($tab['badge']['value']) ?>
                     </span>
                     <?php } ?>
 
@@ -38,7 +38,7 @@
                     <ul class="dropdown-menu" aria-labelledby="dropdown_<?php echo ($key); ?>">
                         <?php
                             foreach ($tab['children'] as $d) {
-                                echo '<li class="nav-tabs-submenu-child"><a href="' . admin_url('projects/view/' . $project->id . '?group=' . $d['slug']) . '" data-group="' . $d['slug'] . '">' . e($d['name']);
+                                echo '<li class="nav-tabs-submenu-child"><a href="' . admin_url('projects/view/' . $project->id . '?group=' . $d['slug']) . '" data-group="' . $d['slug'] . '">' . ($d['name']);
 
                                 if (isset($d['badge'], $d['badge']['value']) && !empty($d['badge'])) {?>
                         <span
@@ -46,7 +46,7 @@
                                     <?=isset($d['badge']['type']) && $d['badge']['type'] != '' ? "bg-{$d['badge']['type']}" : 'bg-info' ?>"
                             <?=(isset($d['badge']['type']) && $d['badge']['type'] == '') ||
                                     isset($d['badge']['color']) ? "style='background-color: {$d['badge']['color']}'" : '' ?>>
-                            <?= e($d['badge']['value']) ?>
+                            <?= ($d['badge']['value']) ?>
                         </span>
                         <?php }
 

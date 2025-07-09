@@ -227,6 +227,8 @@ function hrp_get_commission_status()
 		$hr_payroll_permissions[]='hrp_attendance';
 		$hr_payroll_permissions[]='hrp_commission';
 		$hr_payroll_permissions[]='hrp_deduction';
+		$hr_payroll_permissions[]='hrp_reimbursement';
+
 		$hr_payroll_permissions[]='hrp_bonus_kpi';
 		$hr_payroll_permissions[]='hrp_insurrance';
 		$hr_payroll_permissions[]='hrp_payslip';

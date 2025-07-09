@@ -36,7 +36,7 @@
                                     <div class="tw-flex -tw-space-x-1">
                                         <?php foreach ($members as $member) { ?>
                                         <span class="tw-group tw-relative"
-                                            data-title="<?php echo (get_staff_full_name($member['staff_id']) . (staff_can('create',  'projects') || $member['staff_id'] == get_staff_user_id() ? ' - ' . _l('total_logged_hours_by_staff') . ': ' . e(seconds_to_time_format($member['total_logged_time'])) : '')); ?>"
+                                            data-title="<?php echo (get_staff_full_name($member['staff_id']) . (staff_can('create',  'projects') || $member['staff_id'] == get_staff_user_id() ? ' - ' . _l('total_logged_hours_by_staff') . ': ' . (seconds_to_time_format($member['total_logged_time'])) : '')); ?>"
                                             data-toggle="tooltip">
                                             <?php if (staff_can('edit',  'projects')) { ?>
                                             <a href="<?php echo admin_url('projects/remove_team_member/' . $project->id . '/' . $member['staff_id']); ?>"
@@ -62,7 +62,7 @@
                                     </a>
                                 </div>
                                 <?php
-                                echo '<span class="tw-ml-1 project_status tw-inline-block label project-status-' . $project->status . '" style="color:' . $project_status['color'] . ';border:1px solid ' . adjust_hex_brightness($project_status['color'], 0.4) . ';background: ' . adjust_hex_brightness($project_status['color'], 0.04) . ';">' . e($project_status['name']) . '</span>';
+                                echo '<span class="tw-ml-1 project_status tw-inline-block label project-status-' . $project->status . '" style="color:' . $project_status['color'] . ';border:1px solid ' . adjust_hex_brightness($project_status['color'], 0.4) . ';background: ' . adjust_hex_brightness($project_status['color'], 0.04) . ';">' . ($project_status['name']) . '</span>';
                             ?>
                             </div>
                         </div>

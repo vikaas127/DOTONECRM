@@ -10,6 +10,8 @@
 						
 						<?php echo form_open_multipart(admin_url('hr_profile/add_edit_member'), array('id' => 'add_edit_member')); ?>
 						<div class="modal-body">
+							
+
 							<ul class="nav nav-tabs" role="tablist">
 								<li role="presentation" class="active">
 									<a href="#tab_staff_profile" aria-controls="tab_staff_profile" role="tab" data-toggle="tab">
@@ -17,8 +19,23 @@
 									</a>
 								</li>
 								<li role="presentation">
+									<a href="#tab_staff_salary" aria-controls="tab_staff_salary" role="tab" data-toggle="tab">
+										<?php echo _l('hr_staff_salary_info'); ?>
+									</a>
+								</li>
+									<li role="presentation">
 									<a href="#tab_staff_contact" aria-controls="tab_staff_contact" role="tab" data-toggle="tab">
 										<?php echo _l('hr_staff_profile_related_info'); ?>
+									</a>
+								</li>
+								<li role="presentation">
+									<a href="#tab_staff_payment" aria-controls="tab_staff_payment" role="tab" data-toggle="tab">
+										<?php echo _l('hr_staff_payment_info'); ?>
+									</a>
+								</li>
+								<li role="presentation">
+									<a href="#tab_staff_investments" aria-controls="tab_staff_investments" role="tab" data-toggle="tab">
+										<?php echo _l('hr_staff_investments'); ?>
 									</a>
 								</li>
 								
@@ -90,12 +107,13 @@
 												</select>
 											</div>
 										</div>
+												<div class="col-md-6">
+												<?php
+												$date_of_joining = (isset($member) ? $member->date_of_joining : '');
+												echo render_date_input('date_of_joining','hr_date_of_joining',_d($date_of_joining)); ?>
+											</div>
 
-										<div class="col-md-6">
-											<?php 
-											$birthday = (isset($member) ? $member->birthday : ''); 
-											echo render_date_input('birthday','hr_hr_birthday',_d($birthday)); ?>
-										</div>
+								
 									</div>
 
 									<div class="row">
@@ -188,7 +206,9 @@
 											<div class="col-md-12">
 												<?php echo render_select('role_v',$roles_value,array('roleid','name'),'staff_add_edit_role',$selected); ?>
 											</div>
+										
 										</div>
+									
 									<?php } ?>
 
 									<div class="row">
@@ -344,7 +364,8 @@
 										<?php } ?>
 
 									</div>
-
+									<div role="tabpanel" class="tab-pane " id="tab_staff_salary">
+									</div>
 									<div role="tabpanel" class="tab-pane " id="tab_staff_contact">
 
 										<div class="row">
@@ -380,7 +401,24 @@
 												echo render_input('nation','hr_hr_nation',$nation,'text'); ?>
 											</div>
 										</div>
-
+										<div class="row">
+											<div class="col-md-6">
+												<?php
+												$father_name = (isset($member) ? $member->father_name : '');
+												echo render_input('birthplace','hr_father',$father_name,'text'); ?> 
+											</div>
+												<div class="col-md-6">
+												<?php
+												$mother_name = (isset($member) ? $member->mother_name : '');
+												echo render_input('birthplace','hr_mother',$mother_name,'text'); ?> 
+											</div>
+											<div class="col-md-6">
+												<?php
+												$ho_wo_name = (isset($member) ? $member->ho_wo_name : '');
+												echo render_input('birthplace','hr_husband_wife',$ho_wo_name,'text'); ?> 
+											</div>
+											
+										</div>
 										<div class="row">
 											<div class="col-md-6">
 												<?php
@@ -391,6 +429,34 @@
 												<?php 
 												$religion = (isset($member) ? $member->religion : '');
 												echo render_input('religion','hr_hr_religion',$religion,'text'); ?>
+											</div>
+												<div class="col-md-6">
+												<?php
+												$Personal_tax_code = (isset($member) ? $member->Personal_tax_code : '');
+												echo render_input('Personal_tax_code','hr_Personal_tax_code',$Personal_tax_code, 'text'); ?>
+											</div>
+										</div>
+										<div class="row">
+											<div class="col-md-6">
+											
+
+														<div class="form-group">
+														<label for="disability_type">Select Disability Type:</label>
+														<select name="disability_type" id="disability_type" class="form-control selectpicker" data-live-search="true" title="-- Select Disability --">
+															<option value="none">None</option>
+															<option value="visual">Visual Impairment</option>
+															<option value="hearing">Hearing Impairment</option>
+															<option value="mobility">Mobility Impairment</option>
+															<option value="cognitive">Cognitive Disability</option>
+															<option value="speech">Speech Impairment</option>
+															<option value="mental">Mental Health Condition</option>
+															<option value="learning">Learning Disability</option>
+															<option value="chronic">Chronic Illness</option>
+															<option value="other">Other</option>
+														</select>
+														</div>
+
+
 											</div>
 										</div>
 
@@ -420,45 +486,33 @@
 											</div>
 										</div>
 
+									
 										<div class="row">
-											<div class="col-md-6">
-												<?php
-												$account_number = (isset($member) ? $member->account_number : '');
-												echo render_input('account_number','hr_bank_account_number',$account_number, 'text'); ?>
-											</div>
-											<div class="col-md-6">
-												<?php
-												$name_account = (isset($member) ? $member->name_account : '');
-												echo render_input('name_account','hr_bank_account_name',$name_account, 'text'); ?>
-											</div>
-										</div>
-
-										<div class="row">
-											<div class="col-md-6">
-												<?php
-												$issue_bank = (isset($member) ? $member->issue_bank : '');
-												echo render_input('issue_bank','hr_bank_name',$issue_bank, 'text'); ?>
-											</div>
-											<div class="col-md-6">
-												<?php
-												$Personal_tax_code = (isset($member) ? $member->Personal_tax_code : '');
-												echo render_input('Personal_tax_code','hr_Personal_tax_code',$Personal_tax_code, 'text'); ?>
-											</div>
-										</div>
-										<div class="row">
-											<div class="col-md-6">
-												<?php
-												$epf_no = (isset($member) ? $member->epf_no : '');
-												echo render_input('epf_no','epf_no',$epf_no, 'text'); ?>
-											</div>
+									
 											<div class="col-md-6">
 												<?php
 												$social_security_no = (isset($member) ? $member->social_security_no : '');
 												echo render_input('social_security_no','social_security_no',$social_security_no, 'text'); ?>
 											</div>
+											<div class="col-md-6">
+												<?php
+												$pan_no = (isset($member) ? $member->pan_no : '');
+												echo render_input('pan_no','pan_no',$pan_no, 'text'); ?>
+											</div>
+												<div class="col-md-6">
+												<?php
+												$adhar_no = (isset($member) ? $member->adhar_no : '');
+												echo render_input('adhar_no','adhar_no',$adhar_no, 'text'); ?>
+											</div>
+									
 										</div>
 
 										<div class="row">
+												<div class="col-md-6">
+											<?php 
+											$birthday = (isset($member) ? $member->birthday : ''); 
+											echo render_date_input('birthday','hr_hr_birthday',_d($birthday)); ?>
+										</div>
 											<div class="col-md-6">
 												<div class="form-group">
 													<label for="facebook" class="control-label"><i class="fa-brands fa-facebook"></i> <?php echo _l('staff_add_edit_facebook'); ?></label>
@@ -484,6 +538,256 @@
 										</div>
 
 									</div>
+									<div role="tabpanel" class="tab-pane " id="tab_staff_payment">
+										<div class="row">
+											<div class="col-md-6">
+												<?php
+												$name_account = (isset($member) ? $member->name_account : '');
+												echo render_input('name_account','hr_bank_account_name',$name_account, 'text'); ?>
+											</div>
+											<div class="col-md-6">
+												<?php
+												$issue_bank = (isset($member) ? $member->issue_bank : '');
+												echo render_input('issue_bank','hr_bank_name',$issue_bank, 'text'); ?>
+											</div>
+										
+										</div>
+										<div class="row">
+											<div class="col-md-6">
+												<?php
+												$account_number = (isset($member) ? $member->account_number : '');
+												echo render_input('account_number','hr_bank_account_number',$account_number, 'text'); ?>
+											</div>
+												<div class="col-md-6">
+												<?php
+												$ifsc_code = (isset($member) ? $member->ifsc_code : '');
+												echo render_input('ifsc_code','hr_ifsc_code',$ifsc_code, 'text'); ?>
+											</div>
+										
+										</div>
+										<div class="row">
+											<div class="col-md-6">
+												<?php
+														echo form_label('Select Account Type:');
+
+														echo '<br>';
+
+														echo form_radio('accountType', 'saving', set_value('accountType') === 'saving', ['id' => 'saving']);
+														echo form_label('Saving', 'saving');
+
+														echo '<br>';
+
+														echo form_radio('accountType', 'current', set_value('accountType') === 'current', ['id' => 'current']);
+														echo form_label('Current', 'current');
+														?>
+
+											</div>
+										</div>
+
+											<div class="row">
+										
+											<div class="col-md-6">
+												<?php
+												$epf_no = (isset($member) ? $member->epf_no : '');
+												echo render_input('epf_no','epf_no',$epf_no, 'text'); ?>
+											</div>
+											<div class="col-md-6">
+												<?php
+												$uan_no = (isset($member) ? $member->uan_no : '');
+												echo render_input('uan_no','uan_no',$uan_no, 'text'); ?>
+											</div>
+									
+										</div>
+																	<div class="row">
+
+																	<!-- ESI Insurance Number -->
+																	<div class="col-md-6">
+																		<?php echo render_input('esi_insurance_no', _l('esi_insurance_no'), isset($employee['esi_insurance_no']) ? $employee['esi_insurance_no'] : ''); ?>
+																	</div>
+
+																	<!-- Enable ESI -->
+																	<div class="col-md-6">
+																		<div class="form-check mt-4">
+																		<input type="checkbox" class="form-check-input" id="esi_enable" name="esi_enable" value="1"
+																			<?php if (!empty($employee['esi_enable'])) echo 'checked'; ?>>
+																		<label class="form-check-label" for="esi_enable"><?php echo _l('esi_enable'); ?></label>
+																		</div>
+																	</div>
+
+																	<!-- Enable EPF -->
+																	<div class="col-md-6">
+																		<div class="form-check mt-4">
+																		<input type="checkbox" class="form-check-input" id="epf_enable" name="epf_enable" value="1"
+																			<?php if (!empty($employee['epf_enable'])) echo 'checked'; ?>>
+																		<label class="form-check-label" for="epf_enable"><?php echo _l('epf_enable'); ?></label>
+																		</div>
+																	</div>
+
+																	<!-- Contribute to Employee Pension Scheme -->
+																	<div class="col-md-6">
+																		<div class="form-check mt-4">
+																		<input type="checkbox" class="form-check-input" id="enable_contribute_to_employee_pension_scheme" name="enable_contribute_to_employee_pension_scheme" value="1"
+																			<?php if (!empty($employee['enable_contribute_to_employee_pension_scheme'])) echo 'checked'; ?>>
+																		<label class="form-check-label" for="enable_contribute_to_employee_pension_scheme">
+																			<?php echo _l('enable_contribute_to_employee_pension_scheme'); ?>
+																		</label>
+																		</div>
+																	</div>
+
+																	<!-- Contribute EPS on Actual PF Wages -->
+																	<div class="col-md-6">
+																		<div class="form-check mt-4">
+																		<input type="checkbox" class="form-check-input" id="contribute_eps_on_actual_pf_wages" name="contribute_eps_on_actual_pf_wages" value="1"
+																			<?php if (!empty($employee['contribute_eps_on_actual_pf_wages'])) echo 'checked'; ?>>
+																		<label class="form-check-label" for="contribute_eps_on_actual_pf_wages">
+																			<?php echo _l('contribute_eps_on_actual_pf_wages'); ?>
+																		</label>
+																		</div>
+																	</div>
+
+																	</div>
+
+
+								
+									</div>									
+									<div role="tabpanel" class="tab-pane " id="tab_staff_investments">
+		
+
+<div class="form-group">
+    <label for="tax_regime">Select Tax Regime</label>
+    <select class="form-control" name="tax_regime" required>
+        <option value="">-- Select --</option>
+        <option value="Old">Old Regime</option>
+        <option value="New">New Regime</option>
+    </select>
+</div>
+
+<hr>
+
+<!-- HRA -->
+<div class="form-group">
+    <label>Are you staying in a rented house?</label>
+    <select class="form-control" name="declares_hra" id="declares_hra" onchange="toggleHRA()">
+        <option value="No">No</option>
+        <option value="Yes">Yes</option>
+    </select>
+</div>
+
+<div id="hra-wrapper" style="display: none;">
+    <h4>HRA Details</h4>
+    <div class="hra-group border p-3 mb-3">
+        <div class="row">
+            <div class="col-md-6">
+                <label>Rental Period From</label>
+                <input type="date" class="form-control" name="hra[0][rental_from]">
+            </div>
+            <div class="col-md-6">
+                <label>Rental Period To</label>
+                <input type="date" class="form-control" name="hra[0][rental_to]">
+            </div>
+            <div class="col-md-4">
+                <label>Monthly Rent (₹)</label>
+                <input type="number" class="form-control" name="hra[0][monthly_rent]">
+            </div>
+            <div class="col-md-8">
+                <label>Rental Address</label>
+                <textarea class="form-control" name="hra[0][address]"></textarea>
+            </div>
+            <div class="col-md-6">
+                <label>Landlord Name</label>
+                <input type="text" class="form-control" name="hra[0][landlord_name]">
+            </div>
+            <div class="col-md-6">
+                <label>Landlord PAN</label>
+                <input type="text" class="form-control" name="hra[0][landlord_pan]">
+            </div>
+        </div>
+        <button type="button" class="btn btn-danger mt-2" onclick="removeHRA(this)">Remove</button>
+    </div>
+    <button type="button" class="btn btn-info mb-3" onclick="addHRA()">+ Add More</button>
+</div>
+
+<hr>
+
+<!-- Home Loan -->
+<div class="form-group">
+    <label>Are you repaying a home loan?</label>
+    <select class="form-control" name="declares_home_loan" id="declares_home_loan" onchange="toggleLoan()">
+        <option value="No">No</option>
+        <option value="Yes">Yes</option>
+    </select>
+</div>
+
+<div id="loan-wrapper" style="display: none;">
+    <h4>Home Loan Details</h4>
+    <div class="loan-group border p-3 mb-3">
+        <div class="row">
+            <div class="col-md-6">
+                <label>Lender Name</label>
+                <input type="text" class="form-control" name="loans[0][lender_name]">
+            </div>
+            <div class="col-md-6">
+                <label>Loan Start Date</label>
+                <input type="date" class="form-control" name="loans[0][loan_start_date]">
+            </div>
+            <div class="col-md-6">
+                <label>Annual Principal (₹)</label>
+                <input type="number" class="form-control" name="loans[0][annual_principal]">
+            </div>
+            <div class="col-md-6">
+                <label>Annual Interest (₹)</label>
+                <input type="number" class="form-control" name="loans[0][annual_interest]">
+            </div>
+            <div class="col-md-12">
+                <label>Property Address</label>
+                <textarea class="form-control" name="loans[0][property_address]"></textarea>
+            </div>
+        </div>
+        <button type="button" class="btn btn-danger mt-2" onclick="removeLoan(this)">Remove</button>
+    </div>
+    <button type="button" class="btn btn-info mb-3" onclick="addLoan()">+ Add More</button>
+</div>
+
+<hr>
+
+<!-- Other Investment Declarations -->
+<h4>Other Investment Declarations</h4>
+<div id="investment-wrapper">
+    <div class="investment-group border p-3 mb-3">
+        <div class="row">
+            <div class="col-md-3">
+                <label>Section</label>
+                <select class="form-control section-select" name="investments[0][section]" onchange="updateTypes(this)">
+                    <option value="">-- Select Section --</option>
+                    <option value="80C">80C</option>
+                    <option value="80D">80D</option>
+                    <option value="24B">24B</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label>Investment Type</label>
+                <select class="form-control" name="investments[0][investment_type]">
+                    <option value="">-- Select Type --</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label>Amount (₹)</label>
+                <input type="number" class="form-control" name="investments[0][declared_amount]" step="0.01">
+            </div>
+            <div class="col-md-3">
+                <label>&nbsp;</label>
+                <button type="button" class="btn btn-danger btn-block" onclick="removeInvestment(this)">Remove</button>
+            </div>
+        </div>
+    </div>
+</div>
+<button type="button" class="btn btn-info" onclick="addInvestment()">+ Add More</button>
+
+
+										
+									</div>									
+
+
 
 									<div role="tabpanel" class="tab-pane hide" id="staff_permissions">
 										<div class="table-responsive">
@@ -576,10 +880,24 @@
 
 							</div>
 
-							<div class="modal-footer">
+							<!-- <div class="modal-footer">
 								<a href="<?php echo admin_url('hr_profile/staff_infor'); ?>"  class="btn btn-default mr-2 "><?php echo _l('hr_close'); ?></a>
 								<button type="submit" class="btn btn-primary"><?php echo _l('submit'); ?></button>
-							</div>
+	
+
+							</div> -->
+							<div class="modal-footer">
+    <a href="<?php echo admin_url('hr_profile/staff_infor'); ?>" class="btn btn-default mr-2"><?php echo _l('hr_close'); ?></a>
+    
+    <!-- Next Button - visible on all tabs except last -->
+    <button type="button" class="btn btn-primary next-tab-btn"><?php echo _l('Next'); ?></button>
+
+    <!-- Final Submit Button - shown only on last tab -->
+    <button type="submit" class="btn btn-success d-none final-submit-btn"><?php echo _l('submit'); ?></button>
+</div>
+
+
+
 							<?php echo form_close(); ?>
 						</div>
 					</div>
@@ -595,5 +913,135 @@
 	require('modules/hr_profile/assets/js/hr_record/add_update_staff_js.php');
 	require('modules/hr_profile/assets/js/hr_record/add_staff_js.php');
 	?>
-</body>
-</html>
+
+
+<script>
+$(document).ready(function () {
+    function isLastTab(currentTab) {
+        return currentTab.is(':last-of-type');
+    }
+
+    $('.next-tab-btn').on('click', function () {
+        let $form = $('#add_edit_member');
+        let $currentTab = $('.tab-pane.active');
+        let $nextTab = $currentTab.next('.tab-pane');
+
+        if ($nextTab.length) {
+            let nextTabId = $nextTab.attr('id');
+            $('.nav-tabs a[href="#' + nextTabId + '"]').tab('show');
+        }
+
+        // If we're now on the last tab, hide "Next" and show "Submit"
+        setTimeout(() => {
+            let $newActive = $('.tab-pane.active');
+            if ($newActive.is(':last-of-type')) {
+                $('.next-tab-btn').addClass('d-none');
+                $('.final-submit-btn').removeClass('d-none');
+            }
+        }, 200);
+    });
+
+    // Reset to show only "Next" when tabs are changed manually
+    $('a[data-toggle="tab"]').on('shown.bs.tab', function () {
+        let $activeTab = $('.tab-pane.active');
+        if ($activeTab.is(':last-of-type')) {
+            $('.next-tab-btn').addClass('d-none');
+            $('.final-submit-btn').removeClass('d-none');
+        } else {
+            $('.next-tab-btn').removeClass('d-none');
+            $('.final-submit-btn').addClass('d-none');
+        }
+    });
+});
+</script>
+
+<script>
+let hraIndex = 1;
+let loanIndex = 1;
+let investmentIndex = 1;
+
+function toggleHRA() {
+    $('#hra-wrapper').toggle($('#declares_hra').val() === 'Yes');
+}
+function toggleLoan() {
+    $('#loan-wrapper').toggle($('#declares_home_loan').val() === 'Yes');
+}
+
+function addHRA() {
+    let html = $('.hra-group').first().clone();
+    html.find('input, textarea').each(function () {
+        let name = $(this).attr('name').replace(/\[\d+\]/, `[${hraIndex}]`);
+        $(this).attr('name', name).val('');
+    });
+    $('#hra-wrapper').append(html);
+    hraIndex++;
+}
+
+function removeHRA(btn) {
+    if ($('.hra-group').length > 1) {
+        $(btn).closest('.hra-group').remove();
+    }
+}
+
+function addLoan() {
+    let html = $('.loan-group').first().clone();
+    html.find('input, textarea').each(function () {
+        let name = $(this).attr('name').replace(/\[\d+\]/, `[${loanIndex}]`);
+        $(this).attr('name', name).val('');
+    });
+    $('#loan-wrapper').append(html);
+    loanIndex++;
+}
+
+function removeLoan(btn) {
+    if ($('.loan-group').length > 1) {
+        $(btn).closest('.loan-group').remove();
+    }
+}
+
+function addInvestment() {
+    let html = $('.investment-group').first().clone();
+    html.find('input, select').each(function () {
+        let name = $(this).attr('name').replace(/\[\d+\]/, `[${investmentIndex}]`);
+        $(this).attr('name', name).val('');
+    });
+    $('#investment-wrapper').append(html);
+    investmentIndex++;
+}
+
+function removeInvestment(btn) {
+    if ($('.investment-group').length > 1) {
+        $(btn).closest('.investment-group').remove();
+    }
+}
+
+function updateTypes(select) {
+    let section = $(select).val();
+    let $typeDropdown = $(select).closest('.row').find('select[name*="investment_type"]');
+
+    if (!section) {
+        $typeDropdown.html('<option value="">-- Select Type --</option>');
+        return;
+    }
+
+    $typeDropdown.html('<option>Loading...</option>');
+
+    $.ajax({
+        url: admin_url + 'hr_profile/get_investment_types_by_section/' + section,
+        method: 'GET',
+        dataType: 'json',
+        success: function (data) {
+            $typeDropdown.empty().append('<option value="">-- Select Type --</option>');
+            $.each(data, function (i, type) {
+                $typeDropdown.append('<option value="' + type + '">' + type + '</option>');
+            });
+        },
+        error: function () {
+            $typeDropdown.html('<option>Error loading</option>');
+        }
+    });
+}
+</script>
+
+
+

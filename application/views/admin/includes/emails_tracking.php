@@ -30,7 +30,7 @@ if (count($tracked_emails) === 0) {
                 <td>
                     <?php if ($email['opened'] == 1) {
                     echo '<span class="label label-success">
-                     <i class="fa-regular fa-clock text-has-action tw-mr-1" data-toggle="tooltip" data-title="' . e(_dt($email['date_opened'])) . '"></i> ' . _l('tracked_email_opened') . '</span>';
+                     <i class="fa-regular fa-clock text-has-action tw-mr-1" data-toggle="tooltip" data-title="' .(_dt($email['date_opened'])) . '"></i> ' . _l('tracked_email_opened') . '</span>';
                     } else {
                         echo '<span class="label label-danger">' . _l('tracked_email_not_opened') . '</span>';
                     }

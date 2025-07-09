@@ -88,6 +88,8 @@
 		var status = $('input[name="status"]').val();
 
 		if(id != '' && status != ''){
+			$('#approvaldependent').modal('hide'); 
+
 			var formData = new FormData();
 			formData.append("csrf_token_name", $('input[name="csrf_token_name"]').val());
 			formData.append("id", id);
@@ -95,6 +97,7 @@
 			formData.append("start_month", $('input[name="start_month"]').val());
 			formData.append("end_month", $('input[name="end_month"]').val());
 			formData.append("reason", $('input[name="reason"]').val());
+
 			$.ajax({ 
 				url: admin_url + 'hr_profile/approval_status', 
 				method: 'post', 
@@ -111,16 +114,14 @@
 
 				if(response.success == true){
 					alert_float('success', response.message);
-					$('#approvaldependent').modal('hide');
-
-				}else{
+				} else {
 					alert_float('warning', response.message);
-					$('#approvaldependent').modal('hide');
-
 				}
 			});
 		}
 	}
+
+
 
 	function dependent_person_update(staff_id, dependent_person_id, manage) {
 		"use strict";

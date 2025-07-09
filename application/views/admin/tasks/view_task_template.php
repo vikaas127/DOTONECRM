@@ -20,7 +20,7 @@
       ?>
     </h4>
     <?php if ($task->billed == 1) { ?>
-    <?php  echo '<p class="no-margin">' . _l('task_is_billed', '<a href="' . admin_url('invoices/list_invoices/' . $task->invoice_id) . '" target="_blank">' . e(format_invoice_number($task->invoice_id))) . '</a></p>'; ?>
+    <?php  echo '<p class="no-margin">' . _l('task_is_billed', '<a href="' . admin_url('invoices/list_invoices/' . $task->invoice_id) . '" target="_blank">' .(format_invoice_number($task->invoice_id))) . '</a></p>'; ?>
     <?php } ?>
     <?php if ($task->is_public == 0) { ?>
     <p class="tw-mb-0 tw-mt-1">
@@ -43,7 +43,7 @@
           $usersWorking = '';
 
           foreach ($startedTimers as $t) {
-              $usersWorking .= '<b>' . e(get_staff_full_name($t['staff_id'])) . '</b>, ';
+              $usersWorking .= '<b>' .(get_staff_full_name($t['staff_id'])) . '</b>, ';
           }
 
           $usersWorking = rtrim($usersWorking, ', '); ?>
@@ -58,7 +58,7 @@
           echo '<div class="task-single-related-wrapper">';
           $task_rel_data  = get_relation_data($task->rel_type, $task->rel_id);
           $task_rel_value = get_relation_values($task_rel_data, $task->rel_type);
-          echo '<h4 class="bold font-medium mbot15 tw-mt-0">' . _l('task_single_related') . ': <a href="' . e($task_rel_value['link']) . '" target="_blank">' . e($task_rel_value['name']) . '</a>';
+          echo '<h4 class="bold font-medium mbot15 tw-mt-0">' . _l('task_single_related') . ': <a href="' .($task_rel_value['link']) . '" target="_blank">' .($task_rel_value['name']) . '</a>';
           if ($task->rel_type == 'project' && $task->milestone != 0) {
               echo '<div class="mtop5 mbot20 font-normal">' . _l('task_milestone') . ': ';
               $milestones = get_project_milestones($task->rel_id);
@@ -180,7 +180,7 @@
                             <tr>
                                 <td class="tw-text-sm">
                                     <?php if ($timesheet['note']) {
-                                echo '<i class="fa fa-comment" data-html="true" data-placement="right" data-toggle="tooltip" data-title="' . e($timesheet['note']) . '"></i>';
+                                echo '<i class="fa fa-comment" data-html="true" data-placement="right" data-toggle="tooltip" data-title="' .($timesheet['note']) . '"></i>';
                             } ?>
                                     <a href="<?php echo admin_url('staff/profile/' . $timesheet['staff_id']); ?>"
                                         target="_blank">
@@ -210,11 +210,11 @@
                                         <div class="tw-grow">
                                             <?php
                                           if ($timesheet['time_spent'] == null) {
-                                              echo _l('time_h') . ': ' . e(seconds_to_time_format(time() - $timesheet['start_time'])) . '<br />';
-                                              echo _l('time_decimal') . ': ' . e(sec2qty(time() - $timesheet['start_time'])) . '<br />';
+                                              echo _l('time_h') . ': ' .(seconds_to_time_format(time() - $timesheet['start_time'])) . '<br />';
+                                              echo _l('time_decimal') . ': ' .(sec2qty(time() - $timesheet['start_time'])) . '<br />';
                                           } else {
-                                              echo _l('time_h') . ': ' . e(seconds_to_time_format($timesheet['time_spent'])) . '<br />';
-                                              echo _l('time_decimal') . ': ' . e(sec2qty($timesheet['time_spent'])) . '<br />';
+                                              echo _l('time_h') . ': ' .(seconds_to_time_format($timesheet['time_spent'])) . '<br />';
+                                              echo _l('time_decimal') . ': ' .(sec2qty($timesheet['time_spent'])) . '<br />';
                                           } ?>
                                         </div>
                                         <?php
@@ -486,11 +486,11 @@
                                             aria-hidden="true"></i></a>
                                     <?php }
                                  if ($attachment['staffid'] != 0) {
-                                     echo '<a href="' . admin_url('profile/' . $attachment['staffid']) . '" target="_blank">' . e(get_staff_full_name($attachment['staffid'])) . '</a> - ';
+                                     echo '<a href="' . admin_url('profile/' . $attachment['staffid']) . '" target="_blank">' .(get_staff_full_name($attachment['staffid'])) . '</a> - ';
                                  } elseif ($attachment['contact_id'] != 0) {
-                                     echo '<a href="' . admin_url('clients/client/' . get_user_id_by_contact_id($attachment['contact_id']) . '?contactid=' . $attachment['contact_id']) . '" target="_blank">' . e(get_contact_full_name($attachment['contact_id'])) . '</a> - ';
+                                     echo '<a href="' . admin_url('clients/client/' . get_user_id_by_contact_id($attachment['contact_id']) . '?contactid=' . $attachment['contact_id']) . '" target="_blank">' .(get_contact_full_name($attachment['contact_id'])) . '</a> - ';
                                  }
-                                 echo '<span class="text-has-action tw-text-sm" data-toggle="tooltip" data-title="' . _dt($attachment['dateadded']) . '">' . e(time_ago($attachment['dateadded'])) . '</span>';
+                                 echo '<span class="text-has-action tw-text-sm" data-toggle="tooltip" data-title="' . _dt($attachment['dateadded']) . '">' .(time_ago($attachment['dateadded'])) . '</span>';
                                  ?>
                                 </div>
                                 <div class="clearfix"></div>
@@ -589,14 +589,14 @@
                   $i        = 0;
                   foreach ($task->comments as $comment) {
                       $comments .= '<div id="comment_' . $comment['id'] . '" data-commentid="' . $comment['id'] . '" data-task-attachment-id="' . $comment['file_id'] . '" class="tc-content task-comment' . (strtotime($comment['dateadded']) >= strtotime('-16 hours') ? ' highlight-bg' : '') . '">';
-                      $comments .= '<a data-task-comment-href-id="' . $comment['id'] . '" href="' . admin_url('tasks/view/' . $task->id) . '#comment_' . $comment['id'] . '" class="task-date-as-comment-id"><span class="tw-text-sm"><span class="text-has-action inline-block" data-toggle="tooltip" data-title="' . e(_dt($comment['dateadded'])) . '">' . e(time_ago($comment['dateadded'])) . '</span></span></a>';
+                      $comments .= '<a data-task-comment-href-id="' . $comment['id'] . '" href="' . admin_url('tasks/view/' . $task->id) . '#comment_' . $comment['id'] . '" class="task-date-as-comment-id"><span class="tw-text-sm"><span class="text-has-action inline-block" data-toggle="tooltip" data-title="' .(_dt($comment['dateadded'])) . '">' .(time_ago($comment['dateadded'])) . '</span></span></a>';
                       if ($comment['staffid'] != 0) {
                           $comments .= '<a href="' . admin_url('profile/' . $comment['staffid']) . '" target="_blank">' . staff_profile_image($comment['staffid'], [
                       'staff-profile-image-small',
                       'media-object img-circle pull-left mright10',
                    ]) . '</a>';
                       } elseif ($comment['contact_id'] != 0) {
-                          $comments .= '<img src="' . e(contact_profile_image_url($comment['contact_id'])) . '" class="client-profile-image-small media-object img-circle pull-left mright10">';
+                          $comments .= '<img src="' .(contact_profile_image_url($comment['contact_id'])) . '" class="client-profile-image-small media-object img-circle pull-left mright10">';
                       }
                       if ($comment['staffid'] == get_staff_user_id() || is_admin()) {
                           $comment_added = strtotime($comment['dateadded']);
@@ -611,9 +611,9 @@
                       $comments .= '<div class="mleft40">';
 
                       if ($comment['staffid'] != 0) {
-                          $comments .= '<a href="' . admin_url('profile/' . $comment['staffid']) . '" target="_blank">' . e($comment['staff_full_name']) . '</a> <br />';
+                          $comments .= '<a href="' . admin_url('profile/' . $comment['staffid']) . '" target="_blank">' .($comment['staff_full_name']) . '</a> <br />';
                       } elseif ($comment['contact_id'] != 0) {
-                          $comments .= '<span class="label label-info mtop5 mbot5 inline-block">' . _l('is_customer_indicator') . '</span><br /><a href="' . admin_url('clients/client/' . get_user_id_by_contact_id($comment['contact_id']) . '?contactid=' . $comment['contact_id']) . '" class="pull-left" target="_blank">' . e(get_contact_full_name($comment['contact_id'])) . '</a> <br />';
+                          $comments .= '<span class="label label-info mtop5 mbot5 inline-block">' . _l('is_customer_indicator') . '</span><br /><a href="' . admin_url('clients/client/' . get_user_id_by_contact_id($comment['contact_id']) . '?contactid=' . $comment['contact_id']) . '" class="pull-left" target="_blank">' .(get_contact_full_name($comment['contact_id'])) . '</a> <br />';
                       }
 
                       $comments .= '<div data-edit-comment="' . $comment['id'] . '" class="hide edit-task-comment"><textarea rows="5" id="task_comment_' . $comment['id'] . '" class="ays-ignore form-control">' . str_replace('[task_attachment]', '', $comment['content']) . '</textarea>
@@ -684,7 +684,7 @@
                      $copy_template .= '<p>' . _l('task_status') . '</p>';
                      $task_copy_statuses = hooks()->apply_filters('task_copy_statuses', $task_statuses);
                      foreach ($task_copy_statuses as $copy_status) {
-                         $copy_template .= "<div class='radio radio-primary'><input type='radio' value='" . $copy_status['id'] . "' name='copy_task_status' id='copy_task_status_" . $copy_status['id'] . "'" . ($copy_status['id'] == hooks()->apply_filters('copy_task_default_status', 1) ? ' checked' : '') . "><label for='copy_task_status_" . $copy_status['id'] . "'>" . e($copy_status['name']) . '</label></div>';
+                         $copy_template .= "<div class='radio radio-primary'><input type='radio' value='" . $copy_status['id'] . "' name='copy_task_status' id='copy_task_status_" . $copy_status['id'] . "'" . ($copy_status['id'] == hooks()->apply_filters('copy_task_default_status', 1) ? ' checked' : '') . "><label for='copy_task_status_" . $copy_status['id'] . "'>" .($copy_status['name']) . '</label></div>';
                      }
 
                      $copy_template .= "<div class='text-center'>";
@@ -720,13 +720,13 @@
         <p class="tw-mb-0 task-info-created tw-text-sm">
             <?php if (($task->addedfrom != 0 && $task->addedfrom != get_staff_user_id()) || $task->is_added_from_contact == 1) { ?>
             <span
-                class="tw-text-neutral-500"><?php echo _l('task_created_by', '<span class="tw-text-neutral-600">' . ($task->is_added_from_contact == 0 ? e(get_staff_full_name($task->addedfrom)) : e(get_contact_full_name($task->addedfrom))) . '</span>'); ?>
+                class="tw-text-neutral-500"><?php echo _l('task_created_by', '<span class="tw-text-neutral-600">' . ($task->is_added_from_contact == 0 ?(get_staff_full_name($task->addedfrom)) :(get_contact_full_name($task->addedfrom))) . '</span>'); ?>
                 <i class="fa-regular fa-clock" data-toggle="tooltip"
                     data-title="<?php echo (_l('task_created_at', _dt($task->dateadded))); ?>"></i></span>
             <br />
             <?php } else { ?>
             <span
-                class="tw-text-neutral-500"><?php echo _l('task_created_at', '<span class="tw-text-neutral-600">' . e(_dt($task->dateadded)) . '</span>'); ?></span>
+                class="tw-text-neutral-500"><?php echo _l('task_created_at', '<span class="tw-text-neutral-600">' .(_dt($task->dateadded)) . '</span>'); ?></span>
             <?php } ?>
         </p>
         <hr class="task-info-separator" />
@@ -800,7 +800,7 @@
                 <input name="duedate" tabindex="-1" value="<?php echo (_d($task->duedate)); ?>" id="task-single-duedate"
                     class="task-info-inline-input-edit datepicker pointer task-single-inline-field tw-text-neutral-800"
                     autocomplete="off" <?php if ($project_deadline) {
-                               echo ' data-date-end-date="' . e($project_deadline) . '"';
+                               echo ' data-date-end-date="' .($project_deadline) . '"';
                            } ?>>
                 <?php } else { ?>
                 <span class="tw-text-neutral-800"><?php echo (_d($task->duedate)); ?></span>
@@ -938,9 +938,9 @@
                 foreach ($task->assignees as $assignee) {
                     if ($assignee['assigneeid'] == get_staff_user_id() && get_staff_user_id() != $assignee['assigned_from'] && $assignee['assigned_from'] != 0 || $assignee['is_assigned_from_contact'] == 1) {
                         if ($assignee['is_assigned_from_contact'] == 0) {
-                            echo '<p class="text-muted task-assigned-from">' . _l('task_assigned_from', '<a href="' . admin_url('profile/' . $assignee['assigned_from']) . '" target="_blank">' . e(get_staff_full_name($assignee['assigned_from']))) . '</a></p>';
+                            echo '<p class="text-muted task-assigned-from">' . _l('task_assigned_from', '<a href="' . admin_url('profile/' . $assignee['assigned_from']) . '" target="_blank">' .(get_staff_full_name($assignee['assigned_from']))) . '</a></p>';
                         } else {
-                            echo '<p class="text-muted task-assigned-from task-assigned-from-contact">' . e(_l('task_assigned_from', get_contact_full_name($assignee['assigned_from']))) . '<br /><span class="label inline-block mtop5 label-info">' . _l('is_customer_indicator') . '</span></p>';
+                            echo '<p class="text-muted task-assigned-from task-assigned-from-contact">' .(_l('task_assigned_from', get_contact_full_name($assignee['assigned_from']))) . '<br /><span class="label inline-block mtop5 label-info">' . _l('is_customer_indicator') . '</span></p>';
                         }
 
                         break;
@@ -1040,7 +1040,7 @@
                      && total_rows(db_prefix() . 'project_members', ['project_id' => $task->rel_id, 'staff_id' => $assignee['staffid']]) == 0) {
                            continue;
                        }
-                       $options .= '<option value="' . $assignee['staffid'] . '">' . e($assignee['full_name']) . '</option>';
+                       $options .= '<option value="' . $assignee['staffid'] . '">' .($assignee['full_name']) . '</option>';
                    }
                }
                echo $options;
@@ -1058,7 +1058,7 @@
                        $_remove_assigne = ' <a href="#" class="remove-task-user text-danger" onclick="remove_assignee(' . $assignee['id'] . ',' . $task->id . '); return false;"><i class="fa fa-remove"></i></a>';
                    }
                    $_assignees .= '
-               <div class="task-user"  data-toggle="tooltip" data-title="' . e($assignee['full_name']) . '">
+               <div class="task-user"  data-toggle="tooltip" data-title="' .($assignee['full_name']) . '">
                <a href="' . admin_url('profile/' . $assignee['assigneeid']) . '" target="_blank">' . staff_profile_image($assignee['assigneeid'], [
                 'staff-profile-image-small',
                ]) . '</a> ' . $_remove_assigne . '</span>
@@ -1091,7 +1091,7 @@
                $options = '';
                foreach ($staff as $follower) {
                    if (!in_array($follower['staffid'], $task->followers_ids)) {
-                       $options .= '<option value="' . $follower['staffid'] . '">' . e($follower['full_name']) . '</option>';
+                       $options .= '<option value="' . $follower['staffid'] . '">' .($follower['full_name']) . '</option>';
                    }
                }
                echo $options;
@@ -1109,7 +1109,7 @@
                        $_remove_follower = ' <a href="#" class="remove-task-user text-danger" onclick="remove_follower(' . $follower['id'] . ',' . $task->id . '); return false;"><i class="fa fa-remove"></i></a>';
                    }
                    $_followers .= '
-                <span class="task-user" data-toggle="tooltip" data-title="' . e($follower['full_name']) . '">
+                <span class="task-user" data-toggle="tooltip" data-title="' .($follower['full_name']) . '">
                 <a href="' . admin_url('profile/' . $follower['followerid']) . '" target="_blank">' . staff_profile_image($follower['followerid'], [
                  'staff-profile-image-small',
                ]) . '</a> ' . $_remove_follower . '</span>

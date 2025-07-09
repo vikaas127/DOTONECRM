@@ -51,7 +51,7 @@
                                             data-none-selected-text="<?php echo _l('dropdown_non_selected_tex'); ?>">
                                             <?php
         if (isset($credit_note) && $credit_note->project_id) {
-            echo '<option value="' . $credit_note->project_id . '" selected>' . e(get_project_name_by_id($credit_note->project_id)) . '</option>';
+            echo '<option value="' . $credit_note->project_id . '" selected>' .(get_project_name_by_id($credit_note->project_id)) . '</option>';
         }
        ?>
                                         </select>
@@ -317,7 +317,7 @@
                                         <?php
     $custom_fields = get_custom_fields('items');
     foreach ($custom_fields as $cf) {
-        echo '<th width="15%" align="left" class="custom_field">' . e($cf['name']) . '</th>';
+        echo '<th width="15%" align="left" class="custom_field">' .($cf['name']) . '</th>';
     }
    $qty_heading = _l('credit_note_table_quantity_heading');
    if (isset($credit_note) && $credit_note->show_quantity_as == 2 || isset($hours_quantity)) {

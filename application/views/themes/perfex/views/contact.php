@@ -108,7 +108,7 @@
                 </p>
                 <?php if ($my_contact->last_password_change != null) {
                        echo _l('client_password_last_changed');
-                       echo '<span class="text-has-action" data-toggle="tooltip" data-title="' . e(_dt($my_contact->last_password_change)) . '"> ' . e(time_ago($my_contact->last_password_change)) . '</span>';
+                       echo '<span class="text-has-action" data-toggle="tooltip" data-title="' .(_dt($my_contact->last_password_change)) . '"> ' .(time_ago($my_contact->last_password_change)) . '</span>';
                    }
                } ?>
             </div>

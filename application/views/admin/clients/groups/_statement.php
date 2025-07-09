@@ -63,18 +63,18 @@
                     <td>
                         <?php
             if (isset($data['invoice_id'])) {
-                echo _l('statement_invoice_details', ['<a href="' . admin_url('invoices/list_invoices/' . $data['invoice_id']) . '" target="_blank">' . e(format_invoice_number($data['invoice_id'])) . '</a>', e(_d($data['duedate']))]);
+                echo _l('statement_invoice_details', ['<a href="' . admin_url('invoices/list_invoices/' . $data['invoice_id']) . '" target="_blank">' .(format_invoice_number($data['invoice_id'])) . '</a>',(_d($data['duedate']))]);
             } elseif (isset($data['payment_id'])) {
-                echo _l('statement_payment_details', ['<a href="' . admin_url('payments/payment/' . $data['payment_id']) . '" target="_blank">' . '#' . $data['payment_id'] . '</a>', e(format_invoice_number($data['payment_invoice_id']))]);
+                echo _l('statement_payment_details', ['<a href="' . admin_url('payments/payment/' . $data['payment_id']) . '" target="_blank">' . '#' . $data['payment_id'] . '</a>',(format_invoice_number($data['payment_invoice_id']))]);
             } elseif (isset($data['credit_note_id'])) {
-                echo _l('statement_credit_note_details', ['<a href="' . admin_url('credit_notes/list_credit_notes/' . $data['credit_note_id']) . '" target="_blank">' . e(format_credit_note_number($data['credit_note_id'])) . '</a>']);
+                echo _l('statement_credit_note_details', ['<a href="' . admin_url('credit_notes/list_credit_notes/' . $data['credit_note_id']) . '" target="_blank">' .(format_credit_note_number($data['credit_note_id'])) . '</a>']);
             } elseif (isset($data['credit_id'])) {
                 echo _l(
                     'statement_credits_applied_details',
                     [
-              '<a href="' . admin_url('credit_notes/list_credit_notes/' . $data['credit_applied_credit_note_id']) . '" target="_blank">' . e(format_credit_note_number($data['credit_applied_credit_note_id'])) . '</a>',
-              e(app_format_money($data['credit_amount'], $statement['currency'], true)),
-              e(format_invoice_number($data['credit_invoice_id'])),
+              '<a href="' . admin_url('credit_notes/list_credit_notes/' . $data['credit_applied_credit_note_id']) . '" target="_blank">' .(format_credit_note_number($data['credit_applied_credit_note_id'])) . '</a>',
+             (app_format_money($data['credit_amount'], $statement['currency'], true)),
+             (format_invoice_number($data['credit_invoice_id'])),
             ]
                 );
             } elseif (isset($data['credit_note_refund_id'])) {

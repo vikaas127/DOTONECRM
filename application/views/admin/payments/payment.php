@@ -118,7 +118,7 @@
                                         <span class="pull-right bold">
                                             <?php echo ($payment->name); ?>
                                             <?php if (!empty($payment->paymentmethod)) {
-                                                    echo ' - ' . e($payment->paymentmethod);
+                                                    echo ' - ' .($payment->paymentmethod);
                                                 }
                                             ?>
                                         </span>

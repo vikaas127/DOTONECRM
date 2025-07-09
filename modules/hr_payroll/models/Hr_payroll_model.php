@@ -448,18 +448,54 @@ class Hr_payroll_model extends App_Model {
 	 * @param  boolean $id 
 	 * @return [type]      
 	 */
-	public function get_insurance_list($id = false){
+    public function get_insurance_list($id = false) {
         if (is_numeric($id)) {
             $this->db->where('id', $id);
-
             return $this->db->get(db_prefix() . 'hrp_insurance_list')->row();
         }
-
-        if ($id == false) {
-        return $this->db->query('select * from '.db_prefix().'hrp_insurance_list')->result_array();
-        }
-
+        return $this->db->get(db_prefix() . 'hrp_insurance_list')->result_array();
     }
+
+    public function add_insurance_plan($data) {
+        $this->db->insert(db_prefix() . 'hrp_insurance_list', $data);
+        return $this->db->insert_id();
+    }
+
+    public function update_insurance_plan($id, $data) {
+        $this->db->where('id', $id);
+        $this->db->update(db_prefix() . 'hrp_insurance_list', $data);
+        return $this->db->affected_rows();
+    }
+
+    public function delete_insurance_plan($id) {
+        $this->db->where('id', $id);
+        return $this->db->delete(db_prefix() . 'hrp_insurance_list');
+    }
+
+	public function get_reimbursement_list($id = false) {
+        if (is_numeric($id)) {
+            $this->db->where('id', $id);
+            return $this->db->get(db_prefix() . 'hrp_reimbursement_list')->row();
+        }
+        return $this->db->get(db_prefix() . 'hrp_reimbursement_list')->result_array();
+    }
+
+    public function add_reimbursement_plan($data) {
+        $this->db->insert(db_prefix() . 'hrp_reimbursement_list', $data);
+        return $this->db->insert_id();
+    }
+
+    public function update_reimbursement_plan($id, $data) {
+        $this->db->where('id', $id);
+        $this->db->update(db_prefix() . 'hrp_reimbursement_list', $data);
+        return $this->db->affected_rows();
+    }
+
+    public function delete_reimbursement_plan($id) {
+        $this->db->where('id', $id);
+        return $this->db->delete(db_prefix() . 'hrp_reimbursement_list');
+    }
+
 
 
     /**
@@ -467,84 +503,84 @@ class Hr_payroll_model extends App_Model {
      * @param  [type] $data 
      * @return [type]       
      */
-    public function update_insurance_list($data)
-	{
-		$affectedRows = 0;
+    // public function update_insurance_list($data)
+	// {
+	// 	$affectedRows = 0;
 
-		if (isset($data['insurance_list_hs'])) {
-			$insurance_list_hs = $data['insurance_list_hs'];
-			unset($data['insurance_list_hs']);
-		}
+	// 	if (isset($data['insurance_list_hs'])) {
+	// 		$insurance_list_hs = $data['insurance_list_hs'];
+	// 		unset($data['insurance_list_hs']);
+	// 	}
 
-		if(isset($insurance_list_hs)){
-			$incometax_rate_detail = json_decode($insurance_list_hs);
+	// 	if(isset($insurance_list_hs)){
+	// 		$incometax_rate_detail = json_decode($insurance_list_hs);
 
-			$es_detail = [];
-			$row = [];
-			$rq_val = [];
-			$header = [];
+	// 		$es_detail = [];
+	// 		$row = [];
+	// 		$rq_val = [];
+	// 		$header = [];
 
-			$header[] = 'code';
-			$header[] = 'description';
-			$header[] = 'rate';
-			$header[] = 'basis';
+	// 		$header[] = 'code';
+	// 		$header[] = 'description';
+	// 		$header[] = 'rate';
+	// 		$header[] = 'basis';
 	
-			$header[] = 'id';
+	// 		$header[] = 'id';
 
-			foreach ($incometax_rate_detail as $key => $value) {
-				//only get row "value" != 0
-				if($value[0] != ''  && $value[3] != ''){
-					$es_detail[] = array_combine($header, $value);
+	// 		foreach ($incometax_rate_detail as $key => $value) {
+	// 			//only get row "value" != 0
+	// 			if($value[0] != ''  && $value[3] != ''){
+	// 				$es_detail[] = array_combine($header, $value);
 
-				}
-			}
-		}
-		$row = [];
-		$row['update'] = []; 
-		$row['insert'] = []; 
-		$row['delete'] = [];
-		$total = [];
+	// 			}
+	// 		}
+	// 	}
+	// 	$row = [];
+	// 	$row['update'] = []; 
+	// 	$row['insert'] = []; 
+	// 	$row['delete'] = [];
+	// 	$total = [];
 
-		foreach ($es_detail as $key => $value) {
-			if($value['id'] != ''){
-				$row['delete'][] = $value['id'];
-				$row['update'][] = $value;
-			}else{
-				unset($value['id']);
-				$row['insert'][] = $value;
-			}
+	// 	foreach ($es_detail as $key => $value) {
+	// 		if($value['id'] != ''){
+	// 			$row['delete'][] = $value['id'];
+	// 			$row['update'][] = $value;
+	// 		}else{
+	// 			unset($value['id']);
+	// 			$row['insert'][] = $value;
+	// 		}
 
-		}
+	// 	}
 
-		if(empty($row['delete'])){
-			$row['delete'] = ['0'];
-		}
-		$row['delete'] = implode(",",$row['delete']);
-		$this->db->where('id NOT IN ('.$row['delete'] .') ');
-		$this->db->delete(db_prefix().'hrp_insurance_list');
-		if($this->db->affected_rows() > 0){
-			$affectedRows++;
-		}
+	// 	if(empty($row['delete'])){
+	// 		$row['delete'] = ['0'];
+	// 	}
+	// 	$row['delete'] = implode(",",$row['delete']);
+	// 	$this->db->where('id NOT IN ('.$row['delete'] .') ');
+	// 	$this->db->delete(db_prefix().'hrp_insurance_list');
+	// 	if($this->db->affected_rows() > 0){
+	// 		$affectedRows++;
+	// 	}
 
-		if(count($row['insert']) != 0){
-			$affected_rows = $this->db->insert_batch(db_prefix().'hrp_insurance_list', $row['insert']);
-			if($affected_rows > 0){
-				$affectedRows++;
-			}
-		}
-		if(count($row['update']) != 0){
-			$affected_rows = $this->db->update_batch(db_prefix().'hrp_insurance_list', $row['update'], 'id');
-			if($affected_rows > 0){
-				$affectedRows++;
-			}
-		}
+	// 	if(count($row['insert']) != 0){
+	// 		$affected_rows = $this->db->insert_batch(db_prefix().'hrp_insurance_list', $row['insert']);
+	// 		if($affected_rows > 0){
+	// 			$affectedRows++;
+	// 		}
+	// 	}
+	// 	if(count($row['update']) != 0){
+	// 		$affected_rows = $this->db->update_batch(db_prefix().'hrp_insurance_list', $row['update'], 'id');
+	// 		if($affected_rows > 0){
+	// 			$affectedRows++;
+	// 		}
+	// 	}
 
-		if ($affectedRows > 0) {
-			return true;
-		}
+	// 	if ($affectedRows > 0) {
+	// 		return true;
+	// 	}
 
-		return false;
-	}
+	// 	return false;
+	// }
 
 
 	/**
@@ -2967,6 +3003,121 @@ order by staff_id, header_oder
 		return $deductions_decode;
 	}
 
+	public function get_reimbursements_data($month, $where = '')
+	{	
+		if ($where != '') {
+			$this->db->where($where);
+		}
+		$this->db->where("DATE_FORMAT(month, '%Y-%m-%d') = '" . $month . "'");
+		$this->db->order_by('staff_id', 'asc');
+
+		$reimbursements = $this->db->get(db_prefix() . 'hrp_salary_reimbursements')->result_array();
+
+		$reimbursements_decode = $this->reimbursements_data_json_encode_decode('decode', $reimbursements, '');
+		return $reimbursements_decode;
+	}
+
+	public function reimbursements_data_json_encode_decode($type, $data, $reimbursement_array = '')
+	{
+		if ($type == 'encode') {
+			foreach ($data as $key => $value) {
+				// Remove unwanted keys
+				unset($value['employee_name']);
+				unset($value['employee_number']);
+				unset($value['department_name']);
+
+				// Extract only reimbursement keys
+				if (!isset($reimbursement_array[$key])) {
+					$reimbursement_values = [];
+					foreach ($value as $k => $v) {
+						if (strpos($k, 'reimbursement_') === 0) {
+							$reimbursement_values[$k] = $v;
+						}
+					}
+				} else {
+					$reimbursement_values = $reimbursement_array[$key];
+				}
+
+				// Remove reimbursement keys from root
+				foreach ($reimbursement_values as $rk => $rv) {
+					unset($value[$rk]);
+				}
+
+				// Encode reimbursement list
+				$value['reimbursement_list'] = json_encode($reimbursement_values);
+
+				$data[$key] = $value;
+					}
+				}
+			elseif ($type == 'decode') {
+				foreach ($data as $key => $value) {
+					$data[$key]['reimbursement_value'] = json_decode($value['reimbursement_list'], true);
+				}
+			}
+
+			return $data;
+	}
+
+
+	public function get_format_reimbursement_data()
+	{
+		$staff_information = [
+			'id',
+			'staff_id',
+			'month',
+			'employee_number',
+			'employee_name',
+			'department_name',
+		];
+
+		$column_format = [];
+		$staff_information_header = [];
+
+		foreach ($staff_information as $value) {
+			$staff_information_header[] = ($value == 'staff_id' || $value == 'id') ? $value : _l($value);
+			$column_format[] = [
+				'data' => $value,
+				'type' => 'text'
+			];
+		}
+
+		// Fetch reimbursement types
+		$reimbursement_types = $this->db->where('is_active', 1)->get(db_prefix() . 'hrp_reimbursement_list')->result_array();
+
+		$array_reimbursement = [];
+		$array_reimbursement_header = [];
+
+		foreach ($reimbursement_types as $type) {
+			// use `reimbursement_` prefix to avoid column name conflicts
+			$key = 'reimbursement_' . $type['id'];
+			$label = $type['name_in_payslip'];
+
+			$array_reimbursement[$key] = 0.00;
+
+			$array_reimbursement_header[] = $label;
+
+			$column_format[] = [
+				'data' => $key,
+				'type'=> 'numeric',
+				'numericFormat'=> [
+					'pattern' => '0,00',
+				]
+			];
+		}
+
+		return [
+			'staff_information' => $staff_information,
+			'array_reimbursement' => $array_reimbursement,
+			'staff_information_header' => $staff_information_header,
+			'array_reimbursement_header' => $array_reimbursement_header,
+			'column_format' => $column_format,
+			'header' => array_merge($staff_information_header, $array_reimbursement_header),
+		];
+	}
+
+
+
+
 
 	/**
 	 * deductions data json encode decode
@@ -3124,6 +3275,133 @@ order by staff_id, header_oder
 		return false;
 
 	}
+
+	public function get_reimbursement_limits()
+{
+    $limits = [];
+    $types = $this->db->get_where(db_prefix().'hrp_reimbursement_list', ['is_active' => 1])->result_array();
+
+    foreach ($types as $type) {
+        // Use max_monthly_amount instead of rate
+        $limits['reimbursement_' . $type['id']] = (float)$type['max_monthly_amount'];
+    }
+
+    return $limits;
+}
+
+public function reimbursements_update($data)
+{
+	$affectedRows = 0;
+	log_message('info', 'REIMBURSEMENTS: Starting update process');
+
+	// Step 1: Load format and limits
+	$format_reimbursement_data = $this->get_format_reimbursement_data();
+	$staff_information_key = $format_reimbursement_data['staff_information'];
+	$array_reimbursement_key = array_keys($format_reimbursement_data['array_reimbursement']);
+
+	$reimbursement_month = date('Y-m-d', strtotime($data['reimbursements_fill_month'] . '-01'));
+
+	if (isset($data['hrp_reimbursements_value'])) {
+		$hrp_reimbursements_value = $data['hrp_reimbursements_value'];
+		unset($data['hrp_reimbursements_value']);
+	} else {
+		log_message('error', 'REIMBURSEMENTS: No input data provided');
+		return ['error' => 'No data submitted'];
+	}
+
+	// Step 2: Decode data
+	$header = array_merge($staff_information_key, $array_reimbursement_key);
+	$hrp_reimbursements_detail = json_decode($hrp_reimbursements_value);
+	$processed_data = [];
+
+	foreach ($hrp_reimbursements_detail as $value) {
+		$row_data = array_combine($header, $value);
+		$processed_data[] = $row_data;
+	}
+
+	// Step 3: Get reimbursement limits from settings
+	$limits = $this->get_reimbursement_limits(); // Map like ['reimbursement_1' => 1000.00]
+
+	// Step 4: Validate values against limits
+	foreach ($processed_data as $row_index => $row_data) {
+		foreach ($limits as $field => $max_value) {
+			if (isset($row_data[$field])) {
+				$value = floatval($row_data[$field]);
+				if ($value > $max_value) {
+					log_message('error', "REIMBURSEMENTS: Value $value for $field exceeds max $max_value.");
+					return ['error' => "Value for '$field' exceeds the allowed maximum of $max_value."];
+				}
+			}
+		}
+	}
+
+	// Step 5: Encode nested reimbursement values
+	$processed_data = $this->reimbursements_data_json_encode_decode('encode', $processed_data);
+	log_message('info', 'REIMBURSEMENTS: Encoded data rows - ' . count($processed_data));
+
+	// Step 6: Separate for insert/update/delete
+	$rows = ['update' => [], 'insert' => [], 'delete' => []];
+
+	foreach ($processed_data as $value) {
+		if ($value['id'] != 0) {
+			$rows['delete'][] = $value['id'];
+			$rows['update'][] = $value;
+		} else {
+			unset($value['id']);
+			$rows['insert'][] = $value;
+		}
+	}
+
+	if (empty($rows['delete'])) {
+		$rows['delete'] = ['0'];
+	}
+
+	// Step 7: Delete records not included in update if filters are empty
+	if (
+		empty($data['department_reimbursements_filter']) &&
+		empty($data['staff_reimbursements_filter']) &&
+		empty($data['role_reimbursements_filter'])
+	) {
+		$delete_ids = implode(',', $rows['delete']);
+		$this->db->where("id NOT IN ($delete_ids) AND DATE_FORMAT(month, '%Y-%m-%d') = '$reimbursement_month'");
+		$this->db->delete(db_prefix() . 'hrp_salary_reimbursements');
+
+		log_message('info', 'REIMBURSEMENTS: Deleted rows not in input for month ' . $reimbursement_month);
+		if ($this->db->affected_rows() > 0) {
+			$affectedRows++;
+		}
+	}
+
+	// Step 8: Insert new records
+	if (!empty($rows['insert'])) {
+		$this->db->insert_batch(db_prefix() . 'hrp_salary_reimbursements', $rows['insert']);
+		log_message('info', 'REIMBURSEMENTS: Inserted rows - ' . count($rows['insert']));
+		if ($this->db->affected_rows() > 0) {
+			$affectedRows++;
+		}
+	}
+
+	// Step 9: Update existing records
+	if (!empty($rows['update'])) {
+		$this->db->update_batch(db_prefix() . 'hrp_salary_reimbursements', $rows['update'], 'id');
+		log_message('info', 'REIMBURSEMENTS: Updated rows - ' . count($rows['update']));
+		if ($this->db->affected_rows() > 0) {
+			$affectedRows++;
+		}
+	}
+
+	if ($affectedRows > 0) {
+		log_message('info', 'REIMBURSEMENTS: Update process completed successfully');
+		return ['success' => true];
+	}
+
+	log_message('info', 'REIMBURSEMENTS: No changes made');
+	return ['success' => false];
+}
+
+
+
+	
 
 
 	/**
@@ -3986,6 +4264,20 @@ order by staff_id, header_oder
 				$list_column_method[] = ['function_name' => 'deduction_'.$value['id'],        'lable' => $name];
 			}
 
+		}
+
+		//reimbursement list from setting
+		$salary_reimbursements = $this->get_reimbursement_list();
+		foreach ($salary_reimbursements as $key => $value) {
+			$name ='';
+
+			if($value['name_in_payslip'] != ''){
+				$name .= $value['name_in_payslip'];
+			}elseif($value['id'] != ''){
+				$name .= $value['id'];
+			}
+
+			$list_column_method[] = ['function_name' => 'reimbursements_'.$value['id'],  'lable' => $name.' '];
 		}
 
 		//get insurance list from setting
@@ -5317,6 +5609,43 @@ order by staff_id, header_oder
 		    	$staffs_id[$bonus_kpi_value['staff_id']] = $bonus_kpi_value;
 		    }
     	}
+  
+		//get reimbursement data 
+		$reimbursement_data = $this->get_reimbursements_data($payslip_month, $str_sql);
+		log_message('debug', 'Fetched Reimbursement Data: ' . print_r($reimbursement_data, true));
+
+		foreach ($reimbursement_data as $reimbursement_data_key => $reimbursement_data_value) {
+			$staff_id = $reimbursement_data_value['staff_id'];
+
+			// Check if reimbursement_list exists and decode it
+			if (isset($reimbursement_data_value['reimbursement_list'])) {
+				$decoded = json_decode($reimbursement_data_value['reimbursement_list'], true);
+
+				if (json_last_error() !== JSON_ERROR_NONE) {
+					log_message('debug', 'JSON Decode Failed for staff_id ' . $staff_id . ': ' . json_last_error_msg());
+				} else {
+					log_message('debug', 'Decoded reimbursement_list for staff_id ' . $staff_id . ': ' . print_r($decoded, true));
+					// Merge decoded reimbursements into root array
+					$reimbursement_data_value = array_merge($reimbursement_data_value, $decoded);
+				}
+
+				unset($reimbursement_data_value['reimbursement_list']);
+			}
+
+			// Log the final data to be merged
+			log_message('debug', 'Final reimbursement data to merge for staff_id ' . $staff_id . ': ' . print_r($reimbursement_data_value, true));
+
+			// Merge into main staff data
+			if (isset($staffs_id[$staff_id])) {
+				$staffs_id[$staff_id] = array_merge($staffs_id[$staff_id], $reimbursement_data_value);
+			} else {
+				$staffs_id[$staff_id] = $reimbursement_data_value;
+			}
+
+			// Log the merged result
+			log_message('debug', 'Merged Staff Data (Reimbursement) for staff_id ' . $staff_id . ': ' . print_r($staffs_id[$staff_id], true));
+		}
+
 
 
     	//get insurance data
@@ -5438,7 +5767,8 @@ order by staff_id, header_oder
 				// earning2_: salary or allowance type of (CT2: like Probationary contracts)
 				// deduction_: salary deduction
 
-					if(in_array($payroll_key, $payroll_system_columns) || preg_match('/^st1_/', $payroll_key) || preg_match('/^al1_/', $payroll_key) ||preg_match('/^st2_/', $payroll_key) || preg_match('/^al2_/', $payroll_key) || preg_match('/^earning1_/', $payroll_key) || preg_match('/^earning2_/', $payroll_key) || preg_match('/^deduction_/', $payroll_key) || preg_match('/^st_insurance_/', $payroll_key)  ){
+					if(in_array($payroll_key, $payroll_system_columns) || preg_match('/^st1_/', $payroll_key) || preg_match('/^al1_/', $payroll_key) ||preg_match('/^st2_/', $payroll_key) || preg_match('/^al2_/', $payroll_key) || preg_match('/^earning1_/', $payroll_key) || preg_match('/^earning2_/', $payroll_key) || preg_match('/^deduction_/', $payroll_key) || preg_match('/^st_insurance_/', $payroll_key)||
+    preg_match('/^reimbursement_/', $payroll_key)   ){
 
 						if(preg_match('/^deduction_/', $payroll_key)){
 
@@ -5506,7 +5836,11 @@ order by staff_id, header_oder
 								}
 							}
 
-						}elseif($payroll_key == 'income_tax_paye'){
+						}
+						elseif (preg_match('/^reimbursement_/', $payroll_key)) {
+    $value = isset($staff_value[$payroll_key]) ? $staff_value[$payroll_key] : 0;
+}
+elseif($payroll_key == 'income_tax_paye'){
 
 							if(isset($taxable_salary_index)){
 								if(isset($staff_value['income_tax_code']) && $staff_value['income_tax_code'] == 'A'){

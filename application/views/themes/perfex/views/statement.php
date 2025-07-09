@@ -162,7 +162,7 @@
                                                 <td>
                                                     <?php
                                           if (isset($data['invoice_id'])) {
-                                              echo _l('statement_invoice_details', ['<a href="' . site_url('invoice/' . $data['invoice_id']) . '/' . $data['hash'] . '" target="_blank">' . e(format_invoice_number($data['invoice_id'])) . '</a>', e(_d($data['duedate']))]);
+                                              echo _l('statement_invoice_details', ['<a href="' . site_url('invoice/' . $data['invoice_id']) . '/' . $data['hash'] . '" target="_blank">' .(format_invoice_number($data['invoice_id'])) . '</a>',(_d($data['duedate']))]);
                                           } elseif (isset($data['payment_id'])) {
                                               echo (_l('statement_payment_details', ['#' . $data['payment_id'], format_invoice_number($data['payment_invoice_id'])]));
                                           } elseif (isset($data['credit_note_id'])) {

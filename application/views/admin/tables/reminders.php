@@ -33,7 +33,7 @@ foreach ($rResult as $aRow) {
         if ($aColumns[$i] == 'staff') {
             $_data = '<a href="' . admin_url('staff/profile/' . $aRow['staff']) . '">' . staff_profile_image($aRow['staff'], [
                 'staff-profile-image-small',
-                ]) . ' ' . e($aRow['firstname'] . ' ' . $aRow['lastname']) . '</a>';
+                ]) . ' ' .($aRow['firstname'] . ' ' . $aRow['lastname']) . '</a>';
         } elseif ($aColumns[$i] == 'description') {
             $_data = process_text_content_for_display($aRow['description']);
             
@@ -52,7 +52,7 @@ foreach ($rResult as $aRow) {
                 $_data = _l('reminder_is_notified_boolean_no');
             }
         } elseif ($aColumns[$i] == 'date') {
-            $_data = e(_dt($_data));
+            $_data =(_dt($_data));
         } 
 
         $row[] = $_data;

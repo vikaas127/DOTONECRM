@@ -167,7 +167,7 @@
                             <?php } ?>
                             <?php
                                 foreach ($items->taxes() as $tax) {
-                                    echo '<tr class="tax-area"><td class="bold !tw-text-neutral-700">' . e($tax['taxname']) . ' (' . e(app_format_number($tax['taxrate'])) . '%)</td><td>' . e(app_format_money($tax['total_tax'], $invoice->currency_name)) . '</td></tr>';
+                                    echo '<tr class="tax-area"><td class="bold !tw-text-neutral-700">' .($tax['taxname']) . ' (' .(app_format_number($tax['taxrate'])) . '%)</td><td>' .(app_format_money($tax['total_tax'], $invoice->currency_name)) . '</td></tr>';
                                 }           
                             ?>
                             <?php if ((int)$invoice->adjustment != 0) { ?>
@@ -380,7 +380,7 @@
                                     </span>
                                 </div>
                                 <?php } else {
-                             echo '<h4 class="bold mbot25">' . e(_l('invoice_html_total_pay', app_format_money($invoice->total_left_to_pay, $invoice->currency_name))) . '</h4>';
+                             echo '<h4 class="bold mbot25">' .(_l('invoice_html_total_pay', app_format_money($invoice->total_left_to_pay, $invoice->currency_name))) . '</h4>';
                          } ?>
                             </div>
                             <div id="pay_button">

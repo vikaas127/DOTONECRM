@@ -20,12 +20,12 @@ if ($lead['status'] == $status['id']) { ?>
                 'staff-profile-image-xs',
                 ]); ?></a>
             <?php  } ?>
-            <a href="<?php echo admin_url('leads/index/' . e($lead['id'])); ?>"
-                title="#<?php echo ($lead['id']) . ' - ' . e($lead['lead_name']); ?>"
+            <a href="<?php echo admin_url('leads/index/' .($lead['id'])); ?>"
+                title="#<?php echo ($lead['id']) . ' - ' .($lead['lead_name']); ?>"
                 onclick="init_lead(<?php echo ($lead['id']); ?>);return false;" class="tw-block tw-min-w-0">
                 <span
                     class="mtop10 mbot10 tw-truncate tw-block">
-                    #<?php echo ($lead['id']) . ' - ' . e($lead['lead_name']); ?>
+                    #<?php echo ($lead['id']) . ' - ' .($lead['lead_name']); ?>
                 </span>
             </a>
         </div>
@@ -93,15 +93,15 @@ if ($lead['status'] == $status['id']) { ?>
                 <p class="bold tw-text-sm"><?php echo ($lead['title'] != '' ? $lead['title'] : '-') ?></p>
                 <p class="text-muted lead-field-heading"><?php echo _l('lead_add_edit_email'); ?></p>
                 <p class="bold tw-text-sm">
-                    <?php echo ($lead['email'] != '' ? '<a href="mailto:' . e($lead['email']) . '">' . e($lead['email']) . '</a>' : '-') ?>
+                    <?php echo ($lead['email'] != '' ? '<a href="mailto:' .($lead['email']) . '">' .($lead['email']) . '</a>' : '-') ?>
                 </p>
                 <p class="text-muted lead-field-heading"><?php echo _l('lead_website'); ?></p>
                 <p class="bold tw-text-sm">
-                    <?php echo ($lead['website'] != '' ? '<a href="' . e(maybe_add_http($lead['website'])) . '" target="_blank">' . e($lead['website']) . '</a>' : '-') ?>
+                    <?php echo ($lead['website'] != '' ? '<a href="' .(maybe_add_http($lead['website'])) . '" target="_blank">' .($lead['website']) . '</a>' : '-') ?>
                 </p>
                 <p class="text-muted lead-field-heading"><?php echo _l('lead_add_edit_phonenumber'); ?></p>
                 <p class="bold tw-text-sm">
-                    <?php echo ($lead['phonenumber'] != '' ? '<a href="tel:' . e($lead['phonenumber']) . '">' . e($lead['phonenumber']) . '</a>' : '-') ?>
+                    <?php echo ($lead['phonenumber'] != '' ? '<a href="tel:' .($lead['phonenumber']) . '">' .($lead['phonenumber']) . '</a>' : '-') ?>
                 </p>
                 <p class="text-muted lead-field-heading"><?php echo _l('lead_company'); ?></p>
                 <p class="bold tw-text-sm"><?php echo ($lead['company'] != '' ? $lead['company'] : '-') ?></p>

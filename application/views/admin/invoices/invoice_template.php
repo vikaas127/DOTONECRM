@@ -66,7 +66,7 @@
                                     $project_id = $invoice->project_id;
                                 }
                                 if ($project_id) {
-                                    echo '<option value="' . $project_id . '" selected>' . e(get_project_name_by_id($project_id)) . '</option>';
+                                    echo '<option value="' . $project_id . '" selected>' .(get_project_name_by_id($project_id)) . '</option>';
                                 }
                                 ?>
                             </select>
@@ -454,7 +454,7 @@
                                 <div class="form-group recurring-cycles">
                                     <label for="cycles"><?php echo _l('recurring_total_cycles'); ?>
                                         <?php if (isset($invoice) && $invoice->total_cycles > 0) {
-                                            echo '<small>' . e(_l('cycles_passed', $invoice->total_cycles)) . '</small>';
+                                            echo '<small>' .(_l('cycles_passed', $invoice->total_cycles)) . '</small>';
                                         }
                                         ?>
                                     </label>
@@ -462,7 +462,7 @@
                                         <input type="number" class="form-control" <?php if ($value == 0) {
                                                                                         echo ' disabled';
                                                                                     } ?> name="cycles" id="cycles" value="<?php echo ($value); ?>" <?php if (isset($invoice) && $invoice->total_cycles > 0) {
-                                                                                                                                                        echo 'min="' . e($invoice->total_cycles) . '"';
+                                                                                                                                                        echo 'min="' .($invoice->total_cycles) . '"';
                                                                                                                                                     } ?>>
                                         <div class="input-group-addon">
                                             <div class="checkbox">
@@ -577,7 +577,7 @@
                         <?php
                         $custom_fields = get_custom_fields('items');
                         foreach ($custom_fields as $cf) {
-                            echo '<th width="15%" align="left" class="custom_field">' . e($cf['name']) . '</th>';
+                            echo '<th width="15%" align="left" class="custom_field">' .($cf['name']) . '</th>';
                         }
                         $qty_heading = _l('invoice_table_quantity_heading');
                         if (isset($invoice) && $invoice->show_quantity_as == 2 || isset($hours_quantity)) {

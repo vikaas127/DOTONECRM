@@ -153,6 +153,24 @@
 	 	});
 	 }
 
+function percentageRenderer(instance, td, row, col, prop, value, cellProperties) {
+  const rowData = instance.getSourceDataAtRow(row);
+  const type = parseInt(rowData.calculation_type);
+
+  let display = '';
+
+  if (type === 0) {
+    display = 'Fixed Amount';
+  } else if (type === 1) {
+    display = isNaN(value) ? '' : `${value} % of Basic`;
+  } else if (type === 2) {
+    display = isNaN(value) ? '' : `${value} % of CTC`;
+  }
+
+  td.innerHTML = display;
+  td.className = 'htMiddle htLeft';
+}
+
 
 
 	 (function($) {
@@ -163,7 +181,7 @@
 	 		var warehouses ={};
 	//hansometable for purchase
 	var row_global;
-	var dataObject_pu = [];
+	var dataObject_pu = <?php echo json_encode($default_structure_rows); ?>;
 	var
 	hotElement1 = document.getElementById('staff_contract_hs');
 
@@ -225,12 +243,38 @@
 
 		},
 		{
+  data: 'calculation_type',
+  type: 'text',
+  readOnly: true
+}
+
+
+,{
+  data: 'percentage_value',
+  type: 'numeric',
+  renderer: percentageRenderer,
+  numericFormat: {
+    pattern: '0.00'
+  }
+}
+,
+
+		{
 			type: 'numeric',
 			data: 'rel_value',
 			numericFormat: {
 				pattern: '0,00',
 			},
 		},
+			{
+	type: 'numeric',
+	data: 'annual_value',
+	numericFormat: {
+		pattern: '0,00',
+	},
+	readOnly: true
+}
+,
 
 		{
 			type: 'date',
@@ -247,26 +291,76 @@
 
 		],
 
-		colHeaders: [
+			colHeaders: [
 		'<?php echo _l('hr_hr_contract_type'); ?>',
 		'<?php echo _l('hr_hr_contract_rel_type'); ?>',
+		  '<?php echo _l('hr_calculation_type'); ?>',
+		  		  '<?php echo _l('hr_percentage_type'); ?>',
+
 		'<?php echo _l('hr_hr_contract_rel_value'); ?>',
+				'<?php echo _l('hr_hr_contract_annual_value'); ?>',
+
 		'<?php echo _l('hr_start_month'); ?>',
 		'<?php echo _l('note'); ?>',
 
 		],
 
 		data: dataObject_pu,
+		cells: function(row, col, prop) {
+  const cellProperties = {};
+  const rowData = this.instance.getSourceDataAtRow(row);
+
+  // Set editable only if calculation_type == 1
+ if (prop === 'percentage_value') {
+  const type = parseInt(rowData.calculation_type);
+  cellProperties.readOnly = !(type === 1 || type === 2);
+}
+if (prop === 'rel_value') {
+  const type = parseInt(rowData.calculation_type);
+  cellProperties.readOnly = !(type === 0);  // Only editable if type is 0
+}
+
+
+  // Prevent duplicate rel_type selection
+  if (prop === 'rel_type') {
+    const selectedRelTypes = new Set();
+    const tableData = this.instance.getData();
+
+    for (let r = 0; r < tableData.length; r++) {
+      if (r !== row && tableData[r][1]) {
+        selectedRelTypes.add(tableData[r][1]);
+      }
+    }
+
+    const availableOptions = <?php echo json_encode($salary_allowance_type); ?>.filter(opt => {
+      return !selectedRelTypes.has(opt.id);
+    });
+
+    cellProperties.renderer = customDropdownRenderer;
+    cellProperties.editor = 'chosen';
+    cellProperties.chosenOptions = {
+      data: availableOptions
+    };
+  }
+
+  return cellProperties;
+},
+
+
 	});
 
 <?php }else{ ?>
 
 
-	<?php if(isset($contract_details)){?>
-		var dataObject_pu = <?php echo new_html_entity_decode($contract_details); ?>;
-	<?php }else{ ?>
-		var dataObject_pu = [];
-	<?php } ?>
+<?php if (isset($contract_details) && !empty($contract_details)) { ?>
+	var dataObject_pu = <?php echo new_html_entity_decode($contract_details); ?>;
+<?php } else { ?>
+	var dataObject_pu = <?php echo json_encode($default_structure_rows); ?>;
+<?php } ?>
+
+console.log(" DEBUG dataObject_pu:", dataObject_pu);
+
+
 
 	var warehouses ={};
 	//hansometable for purchase
@@ -305,7 +399,7 @@
 		rowHeaderWidth: [44],
 		minSpareRows: 1,
 		hiddenColumns: {
-			columns: [0,5,6],
+			columns: [0,8,9],
 			indicators: true
 		},
 
@@ -330,6 +424,26 @@
 			}
 
 		},
+
+	{
+  data: 'calculation_type',
+  type: 'text',
+  readOnly: true
+}
+
+
+,		{
+  data: 'percentage_value',
+  type: 'numeric',
+  renderer: percentageRenderer,
+  numericFormat: {
+    pattern: '0.00'
+  }
+}
+
+
+,
+
 		{
 			type: 'numeric',
 			data: 'rel_value',
@@ -337,6 +451,16 @@
 				pattern: '0,00',
 			},
 		},
+
+		{
+	type: 'numeric',
+	data: 'annual_value',
+	numericFormat: {
+		pattern: '0,00',
+	},
+	readOnly: true
+}
+,
 
 		{
 			type: 'date',
@@ -365,13 +489,59 @@
 		colHeaders: [
 		'<?php echo _l('hr_hr_contract_type'); ?>',
 		'<?php echo _l('hr_hr_contract_rel_type'); ?>',
+		'<?php echo _l('hr_calculation_type'); ?>',
+		'<?php echo _l('hr_percentage_type'); ?>',
+
 		'<?php echo _l('hr_hr_contract_rel_value'); ?>',
+		'<?php echo _l('hr_hr_contract_annual_value'); ?>',
+
 		'<?php echo _l('hr_start_month'); ?>',
 		'<?php echo _l('note'); ?>',
 
 		],
 
 		data: dataObject_pu,
+cells: function(row, col, prop) {
+  const cellProperties = {};
+  const rowData = this.instance.getSourceDataAtRow(row);
+
+  // Set editable only if calculation_type == 1
+ if (prop === 'percentage_value') {
+  const type = parseInt(rowData.calculation_type);
+  cellProperties.readOnly = !(type === 1 || type === 2);
+}
+if (prop === 'rel_value') {
+  const type = parseInt(rowData.calculation_type);
+  cellProperties.readOnly = !(type === 0);  // Only editable if type is 0
+}
+
+
+  // Prevent duplicate rel_type selection
+  if (prop === 'rel_type') {
+    const selectedRelTypes = new Set();
+    const tableData = this.instance.getData();
+
+    for (let r = 0; r < tableData.length; r++) {
+      if (r !== row && tableData[r][1]) {
+        selectedRelTypes.add(tableData[r][1]);
+      }
+    }
+
+    const availableOptions = <?php echo json_encode($salary_allowance_type); ?>.filter(opt => {
+      return !selectedRelTypes.has(opt.id);
+    });
+
+    cellProperties.renderer = customDropdownRenderer;
+    cellProperties.editor = 'chosen';
+    cellProperties.chosenOptions = {
+      data: availableOptions
+    };
+  }
+
+  return cellProperties;
+},
+
+
 	});
 
 <?php } ?>
@@ -430,20 +600,160 @@ purchase.addHook('afterChange', function(changes, src) {
 	}
 });
 
-$('.add_goods_receipt').on('click', function() {
-	'use strict';
-	
-	var valid_contract = $('#staff_contract_hs').find('.htInvalid').html();
 
-	if(valid_contract){
-		alert_float('danger', "<?php echo _l('data_must_number') ; ?>");
-	}else{
 
-		$('input[name="staff_contract_hs"]').val(JSON.stringify(purchase_value.getData()));   
-		$('.staff-contract-form').submit(); 
 
-	}
+
+
+$('.add_goods_receipt').on('click', function () {
+  'use strict';
+
+  var valid_contract = $('#staff_contract_hs').find('.htInvalid').html();
+
+  if (valid_contract) {
+    alert_float('danger', "<?php echo _l('data_must_number'); ?>");
+    return;
+  }
+
+  const ctc = parseFloat($('#ctc').val());
+  const totalAnnual = parseFloat($('#total_annual_value').text().replace(/,/g, ''));
+
+  if (isNaN(ctc)) {
+    alert_float('danger', 'Please enter a valid CTC value.');
+    return;
+  }
+
+  const diff = (totalAnnual - ctc).toFixed(2);
+  const diffMonthly = (Math.abs(diff) / 12).toFixed(2);
+
+  if (Math.abs(diff) > 0.01) {
+    if (diff > 0) {
+      alert_float('danger', 
+        `Total Annual Value exceeds CTC by ₹${Math.abs(diff)}.\nYou need to reduce ₹${diffMonthly} per month.`);
+    } else {
+      alert_float('danger', 
+        `Total Annual Value is ₹${Math.abs(diff)} less than CTC.\nYou need to add ₹${diffMonthly} per month.`);
+    }
+    return;
+  }
+
+  // ✅ Submit when total equals CTC
+  $('input[name="staff_contract_hs"]').val(JSON.stringify(purchase.getData()));
+  $('.staff-contract-form').submit();
 });
+
+
+$('#ctc').on('input', function () {
+  const ctc = parseFloat($(this).val());
+
+  if (!isNaN(ctc)) {
+    const data = purchase.getSourceData();
+    let basicValue = null;
+
+    // Step 1: Find Basic (form_id = 4 → rel_type = "st_4")
+    data.forEach((row) => {
+      if (row.rel_type === 'st_4') {
+        const calcType = parseInt(row.calculation_type);
+        const percent = parseFloat(row.percentage_value);  // ✅ updated
+
+        if (!isNaN(percent)) {
+          if (calcType === 0) {
+            basicValue = percent;
+          } else if (calcType === 2) {
+            basicValue = (percent * ctc) / (12 * 100);
+          }
+        }
+      }
+    });
+
+    // Step 2: Update values
+    data.forEach((row, rowIndex) => {
+		const calcType = parseInt(row.calculation_type);
+		const percent = parseFloat(row.percentage_value);  
+
+		if (!isNaN(percent)) {
+			if (calcType === 2) {
+			const monthlyValue = (percent * ctc) / (12 * 100);
+			const annualValue = (percent * ctc) / 100;
+
+			purchase.setDataAtRowProp(rowIndex, 'rel_value', parseFloat(monthlyValue.toFixed(2)));
+			purchase.setDataAtRowProp(rowIndex, 'annual_value', parseFloat(annualValue.toFixed(2)));
+			}
+
+			if (calcType === 1 && basicValue !== null) {
+			const monthlyValue = (percent * basicValue) / 100;
+			const annualValue = monthlyValue * 12;
+
+			purchase.setDataAtRowProp(rowIndex, 'rel_value', parseFloat(monthlyValue.toFixed(2)));
+			purchase.setDataAtRowProp(rowIndex, 'annual_value', parseFloat(annualValue.toFixed(2)));
+			}
+	}
+	});
+
+}
+updateTotals(); 
+});
+
+
+purchase.addHook('afterChange', function (changes, source) {
+  if (!changes || source !== 'edit') return;
+
+  changes.forEach(([row, prop, oldValue, newValue]) => {
+    if (prop === 'rel_value') {
+      const rowData = purchase.getSourceDataAtRow(row);
+      if (parseInt(rowData.calculation_type) === 0) {
+        const rel = parseFloat(newValue);
+        if (!isNaN(rel)) {
+          const annual = rel * 12;
+          purchase.setDataAtRowProp(row, 'annual_value', parseFloat(annual.toFixed(2)));
+        }
+      }
+    }
+
+    if (prop === 'percentage_value') {
+      $('#ctc').trigger('input');
+    }
+  });
+});
+
+
+// Recalculate totals when a new row is added
+purchase.addHook('afterCreateRow', function (index, amount) {
+  updateTotals();
+});
+
+// Recalculate totals when a row is removed
+purchase.addHook('afterRemoveRow', function (index, amount) {
+  updateTotals();
+});
+
+
+function updateTotals() {
+  const data = purchase.getSourceData();  // <- updated
+  let totalRel = 0;
+  let totalAnnual = 0;
+
+  data.forEach(row => {
+    const rel = parseFloat(row.rel_value);
+    const annual = parseFloat(row.annual_value);
+
+    if (!isNaN(rel)) totalRel += rel;
+    if (!isNaN(annual)) totalAnnual += annual;
+  });
+
+  $('#total_rel_value').text(totalRel.toLocaleString('en-IN', { minimumFractionDigits: 2 }));
+  $('#total_annual_value').text(totalAnnual.toLocaleString('en-IN', { minimumFractionDigits: 2 }));
+}
+
+purchase.addHook('afterChange', function () {
+  updateTotals();
+});
+
+$(document).ready(function () {
+  updateTotals(); // ← recalculate on load
+});
+
+
 
 
 </script>

@@ -161,11 +161,11 @@
                             </b>
                         </span>
                         <?php if ($recurring_expense->cycles == 0 || $recurring_expense->cycles != $recurring_expense->total_cycles) {
-                       echo '<span class="label label-info tw-ml-1"><i class="fa-regular fa-circle-question fa-fw" data-toggle="tooltip" data-title="' . _l('recurring_recreate_hour_notice', _l('expense')) . '"></i> ' . _l('next_expense_date', '<b class="tw-ml-1">' . e(_d($next_date)) . '</b>') . '</span>';
+                       echo '<span class="label label-info tw-ml-1"><i class="fa-regular fa-circle-question fa-fw" data-toggle="tooltip" data-title="' . _l('recurring_recreate_hour_notice', _l('expense')) . '"></i> ' . _l('next_expense_date', '<b class="tw-ml-1">' .(_d($next_date)) . '</b>') . '</span>';
                    }
             }
                     if ($expense->recurring_from != null) { ?>
-                        <?php echo '<p class="text-muted no-mbot' . ($show_recurring_expense_info ? ' mtop15': '') . '">' . _l('expense_recurring_from', '<a href="' . admin_url('expenses/list_expenses/' . $expense->recurring_from) . '" onclick="init_expense(' . $expense->recurring_from . ');return false;">' . e($recurring_expense->category_name) . (!empty($recurring_expense->expense_name) ? ' (' . e($recurring_expense->expense_name) . ')' : '') . '</a></p>'); ?>
+                        <?php echo '<p class="text-muted no-mbot' . ($show_recurring_expense_info ? ' mtop15': '') . '">' . _l('expense_recurring_from', '<a href="' . admin_url('expenses/list_expenses/' . $expense->recurring_from) . '" onclick="init_expense(' . $expense->recurring_from . ');return false;">' .($recurring_expense->category_name) . (!empty($recurring_expense->expense_name) ? ' (' .($recurring_expense->expense_name) . ')' : '') . '</a></p>'); ?>
                         <?php } ?>
                     </div>
                     <div class="clearfix"></div>
@@ -190,16 +190,16 @@
                 } ?>
                         <?php
                         if ($expense->tax != 0) {
-                            echo '<br /><span class="bold">' . _l('tax_1') . ':</span> ' . e($expense->taxrate) . '% (' . e($expense->tax_name ). ')';
+                            echo '<br /><span class="bold">' . _l('tax_1') . ':</span> ' .($expense->taxrate) . '% (' .($expense->tax_name ). ')';
                             $total = $expense->amount;
                             $total += ($total / 100 * $expense->taxrate);
                         }
                         if ($expense->tax2 != 0) {
-                            echo '<br /><span class="bold">' . _l('tax_2') . ':</span> ' . e($expense->taxrate2) . '% (' . e($expense->tax_name2) . ')';
+                            echo '<br /><span class="bold">' . _l('tax_2') . ':</span> ' .($expense->taxrate2) . '% (' .($expense->tax_name2) . ')';
                             $total += ($expense->amount / 100 * $expense->taxrate2);
                         }
                         if ($expense->tax != 0 || $expense->tax2 != 0) {
-                            echo '<p class="font-medium bold text-danger">' . _l('total_with_tax') . ': ' . e(app_format_money($total, $expense->currency_data)) . '</p>';
+                            echo '<p class="font-medium bold text-danger">' . _l('total_with_tax') . ': ' .(app_format_money($total, $expense->currency_data)) . '</p>';
                         }
                         ?>
                         <p><span class="bold"><?php echo _l('expense_date'); ?></span> <span
@@ -208,7 +208,7 @@
                             if ($expense->invoiceid == null) {
                                 echo '<span class="text-danger">' . _l('expense_invoice_not_created') . '</span>';
                             } else {
-                                echo '<span class="bold">' . e(format_invoice_number($invoice->id)) . ' - </span>';
+                                echo '<span class="bold">' .(format_invoice_number($invoice->id)) . ' - </span>';
                                 if ($invoice->status == 2) {
                                     echo '<span class="text-success">' . _l('expense_billed') . '</span>';
                                 } else {
@@ -316,11 +316,11 @@
                     <li class="list-group-item">
                         <a href="<?php echo admin_url('expenses/list_expenses/' . $recurring->expenseid); ?>"
                             onclick="init_expense(<?php echo ($recurring->expenseid); ?>); return false;"
-                            target="_blank"><?php echo ($recurring->category_name . (!empty($recurring->expense_name) ? ' (' . e($recurring->expense_name) . ')' : '')); ?>
+                            target="_blank"><?php echo ($recurring->category_name . (!empty($recurring->expense_name) ? ' (' .($recurring->expense_name) . ')' : '')); ?>
                         </a>
                         <br />
                         <span class="inline-block mtop10">
-                            <?php echo '<span class="bold">' . e(_d($recurring->date)) . '</span>'; ?><br />
+                            <?php echo '<span class="bold">' .(_d($recurring->date)) . '</span>'; ?><br />
                             <p><span class="bold font-medium"><?php echo _l('expense_amount'); ?></span>
                                 <span
                                     class="text-danger bold font-medium">
@@ -328,16 +328,16 @@
                                 </span>
                                 <?php
                            if ($recurring->tax != 0) {
-                               echo '<br /><span class="bold">' . _l('tax_1') . ':</span> ' . e($recurring->taxrate) . '% (' . e($recurring->tax_name) . ')';
+                               echo '<br /><span class="bold">' . _l('tax_1') . ':</span> ' .($recurring->taxrate) . '% (' .($recurring->tax_name) . ')';
                                $total = $recurring->amount;
                                $total += ($total / 100 * $recurring->taxrate);
                            }
                            if ($recurring->tax2 != 0) {
-                               echo '<br /><span class="bold">' . _l('tax_2') . ':</span> ' . e($recurring->taxrate2) . '% (' . e($recurring->tax_name2) . ')';
+                               echo '<br /><span class="bold">' . _l('tax_2') . ':</span> ' .($recurring->taxrate2) . '% (' .($recurring->tax_name2) . ')';
                                $total += ($recurring->amount / 100 * $recurring->taxrate2);
                            }
                            if ($recurring->tax != 0 || $recurring->tax2 != 0) {
-                               echo '<p class="font-medium bold text-danger">' . _l('total_with_tax') . ': ' . e(app_format_money($total, $recurring->currency_data)) . '</p>';
+                               echo '<p class="font-medium bold text-danger">' . _l('total_with_tax') . ': ' .(app_format_money($total, $recurring->currency_data)) . '</p>';
                            }
                            ?>
                         </span>

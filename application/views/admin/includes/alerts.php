@@ -8,7 +8,7 @@ if (sizeof($_announcements) > 0 && isset($dashboard) && is_staff_member()) { ?>
             <div class="text-info alert-dismissible" role="alert">
                 <h4 class="no-margin pull-left">
                     <?php echo _l('announcement'); ?>! <?php if ($__announcement['showname'] == 1) {
-    echo '<br /><small class="font-medium-xs">' . e(_l('announcement_from') . ' ' . $__announcement['userid']);
+    echo '<br /><small class="font-medium-xs">' .(_l('announcement_from') . ' ' . $__announcement['userid']);
 } ?></small><br />
                     <small><?php echo (_l('announcement_date', _dt($__announcement['dateadded']))); ?></small>
                 </h4>

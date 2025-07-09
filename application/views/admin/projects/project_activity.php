@@ -12,12 +12,12 @@
                         </div>
                         <div class="text">
                             <?php
-                  $fullname = e($activity['fullname']);
+                  $fullname = ($activity['fullname']);
     if ($activity['staff_id'] != 0) { ?>
                             <a
                                 href="<?php echo admin_url('profile/' . $activity['staff_id']); ?>"><?php echo staff_profile_image($activity['staff_id'], ['staff-profile-xs-image', 'pull-left mright10']); ?></a>
                             <?php } elseif ($activity['contact_id'] != 0) {
-        $fullname = '<span class="label label-info inline-block mbot5">' . _l('is_customer_indicator') . '</span> ' . $fullname = e($activity['fullname']); ?>
+        $fullname = '<span class="label label-info inline-block mbot5">' . _l('is_customer_indicator') . '</span> ' . $fullname = ($activity['fullname']); ?>
                             <a
                                 href="<?php echo admin_url('clients/client/' . get_user_id_by_contact_id($activity['contact_id']) . '?contactid=' . $activity['contact_id']); ?>">
                                 <img src="<?php echo (contact_profile_image_url($activity['contact_id'])); ?>
@@ -32,7 +32,7 @@
         $checked = '';
     } ?>
                             <p class="mtop10 no-mbot">
-                                <?php echo $fullname . ' - <b>' . e($activity['description']) . '</b>'; ?></p>
+                                <?php echo $fullname . ' - <b>' . ($activity['description']) . '</b>'; ?></p>
                             <p class="no-mbot text-muted mleft30 mtop5"><?php echo $activity['additional_data']; ?></p>
                         </div>
                     </div>

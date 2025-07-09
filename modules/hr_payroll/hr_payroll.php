@@ -83,7 +83,7 @@ function hr_payroll_module_init_menu_items()
 {
     $CI = &get_instance();
 
-    if(has_permission('hrp_employee','','view') || has_permission('hrp_attendance','','view') || has_permission('hrp_commission','','view') || has_permission('hrp_deduction','','view') || has_permission('hrp_bonus_kpi','','view') || has_permission('hrp_insurrance','','view') || has_permission('hrp_payslip','','view') || has_permission('hrp_payslip_template','','view') || has_permission('hrp_income_tax','','view') || has_permission('hrp_report','','view') || has_permission('hrp_setting','','view') || has_permission('hrp_employee','','view_own') || has_permission('hrp_attendance','','view_own') || has_permission('hrp_commission','','view_own') || has_permission('hrp_deduction','','view_own') || has_permission('hrp_bonus_kpi','','view_own') || has_permission('hrp_insurrance','','view_own') || has_permission('hrp_payslip','','view_own') || has_permission('hrp_payslip_template','','view_own') || has_permission('hrp_income_tax','','view_own')){
+    if(has_permission('hrp_employee','','view') || has_permission('hrp_attendance','','view') || has_permission('hrp_commission','','view') || has_permission('hrp_deduction','','view')|| has_permission('hrp_reimbursement','','view') || has_permission('hrp_bonus_kpi','','view') || has_permission('hrp_insurrance','','view') || has_permission('hrp_payslip','','view') || has_permission('hrp_payslip_template','','view') || has_permission('hrp_income_tax','','view') || has_permission('hrp_report','','view') || has_permission('hrp_setting','','view') || has_permission('hrp_employee','','view_own') || has_permission('hrp_attendance','','view_own') || has_permission('hrp_commission','','view_own') || has_permission('hrp_deduction','','view_own')|| has_permission('hrp_reimbursement','','view_own') || has_permission('hrp_bonus_kpi','','view_own') || has_permission('hrp_insurrance','','view_own') || has_permission('hrp_payslip','','view_own') || has_permission('hrp_payslip_template','','view_own') || has_permission('hrp_income_tax','','view_own')){
        $CI->app_menu->add_sidebar_menu_item('hr_payroll', [
         'name'     => _l('hr_payroll'),
         'icon'     => 'fa fa-users',
@@ -100,6 +100,7 @@ function hr_payroll_module_init_menu_items()
             'position' => 1,
         ]);
     }
+
 
     if(has_permission('hrp_attendance','','view') || has_permission('hrp_attendance','','view_own')){
         $CI->app_menu->add_sidebar_children_item('hr_payroll', [
@@ -132,6 +133,23 @@ function hr_payroll_module_init_menu_items()
         ]);
     }
 
+log_message('error', 'REIMBURSEMENT: ' . (has_permission('hrp_reimbursement','','view') ? 'has global' : 'no global') . ' | ' . (has_permission('hrp_reimbursement','','view_own') ? 'has own' : 'no own'));
+
+    if(has_permission('hrp_reimbursement','','view') || has_permission('hrp_reimbursement','','view_own')){
+        $CI->app_menu->add_sidebar_children_item('hr_payroll', [
+            'slug'     => 'hr_manage_reimbursements',
+            'name'     => _l('hrp_reimbursement_manage'),
+
+            'icon'     => 'fa fa-cut',
+            'href'     => admin_url('hr_payroll/manage_reimbursements'),
+            'position' => 5,
+        ]);
+    }
+
+log_message('error', 'ADDED REIMBURSEMENT MENU');
+    
+
+
 
     if(has_permission('hrp_bonus_kpi','','view') || has_permission('hrp_bonus_kpi','','view_own')){
         $CI->app_menu->add_sidebar_children_item('hr_payroll', [
@@ -139,7 +157,7 @@ function hr_payroll_module_init_menu_items()
             'name'     => _l('hr_bonus_kpi'),
             'icon'     => 'fa fa-gift',
             'href'     => admin_url('hr_payroll/manage_bonus'),
-            'position' => 5,
+            'position' => 6,
         ]);
     }
 
@@ -149,7 +167,7 @@ function hr_payroll_module_init_menu_items()
             'name'     => _l('hrp_insurrance'),
             'icon'     => 'fa fa-medkit',
             'href'     => admin_url('hr_payroll/manage_insurances'),
-            'position' => 6,
+            'position' => 7,
         ]);
     }
 
@@ -159,7 +177,7 @@ function hr_payroll_module_init_menu_items()
             'name'     => _l('hr_pay_slips'),
             'icon'     => 'fa-solid fa-money-bill',
             'href'     => admin_url('hr_payroll/payslip_manage'),
-            'position' => 7,
+            'position' => 8,
         ]);
     }
 
@@ -169,7 +187,7 @@ function hr_payroll_module_init_menu_items()
             'name'     => _l('hr_pay_slip_templates'),
             'icon'     => 'fa fa-outdent',
             'href'     => admin_url('hr_payroll/payslip_templates_manage'),
-            'position' => 8,
+            'position' => 9,
         ]);
     }
 
@@ -179,7 +197,7 @@ function hr_payroll_module_init_menu_items()
             'name'     => _l('hrp_income_tax'),
             'icon'     => 'fa fa-calendar-minus',
             'href'     => admin_url('hr_payroll/income_taxs_manage'),
-            'position' => 9,
+            'position' => 10,
         ]);
     }
 
@@ -189,7 +207,7 @@ function hr_payroll_module_init_menu_items()
             'name'     => _l('hrp_reports'),
             'icon'     => 'fa fa-list-alt',
             'href'     => admin_url('hr_payroll/reports'),
-            'position' => 10,
+            'position' => 11,
         ]);
     }
 
@@ -199,7 +217,7 @@ function hr_payroll_module_init_menu_items()
             'name'     => _l('settings'),
             'icon'     => 'fa fa-cog menu-icon',
             'href'     => admin_url('hr_payroll/setting?group=income_tax_rates'),
-            'position' => 11,
+            'position' => 12,
         ]);
 
     }
@@ -219,7 +237,7 @@ function hr_payroll_load_js(){
         echo '<script src="'.module_dir_url(HR_PAYROLL_MODULE_NAME, 'assets/js/deactivate_hotkey.js').'?v=' . HR_PAYROLL_REVISION.'"></script>';
     }
 
-    if (!(strpos($viewuri, '/admin/hr_payroll/setting') === false) || !(strpos($viewuri, '/admin/hr_payroll/manage_employees') === false) || !(strpos($viewuri, '/admin/hr_payroll/manage_attendance') === false) || !(strpos($viewuri, '/admin/hr_payroll/manage_deductions') === false) || !(strpos($viewuri, '/admin/hr_payroll/manage_commissions') === false) || !(strpos($viewuri, '/admin/hr_payroll/income_taxs_manage') === false) || !(strpos($viewuri, '/admin/hr_payroll/manage_insurances') === false) ) {   
+    if (!(strpos($viewuri, '/admin/hr_payroll/setting') === false) || !(strpos($viewuri, '/admin/hr_payroll/manage_employees') === false) || !(strpos($viewuri, '/admin/hr_payroll/manage_attendance') === false) || !(strpos($viewuri, '/admin/hr_payroll/manage_deductions') === false)|| !(strpos($viewuri, '/admin/hr_payroll/manage_reimbursements') === false) || !(strpos($viewuri, '/admin/hr_payroll/manage_commissions') === false) || !(strpos($viewuri, '/admin/hr_payroll/income_taxs_manage') === false) || !(strpos($viewuri, '/admin/hr_payroll/manage_insurances') === false) ) {   
      echo '<script src="' . module_dir_url(HR_PAYROLL_MODULE_NAME, 'assets/plugins/handsontable/chosen.jquery.js') . '"></script>';
      echo '<script src="' . module_dir_url(HR_PAYROLL_MODULE_NAME, 'assets/plugins/handsontable/handsontable-chosen-editor.js') . '"></script>';
  }
@@ -279,7 +297,7 @@ function hr_payroll_add_head_components(){
         echo '<link href="' . module_dir_url(HR_PAYROLL_MODULE_NAME, 'assets/css/styles.css') . '"  rel="stylesheet" type="text/css" />';
     }
 
-    if (!(strpos($viewuri, '/admin/hr_payroll/setting') === false) || !(strpos($viewuri, '/admin/hr_payroll/manage_employees') === false) || !(strpos($viewuri, '/admin/hr_payroll/manage_attendance') === false) || !(strpos($viewuri, '/admin/hr_payroll/manage_deductions') === false) || !(strpos($viewuri, '/admin/hr_payroll/manage_commissions') === false) || !(strpos($viewuri, '/admin/hr_payroll/income_taxs_manage') === false) || !(strpos($viewuri, '/admin/hr_payroll/manage_insurances') === false) ) { 
+    if (!(strpos($viewuri, '/admin/hr_payroll/setting') === false) || !(strpos($viewuri, '/admin/hr_payroll/manage_employees') === false) || !(strpos($viewuri, '/admin/hr_payroll/manage_attendance') === false) || !(strpos($viewuri, '/admin/hr_payroll/manage_deductions') === false)|| !(strpos($viewuri, '/admin/hr_payroll/manage_reimbursements') === false) || !(strpos($viewuri, '/admin/hr_payroll/manage_commissions') === false) || !(strpos($viewuri, '/admin/hr_payroll/income_taxs_manage') === false) || !(strpos($viewuri, '/admin/hr_payroll/manage_insurances') === false) ) { 
 
         echo '<link href="' . module_dir_url(HR_PAYROLL_MODULE_NAME, 'assets/plugins/handsontable/handsontable.full.min.css') . '"  rel="stylesheet" type="text/css" />';
         echo '<link href="' . module_dir_url(HR_PAYROLL_MODULE_NAME, 'assets/plugins/handsontable/chosen.css') . '"  rel="stylesheet" type="text/css" />';
@@ -365,6 +383,8 @@ function hr_payroll_permissions()
     register_staff_capabilities('hrp_attendance', $capabilities_3, _l('hr_payroll_attendance'));
     register_staff_capabilities('hrp_commission', $capabilities_3, _l('hr_payroll_commission'));
     register_staff_capabilities('hrp_deduction', $capabilities_3, _l('hr_payroll_deduction'));
+    register_staff_capabilities('hrp_reimbursement', $capabilities_3, _l('hr_payroll_reimbursement'));
+
     register_staff_capabilities('hrp_bonus_kpi', $capabilities_3, _l('hr_payroll_bonus_kpi'));
     register_staff_capabilities('hrp_insurrance', $capabilities_3, _l('hr_payroll_insurrance'));
     register_staff_capabilities('hrp_payslip', $capabilities_3, _l('hr_payroll_payslip'));

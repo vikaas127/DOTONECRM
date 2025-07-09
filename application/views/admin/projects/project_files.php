@@ -91,7 +91,7 @@
                             onclick="view_project_file(<?php echo ($file['id']); ?>,<?php echo ($file['project_id']); ?>); return false;">
                             <?php if (is_image(PROJECT_ATTACHMENTS_FOLDER . $project->id . '/' . $file['file_name']) || (!empty($file['external']) && !empty($file['thumbnail_link']))) {
         echo '<div class="text-left"><i class="fa fa-spinner fa-spin mtop30"></i></div>';
-        echo '<img class="project-file-image img-table-loading" src="#" data-orig="' . e(project_file_url($file, true)) . '" width="100">';
+        echo '<img class="project-file-image img-table-loading" src="#" data-orig="' . (project_file_url($file, true)) . '" width="100">';
         echo '</div>';
     }
     echo $file['subject']; ?></a>
@@ -132,11 +132,11 @@
         $_data = '<a href="' . admin_url('staff/profile/' . $file['staffid']) . '">' . staff_profile_image($file['staffid'], [
                 'staff-profile-image-small',
               ]) . '</a>';
-        $_data .= ' <a href="' . admin_url('staff/member/' . $file['staffid']) . '">' . e(get_staff_full_name($file['staffid'])) . '</a>';
+        $_data .= ' <a href="' . admin_url('staff/member/' . $file['staffid']) . '">' . (get_staff_full_name($file['staffid'])) . '</a>';
         echo $_data;
     } else {
-        echo ' <img src="' . e(contact_profile_image_url($file['contact_id'], 'thumb')) . '" class="client-profile-image-small mrigh5">
-             <a href="' . admin_url('clients/client/' . get_user_id_by_contact_id($file['contact_id']) . '?contactid=' . $file['contact_id']) . '">' . e(get_contact_full_name($file['contact_id'])) . '</a>';
+        echo ' <img src="' . (contact_profile_image_url($file['contact_id'], 'thumb')) . '" class="client-profile-image-small mrigh5">
+             <a href="' . admin_url('clients/client/' . get_user_id_by_contact_id($file['contact_id']) . '?contactid=' . $file['contact_id']) . '">' . (get_contact_full_name($file['contact_id'])) . '</a>';
     } ?>
                     </td>
                     <td data-order="<?php echo ($file['dateadded']); ?>"><?php echo (_dt($file['dateadded'])); ?></td>

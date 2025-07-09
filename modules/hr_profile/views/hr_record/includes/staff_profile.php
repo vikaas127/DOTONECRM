@@ -1,3 +1,12 @@
+<style>
+	.list-group-item{
+  color:#000 !important
+}
+
+.socials a{
+	color:#3ead3c;
+}
+</style>
 <div class="row">
 
 	<?php if (($staff_p->staffid == get_staff_user_id() || is_admin()) && !$this->input->get('notifications')) {?>
@@ -61,7 +70,7 @@ if ($member->active == 0) {?>
 						<li class="list-group-item"><i class="fa fa-envelope mr-4"></i> <?php echo new_html_entity_decode($member->email) ?></li>
 						<li class="list-group-item"><i class="fa fa-phone mr-4"></i> <?php echo new_html_entity_decode($member->phonenumber) ?></li>
 						<li class="list-group-item"><i class="fa fa-graduation-cap mr-4"></i> <?php echo new_html_entity_decode($member->literacy ?? '') ?></li>
-						<li class="list-group-item"><i class="fa fa-intersex mr-4"></i> <?php echo new_html_entity_decode(_l($member->sex ?? '')) ?></li>
+						<li class="list-group-item"><i class="fas fa-venus mr-4"></i> <?php echo new_html_entity_decode(_l($member->sex ?? '')) ?></li>
 					</ul>
 				</div>
 
@@ -130,9 +139,14 @@ foreach ($staff_departments as $staff_department) {
 							<td><?php echo _l($member->sex ?? ''); ?></td>
 						</tr>
 						<tr class="project-overview">
+							<td class="bold" width="40%"><?php echo _l('hr_date_of_joining'); ?></td>
+							<td><?php echo _d($member->date_of_joining); ?></td>
+						</tr>
+						<tr class="project-overview">
 							<td class="bold" ><?php echo _l('hr_hr_birthday'); ?></td>
 							<td><?php echo _d($member->birthday ?? ''); ?></td>
 						</tr>
+
 						<tr class="project-overview">
 							<td class="bold"><?php echo _l('staff_add_edit_phonenumber'); ?></td>
 							<td><?php echo new_html_entity_decode($member->phonenumber); ?></td>
@@ -189,7 +203,18 @@ if ($member->job_position > 0) {
 							<td class="bold"><?php echo _l('hr_hr_marital_status'); ?></td>
 							<td><?php echo _l($member->marital_status ?? ''); ?></td>
 						</tr>
-
+						<tr class="project-overview">
+    <td class="bold">Father/Husband</td>
+    <td>
+        <?php
+        $rel_id = isset($member) ? $member->staffid : false;
+        if ($rel_id) {
+            $value = get_custom_field_value($rel_id, 2, 'staff'); // 2 = your custom field ID
+            echo new_html_entity_decode($value);
+        }
+        ?>
+    </td>
+</tr>
 					</tbody>
 				</table>
 			</div>
@@ -203,6 +228,14 @@ if ($member->job_position > 0) {
 						<tr class="project-overview">
 							<td class="bold"><?php echo _l('hr_citizen_identification'); ?></td>
 							<td><?php echo new_html_entity_decode($member->identification ?? ''); ?></td>
+						</tr>
+						<tr class="project-overview">
+							<td class="bold"><?php echo _l('pan_no'); ?></td>
+							<td><?php echo new_html_entity_decode($member->pan_no); ?></td>
+						</tr>
+						<tr class="project-overview">
+							<td class="bold"><?php echo _l('adhar_no'); ?></td>
+							<td><?php echo new_html_entity_decode($member->adhar_no); ?></td>
 						</tr>
 						<tr class="project-overview">
 							<td class="bold" width="40%"><?php echo _l('hr_license_date'); ?></td>
@@ -224,9 +257,36 @@ if ($member->job_position > 0) {
 							<td class="bold"><?php echo _l('hr_hr_home_town'); ?></td>
 							<td><?php echo new_html_entity_decode($member->home_town); ?></td>
 						</tr>
+						
+						
 
 
+
+						
 						<tr class="project-overview">
+							<td class="bold"><?php echo _l('hr_Personal_tax_code'); ?></td>
+							<td><?php echo new_html_entity_decode($member->Personal_tax_code); ?></td>
+						</tr>
+
+					
+						<tr class="project-overview">
+							<td class="bold"><?php echo _l('social_security_no'); ?></td>
+							<td><?php echo new_html_entity_decode($member->social_security_no); ?></td>
+						</tr>
+						
+					</tbody>
+				</table>
+			</div>
+			<div class="col-md-12">
+				<h4><?php echo _l('hr_staff_salary_info');?></h4>
+
+			</div>
+			<div class="col-md-12">
+				<h4><?php echo _l('hr_staff_payment_info');?></h4>
+				<table class="table border table-striped ">
+					<tbody>
+
+					<tr class="project-overview">
 							<td class="bold"><?php echo _l('hr_bank_account_number'); ?></td>
 							<td><?php echo new_html_entity_decode($member->account_number); ?></td>
 						</tr>
@@ -239,19 +299,17 @@ if ($member->job_position > 0) {
 							<td><?php echo new_html_entity_decode($member->issue_bank); ?></td>
 						</tr>
 						<tr class="project-overview">
-							<td class="bold"><?php echo _l('hr_Personal_tax_code'); ?></td>
-							<td><?php echo new_html_entity_decode($member->Personal_tax_code); ?></td>
-						</tr>
-
-						<tr class="project-overview">
 							<td class="bold"><?php echo _l('epf_no'); ?></td>
 							<td><?php echo new_html_entity_decode($member->epf_no); ?></td>
 						</tr>
 						<tr class="project-overview">
-							<td class="bold"><?php echo _l('social_security_no'); ?></td>
-							<td><?php echo new_html_entity_decode($member->social_security_no); ?></td>
+							<td class="bold"><?php echo _l('uan_no'); ?></td>
+							<td><?php echo new_html_entity_decode($member->uan_no); ?></td>
 						</tr>
-						
+						<tr class="project-overview">
+							<td class="bold"><?php echo _l('esi_insurance_no'); ?></td>
+							<td><?php echo new_html_entity_decode($member->esi_insurance_no); ?></td>
+						</tr>
 					</tbody>
 				</table>
 			</div>

@@ -38,7 +38,7 @@
                     <?php } ?>
                     <?php
                         foreach ($items->taxes() as $tax) {
-                            echo '<tr class="tax-area"><td class="bold !tw-text-neutral-700">' . e($tax['taxname']) . ' (' . e(app_format_number($tax['taxrate'])) . '%)</td><td>' . e(app_format_money($tax['total_tax'], $proposal->currency_name)) . '</td></tr>';
+                            echo '<tr class="tax-area"><td class="bold !tw-text-neutral-700">' .($tax['taxname']) . ' (' .(app_format_number($tax['taxrate'])) . '%)</td><td>' .(app_format_money($tax['total_tax'], $proposal->currency_name)) . '</td></tr>';
                         }
                   ?>
                     <?php if ((int)$proposal->adjustment != 0) { ?>
@@ -287,12 +287,12 @@
                          $proposal_comments .= '<div class="mtop5 tw-text-neutral-600">';
                          $proposal_comments .= '<b>';
                          if ($comment['staffid'] != 0) {
-                             $proposal_comments .= e(get_staff_full_name($comment['staffid']));
+                             $proposal_comments .=(get_staff_full_name($comment['staffid']));
                          } else {
                              $proposal_comments .= _l('is_customer_indicator');
                          }
                          $proposal_comments .= '</b>';
-                         $proposal_comments .= ' - <small class="mtop10 text-muted">' . e(time_ago($comment['dateadded'])) . '</small>';
+                         $proposal_comments .= ' - <small class="mtop10 text-muted">' .(time_ago($comment['dateadded'])) . '</small>';
                          $proposal_comments .= '</div>';
                          $proposal_comments .= '<div class="tw-text-neutral-500">';
                          $proposal_comments .= process_text_content_for_display($comment['content']);

@@ -135,7 +135,7 @@
                              <label for="expense_<?php echo ($expense->expenseid); ?>">
                                 <?php echo ($expense->category_name); ?>
                                 <?php if (!empty($expense->expense_name)) {
-                                echo '(' . e($expense->expense_name) . ')';
+                                echo '(' . ($expense->expense_name) . ')';
                             } ?>
                                 - <?php echo (app_format_money($total, $expense->currency_data)); ?>
                             </label>

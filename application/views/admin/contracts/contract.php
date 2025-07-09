@@ -54,7 +54,7 @@
                        if ($selected != '') {
                            $rel_data = get_relation_data('customer', $selected);
                            $rel_val  = get_relation_values($rel_data, 'customer');
-                           echo '<option value="' . $rel_val['id'] . '" selected>' . e($rel_val['name']) . '</option>';
+                           echo '<option value="' . $rel_val['id'] . '" selected>' .($rel_val['name']) . '</option>';
                        } ?>
                             </select>
                         </div>
@@ -69,7 +69,7 @@
                                     <?php echo isset($contract) && $isSignedOrMarkedSigned == 1 ? ' disabled' : ''; ?>>
                                     <?php
                       if (isset($contract) && $contract->project_id) {
-                          echo '<option value="' . $contract->project_id . '" selected>' . e(get_project_name_by_id($contract->project_id)) . '</option>';
+                          echo '<option value="' . $contract->project_id . '" selected>' .(get_project_name_by_id($contract->project_id)) . '</option>';
                       }
                      ?>
                                 </select>
@@ -346,9 +346,9 @@
                                             <?php echo _l(
                                                     'document_signed_info',
                                                     [
-                                 '<b>' . e($contract->acceptance_firstname) . ' ' . e($contract->acceptance_lastname) . '</b> (<a href="mailto:' . e($contract->acceptance_email) . '">' . e($contract->acceptance_email) . '</a>)',
-                                 '<b>' . e(_dt($contract->acceptance_date)) . '</b>',
-                                 '<b>' . e($contract->acceptance_ip) . '</b>', ]
+                                 '<b>' .($contract->acceptance_firstname) . ' ' .($contract->acceptance_lastname) . '</b> (<a href="mailto:' .($contract->acceptance_email) . '">' .($contract->acceptance_email) . '</a>)',
+                                 '<b>' .(_dt($contract->acceptance_date)) . '</b>',
+                                 '<b>' .($contract->acceptance_ip) . '</b>', ]
                                                 ); ?>
                                         </div>
                                     </div>
@@ -536,7 +536,7 @@
                                                 <?php if (is_date($renewal['new_end_date'])) {
                                                 $tooltip = '';
                                                 if (is_date($renewal['old_end_date'])) {
-                                                    $tooltip = e(_l('contract_renewal_old_end_date', _d($renewal['old_end_date'])));
+                                                    $tooltip =(_l('contract_renewal_old_end_date', _d($renewal['old_end_date'])));
                                                 } ?>
                                                 <span class="text-success bold" data-toggle="tooltip"
                                                     title="<?php echo ($tooltip); ?>">
@@ -547,7 +547,7 @@
                                                 <?php if ($renewal['new_value'] > 0) {
                                                 $contract_renewal_value_tooltip = '';
                                                 if ($renewal['old_value'] > 0) {
-                                                    $contract_renewal_value_tooltip = ' data-toggle="tooltip" data-title="' . e(_l('contract_renewal_old_value', app_format_money($renewal['old_value'], $base_currency))) . '"';
+                                                    $contract_renewal_value_tooltip = ' data-toggle="tooltip" data-title="' .(_l('contract_renewal_old_value', app_format_money($renewal['old_value'], $base_currency))) . '"';
                                                 } ?>
                                                 <span class="text-success bold"
                                                     <?php echo ($contract_renewal_value_tooltip); ?>>

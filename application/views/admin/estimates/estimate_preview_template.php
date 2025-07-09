@@ -278,9 +278,9 @@
                                 <div class="alert alert-info mbot15">
                                     <?php echo _l('accepted_identity_info', [
                                         _l('estimate_lowercase'),
-                                        '<b>' . e($estimate->acceptance_firstname) . ' ' . e($estimate->acceptance_lastname) . '</b> (<a href="mailto:' . e($estimate->acceptance_email) . '">' . e($estimate->acceptance_email) . '</a>)',
-                                        '<b>' . e(_dt($estimate->acceptance_date)) . '</b>',
-                                        '<b>' . e($estimate->acceptance_ip) . '</b>' . (is_admin() ? '&nbsp;<a href="' . admin_url('estimates/clear_acceptance_info/' . $estimate->id) . '" class="_delete text-muted" data-toggle="tooltip" data-title="' . _l('clear_this_information') . '"><i class="fa fa-remove"></i></a>' : ''),
+                                        '<b>' .($estimate->acceptance_firstname) . ' ' .($estimate->acceptance_lastname) . '</b> (<a href="mailto:' .($estimate->acceptance_email) . '">' .($estimate->acceptance_email) . '</a>)',
+                                        '<b>' .(_dt($estimate->acceptance_date)) . '</b>',
+                                        '<b>' .($estimate->acceptance_ip) . '</b>' . (is_admin() ? '&nbsp;<a href="' . admin_url('estimates/clear_acceptance_info/' . $estimate->id) . '" class="_delete text-muted" data-toggle="tooltip" data-title="' . _l('clear_this_information') . '"><i class="fa fa-remove"></i></a>' : ''),
                                     ]); ?>
                                 </div>
                             </div>
@@ -291,7 +291,7 @@
                                 <?php echo _l('related_to_project', [
                                     _l('estimate_lowercase'),
                                     _l('project_lowercase'),
-                                    '<a href="' . admin_url('projects/view/' . $estimate->project_id) . '" target="_blank">' . e($estimate->project_data->name) . '</a>',
+                                    '<a href="' . admin_url('projects/view/' . $estimate->project_id) . '" target="_blank">' .($estimate->project_data->name) . '</a>',
                                 ]); ?>
                             </h4>
                             </div>
@@ -301,7 +301,7 @@
                                     <?php
                               $tags = get_tags_in($estimate->id, 'estimate');
                               if (count($tags) > 0) {
-                                  echo '<i class="fa fa-tag" aria-hidden="true" data-toggle="tooltip" data-title="' . e(implode(', ', $tags)) . '"></i>';
+                                  echo '<i class="fa fa-tag" aria-hidden="true" data-toggle="tooltip" data-title="' .(implode(', ', $tags)) . '"></i>';
                               }
                               ?>
                                     <a href="<?php echo admin_url('estimates/estimate/' . $estimate->id); ?>">
@@ -408,7 +408,7 @@
                                         <?php } ?>
                                         <?php
                                             foreach ($items->taxes() as $tax) {
-                                                echo '<tr class="tax-area"><td class="bold !tw-text-neutral-700">' . e($tax['taxname']) . ' (' . e(app_format_number($tax['taxrate'])) . '%)</td><td>' . e(app_format_money($tax['total_tax'], $estimate->currency_name)) . '</td></tr>';
+                                                echo '<tr class="tax-area"><td class="bold !tw-text-neutral-700">' .($tax['taxname']) . ' (' .(app_format_number($tax['taxrate'])) . '%)</td><td>' .(app_format_money($tax['total_tax'], $estimate->currency_name)) . '</td></tr>';
                                             }
                                         ?>
                                         <?php if ((int)$estimate->adjustment != 0) { ?>
@@ -575,7 +575,7 @@
                       }
 
                       if (!empty($activity['full_name'])) {
-                          $_formatted_activity = e($activity['full_name']) . ' - ' . $_formatted_activity;
+                          $_formatted_activity =($activity['full_name']) . ' - ' . $_formatted_activity;
                       }
 
                       echo $_formatted_activity;

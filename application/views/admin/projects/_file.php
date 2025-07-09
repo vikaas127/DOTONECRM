@@ -76,9 +76,9 @@
                          echo $previewMarkdown;
                      } else {
                          if (empty($file->external)) {
-                             echo '<a href="' . site_url('uploads/projects/' . $file->project_id . '/' . $file->file_name) . '" download="' . e($file->original_file_name) . '">' . e($file->original_file_name) . '</a>';
+                             echo '<a href="' . site_url('uploads/projects/' . $file->project_id . '/' . $file->file_name) . '" download="' .($file->original_file_name) . '">' .($file->original_file_name) . '</a>';
                          } else {
-                             echo '<a href="' . $file->external_link . '" target="_blank">' . e($file->original_file_name) . '</a>';
+                             echo '<a href="' . $file->external_link . '" target="_blank">' .($file->original_file_name) . '</a>';
                          }
                          echo '<p class="text-muted">' . _l('no_preview_available_for_file') . '</p>';
                      } ?>

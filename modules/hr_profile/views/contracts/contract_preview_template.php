@@ -86,6 +86,12 @@
 						<?php }?>
 					<?php }?>
 				</tr>
+	<?php $ctc = isset($contracts) ? $contracts->ctc : ''; ?>
+<tr class="project-overview">
+    <td class="bold" width="30%"><?php echo _l('hr_ctc'); ?></td>
+    <td class="text-right"><?php echo app_format_money($ctc, ''); ?></td>
+</tr>
+
 				
 			</tbody>
 		</table>

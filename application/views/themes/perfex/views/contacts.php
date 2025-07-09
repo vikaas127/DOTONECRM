@@ -29,7 +29,7 @@
             <tbody>
                 <?php
                 foreach ($contacts as $contact) {
-                    $rowName = '<img src="' . e(contact_profile_image_url($contact['id'])) . '" class="client-profile-image-small mright5">' . e(get_contact_full_name($contact['id']));
+                    $rowName = '<img src="' .(contact_profile_image_url($contact['id'])) . '" class="client-profile-image-small mright5">' .(get_contact_full_name($contact['id']));
                     $rowName .= '<div class="mleft25 pleft5 row-options">';
                     $rowName .= '<a href="' . site_url('contacts/contact/' . $contact['id']) . '">' . _l('edit') . '</a>';
                     if ($contact['is_primary'] == 0 || ($contact['is_primary'] == 1)) {
@@ -45,7 +45,7 @@
                     </td>
                     <td data-order="<?php echo $contact['last_login'] ?>">
                         <?php
-                            echo(!empty($aRow['last_login']) ? '<span class="text-has-action is-date" data-toggle="tooltip" data-title="' . e(_dt($aRow['last_login'])) . '">' . e(time_ago($aRow['last_login'])) . '</span>' : ''); ?>
+                            echo(!empty($aRow['last_login']) ? '<span class="text-has-action is-date" data-toggle="tooltip" data-title="' .(_dt($aRow['last_login'])) . '">' .(time_ago($aRow['last_login'])) . '</span>' : ''); ?>
                     </td>
                 </tr>
                 <?php

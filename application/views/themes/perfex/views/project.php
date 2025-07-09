@@ -22,7 +22,7 @@
         </div>
         <?php } ?>
         <?php
-            echo '<span class="label project-status-' . $project_status['id'] . ' tw-ml-3" style="color:' . $project_status['color'] . ';border:1px solid ' . adjust_hex_brightness($project_status['color'], 0.4) . ';background: ' . adjust_hex_brightness($project_status['color'], 0.04) . ';">' . e($project_status['name']) . '</span>';
+            echo '<span class="label project-status-' . $project_status['id'] . ' tw-ml-3" style="color:' . $project_status['color'] . ';border:1px solid ' . adjust_hex_brightness($project_status['color'], 0.4) . ';background: ' . adjust_hex_brightness($project_status['color'], 0.04) . ';">' .($project_status['name']) . '</span>';
        ?>
     </div>
     <?php if ($project->settings->view_tasks == 1 && $project->settings->create_tasks == 1) { ?>

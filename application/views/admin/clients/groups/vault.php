@@ -12,7 +12,7 @@
 <div
     class="tw-border tw-border-solid tw-border-neutral-200 tw-rounded-md tw-overflow-hidden tw-mb-3 last:tw-mb-0 panel-vault">
     <div class="tw-flex tw-justify-between tw-items-center tw-px-6 tw-py-3 tw-border-b tw-border-solid tw-border-neutral-200 tw-bg-neutral-50"
-        id="<?php echo 'vaultEntryHeading-' . e($entry['id']); ?>">
+        id="<?php echo 'vaultEntryHeading-' .($entry['id']); ?>">
         <h4 class="tw-font-semibold tw-my-0 tw-text-lg">
             <?php echo ($entry['server_address']); ?>
         </h4>
@@ -36,7 +36,7 @@
                 </p>
                 <p class="tw-mb-1">
                     <b><?php echo _l('port'); ?>:
-                    </b><?php echo (!empty($entry['port']) ? e($entry['port']) : _l('no_port_provided')); ?>
+                    </b><?php echo (!empty($entry['port']) ?($entry['port']) : _l('no_port_provided')); ?>
                 </p>
                 <p class="tw-mb-1">
                     <b><?php echo _l('vault_username'); ?>: </b><?php echo ($entry['username']); ?>

@@ -56,7 +56,7 @@
                     <td>
                         <?php
                         $status = get_project_status_by_id($project['status']);
-                        echo '<span class="label project-status-' . $status['id'] . ' tw-ml-3" style="color:' . $status['color'] . ';border:1px solid ' . adjust_hex_brightness($status['color'], 0.4) . ';background: ' . adjust_hex_brightness($status['color'], 0.04) . ';">' . e($status['name']) . '</span>';
+                        echo '<span class="label project-status-' . $status['id'] . ' tw-ml-3" style="color:' . $status['color'] . ';border:1px solid ' . adjust_hex_brightness($status['color'], 0.4) . ';background: ' . adjust_hex_brightness($status['color'], 0.04) . ';">' .($status['name']) . '</span>';
                         ?>
                     </td>
                 </tr>

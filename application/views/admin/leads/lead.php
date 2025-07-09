@@ -219,7 +219,7 @@ if (isset($lead)) {
                               $additional_data = '';
                               if (!empty($log['additional_data'])) {
                                   $additional_data = unserialize($log['additional_data']);
-                                  echo ($log['staffid'] == 0) ? _l($log['description'], $additional_data) : e($log['full_name']) . ' - ' . _l($log['description'], $additional_data);
+                                  echo ($log['staffid'] == 0) ? _l($log['description'], $additional_data) :($log['full_name']) . ' - ' . _l($log['description'], $additional_data);
                               } else {
                                   echo ($log['full_name']) . ' - ';
 

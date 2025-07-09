@@ -123,6 +123,7 @@ class Companies extends AdminController
     }*/
 function create()
 {
+    
     // Check permission to create
     if (!staff_can('create', 'perfex_saas_companies')) {
         log_message('error', 'Unauthorized access attempt to create company');

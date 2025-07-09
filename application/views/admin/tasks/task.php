@@ -25,7 +25,7 @@
                       $rel_type = isset($task) ? $task->rel_type : $this->input->get('rel_type');
                   }
                    if (isset($task) && $task->billed == 1) {
-                       echo '<div class="alert alert-success text-center no-margin">' . _l('task_is_billed', '<a href="' . admin_url('invoices/list_invoices/' . $task->invoice_id) . '" target="_blank">' . e(format_invoice_number($task->invoice_id))) . '</a></div><br />';
+                       echo '<div class="alert alert-success text-center no-margin">' . _l('task_is_billed', '<a href="' . admin_url('invoices/list_invoices/' . $task->invoice_id) . '" target="_blank">' .(format_invoice_number($task->invoice_id))) . '</a></div><br />';
                    }
                   ?>
                         <?php if (isset($task)) { ?>
@@ -271,7 +271,7 @@
                             <div class="form-group recurring-cycles">
                                 <label for="cycles"><?php echo _l('recurring_total_cycles'); ?>
                                     <?php if (isset($task) && $task->total_cycles > 0) {
-                            echo '<small>' . e(_l('cycles_passed', $task->total_cycles)) . '</small>';
+                            echo '<small>' .(_l('cycles_passed', $task->total_cycles)) . '</small>';
                         }
                         ?>
                                 </label>
@@ -279,7 +279,7 @@
                                     <input type="number" class="form-control" <?php if ($value == 0) {
                             echo ' disabled';
                         } ?> name="cycles" id="cycles" value="<?php echo ($value); ?>" <?php if (isset($task) && $task->total_cycles > 0) {
-                            echo 'min="' . e($task->total_cycles) . '"';
+                            echo 'min="' .($task->total_cycles) . '"';
                         } ?>>
                                     <div class="input-group-addon">
                                         <div class="checkbox">

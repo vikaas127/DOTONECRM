@@ -210,12 +210,12 @@
                       $comment_html .= '<div class="mtop5">';
                       $comment_html .= '<b>';
                       if ($comment['staffid'] != 0) {
-                          $comment_html .= e(get_staff_full_name($comment['staffid']));
+                          $comment_html .=(get_staff_full_name($comment['staffid']));
                       } else {
                           $comment_html .= _l('is_customer_indicator');
                       }
                       $comment_html .= '</b>';
-                      $comment_html .= ' - <small class="mtop10 text-muted">' . e(time_ago($comment['dateadded'])) . '</small>';
+                      $comment_html .= ' - <small class="mtop10 text-muted">' .(time_ago($comment['dateadded'])) . '</small>';
                       $comment_html .= '</div>';
                       $comment_html .= '<br />';
                       $comment_html .= process_text_content_for_display($comment['content']) . '<br />';

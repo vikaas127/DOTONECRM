@@ -14,7 +14,7 @@ if (count($invoices_to_merge) > 0) { ?>
     </div>
     <?php
                 if ($_inv->discount_total > 0) {
-                    echo '<b>' . e(_l('invoices_merge_discount', app_format_money($_inv->discount_total, $_inv->currency_name))) . '</b><br />';
+                    echo '<b>' .(_l('invoices_merge_discount', app_format_money($_inv->discount_total, $_inv->currency_name))) . '</b><br />';
                 }
                 ?>
     <?php } ?>

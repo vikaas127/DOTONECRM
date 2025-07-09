@@ -36,6 +36,8 @@ class hr_payroll extends AdminController {
 		}
 		$data['tab'][] = 'salary_deductions_list';
 		$data['tab'][] = 'insurance_list';
+		$data['tab'][]='reimbursement_list';
+
 		$data['tab'][] = 'payroll_columns';
 		$data['tab'][] = 'pdf_payslip_template';
 		$data['tab'][] = 'data_integration';
@@ -151,12 +153,37 @@ class hr_payroll extends AdminController {
 				'id' => 'fixed_amount',
 				'label' => _l('fixed_amount'),
 			];
+			$data['associated_sections'] = [
+				'80C' => ['LIC', 'PF', 'PPF'],
+				'80D' => ['Health Insurance', 'Mediclaim']
+			];
+
+
 
 			$data['title'] = _l('insurance_list');
 			$data['basis_value'] = $basis_value;
 			$data['insurance_list'] = json_encode($this->hr_payroll_model->get_insurance_list());
 
-		} elseif ($data['group'] == 'company_contributions_list') {
+		
+		} elseif ($data['group'] == 'reimbursement_list') {
+			    $data['reimbursement_types'] = [
+					'Fuel Reimbursement',
+					'Meal Coupons',
+					'Telephone Expenses',
+					'Travel Allowance',
+					'Internet Charges'
+				];
+
+				$data['unclaimed_handling_options'] = [
+					'carry_forward_encash_year_end' => _l('carry_forward_encash_year_end'),
+					'encash_monthly' => _l('encash_monthly')
+				];
+
+
+			$data['title'] = _l('reimbursement_list');
+			$data['reimbursement_list'] = json_encode($this->hr_payroll_model->get_reimbursement_list());
+
+        } elseif ($data['group'] == 'company_contributions_list') {
 			$earn_inclusion_value = [];
 			$earn_inclusion_value[] = [
 				'id' => 'fullvalue',
@@ -344,30 +371,150 @@ class hr_payroll extends AdminController {
 		}
 	}
 
+
+
+
+
+ 
+
+
 	/**
 	 * setting insurance list
 	 * @return [type]
 	 */
-	public function setting_insurance_list() {
-		if ($this->input->post()) {
+	// public function setting_insurance_list() {
+	// 	if ($this->input->post()) {
 
-			$data = $this->input->post();
-			if (!$this->input->post('id')) {
+	// 		$data = $this->input->post();
+	// 		if (!$this->input->post('id')) {
 
-				$mess = $this->hr_payroll_model->update_insurance_list($data);
-				if ($mess) {
-					set_alert('success', _l('hrp_updated_successfully'));
+	// 			$mess = $this->hr_payroll_model->update_insurance_list($data);
+	// 			if ($mess) {
+	// 				set_alert('success', _l('hrp_updated_successfully'));
 
-				} else {
-					set_alert('success', _l('hrp_updated_successfully'));
-				}
+	// 			} else {
+	// 				set_alert('success', _l('hrp_updated_successfully'));
+	// 			}
 
-				redirect(admin_url('hr_payroll/setting?group=insurance_list'));
+	// 			redirect(admin_url('hr_payroll/setting?group=insurance_list'));
 
-			}
+	// 		}
 
-		}
-	}
+	// 	}
+	// }
+
+public function setting_insurance_list()
+{
+    if ($this->input->post()) {
+        $data = $this->input->post();
+
+        $data['include_employer_contribution'] = !empty($data['include_employer_contribution']) ? 1 : 0;
+        $data['is_superannuation_fund'] = !empty($data['is_superannuation_fund']) ? 1 : 0;
+        $data['calculate_pro_rata'] = !empty($data['calculate_pro_rata']) ? 1 : 0;
+        $data['is_active'] = !empty($data['is_active']) ? 1 : 0;
+        $data['associated_section'] = json_encode($data['associated_section'] ?? []);
+
+        if (empty($data['id'])) {
+            $insert_id = $this->hr_payroll_model->add_insurance_plan($data);
+            set_alert($insert_id ? 'success' : 'warning', $insert_id ? _l('added_successfully') : _l('something_went_wrong'));
+        } else {
+            $updated = $this->hr_payroll_model->update_insurance_plan($data['id'], $data);
+            set_alert($updated ? 'success' : 'warning', $updated ? _l('hrp_updated_successfully') : _l('no_changes_detected'));
+        }
+
+        redirect(admin_url('hr_payroll/setting?group=insurance_list'));
+    }
+}
+
+public function get_insurance($id)
+{
+    if (!is_numeric($id)) {
+        echo json_encode(['error' => 'Invalid ID']);
+        return;
+    }
+
+    $insurance = $this->hr_payroll_model->get_insurance_list($id);
+    echo json_encode($insurance ?: ['error' => 'Insurance plan not found']);
+}
+
+public function delete_insurance($id)
+{
+    if (!has_permission('hrp_setting', '', 'delete') && !is_admin()) {
+        access_denied('insurance_list');
+    }
+
+    if (!$id || !is_numeric($id)) {
+        set_alert('warning', _l('invalid_id'));
+        redirect(admin_url('hr_payroll/setting?group=insurance_list'));
+    }
+
+    $deleted = $this->hr_payroll_model->delete_insurance_plan($id);
+
+    if ($deleted) {
+        set_alert('success', _l('deleted_successfully'));
+    } else {
+        set_alert('warning', _l('delete_failed'));
+    }
+
+    redirect(admin_url('hr_payroll/setting?group=insurance_list'));
+}
+
+public function setting_reimbursement_list()
+{
+    if ($this->input->post()) {
+        $data = $this->input->post();
+
+        // Checkbox fields (default to 0 if not set)
+        $data['is_fbp_component'] = !empty($data['is_fbp_component']) ? 1 : 0;
+        $data['restrict_fbp_override'] = !empty($data['restrict_fbp_override']) ? 1 : 0;
+        $data['is_active'] = !empty($data['is_active']) ? 1 : 0;
+
+        if (empty($data['id'])) {
+            $insert_id = $this->hr_payroll_model->add_reimbursement_plan($data);
+            set_alert($insert_id ? 'success' : 'warning', $insert_id ? _l('added_successfully') : _l('something_went_wrong'));
+        } else {
+            $updated = $this->hr_payroll_model->update_reimbursement_plan($data['id'], $data);
+            set_alert($updated ? 'success' : 'warning', $updated ? _l('hrp_updated_successfully') : _l('no_changes_detected'));
+        }
+
+        redirect(admin_url('hr_payroll/setting?group=reimbursement_list'));
+    }
+}
+
+public function get_reimbursement($id)
+{
+    if (!is_numeric($id)) {
+        echo json_encode(['error' => 'Invalid ID']);
+        return;
+    }
+
+    $reimbursement = $this->hr_payroll_model->get_reimbursement_list($id);
+    echo json_encode($reimbursement ?: ['error' => 'Reimbursement not found']);
+}
+
+public function delete_reimbursement($id)
+{
+    if (!has_permission('hrp_setting', '', 'delete') && !is_admin()) {
+        access_denied('reimbursement_list');
+    }
+
+    if (!$id || !is_numeric($id)) {
+        set_alert('warning', _l('invalid_id'));
+        redirect(admin_url('hr_payroll/setting?group=reimbursement_list'));
+    }
+
+    $deleted = $this->hr_payroll_model->delete_reimbursement_plan($id);
+
+    if ($deleted) {
+        set_alert('success', _l('deleted_successfully'));
+    } else {
+        set_alert('warning', _l('delete_failed'));
+    }
+
+    redirect(admin_url('hr_payroll/setting?group=reimbursement_list'));
+}
+
+
 
 	/**
 	 * setting company contributions list
@@ -2215,6 +2362,88 @@ class hr_payroll extends AdminController {
 	 * manage deductions
 	 * @return [type]
 	 */
+	public function manage_reimbursements()
+	{
+		if (!has_permission('hrp_reimbursement', '', 'view') && !has_permission('hrp_reimbursement', '', 'view_own') && !is_admin()) {
+			access_denied('hrp_reimbursement');
+		}
+
+		$this->load->model('staff_model');
+		$this->load->model('departments_model');
+
+		$rel_type = hrp_get_hr_profile_status();
+		$current_month = date('Y-m-d', strtotime(date('Y-m') . '-01'));
+
+		// Load reimbursement data
+		$reimbursement_data = $this->hr_payroll_model->get_reimbursements_data($current_month);
+		$reimbursement_value = [];
+
+		foreach ($reimbursement_data as $value) {
+			$reimbursement_value[$value['staff_id'] . '_' . $value['month']] = $value;
+		}
+
+		// Load format
+		$format = $this->hr_payroll_model->get_format_reimbursement_data();
+
+		// Load staff
+		if (!is_admin() && !has_permission('hrp_employee', '', 'view')) {
+			$staffs = $this->hr_payroll_model->get_staff_timekeeping_applicable_object(get_staffid_by_permission());
+		} else {
+			$staffs = $this->hr_payroll_model->get_staff_timekeeping_applicable_object();
+		}
+
+		$data_object = [];
+
+		foreach ($staffs as $key => $staff) {
+			$row = [
+				'staff_id' => $staff['staffid'],
+				'employee_number' => $rel_type == 'hr_records' ? $staff['staff_identifi'] : $this->hr_payroll_model->hrp_format_code('EXS', $staff['staffid'], 5),
+				'employee_name' => $staff['firstname'] . ' ' . $staff['lastname'],
+				'month' => $current_month,
+			];
+
+			// Department
+			$departments = $this->hr_payroll_model->get_staff_departments($staff['staffid'], true);
+			$department_names = [];
+
+			foreach ($departments as $dep_id) {
+				$dep = $this->departments_model->get($dep_id);
+				if ($dep) {
+					$department_names[] = $dep->name;
+				}
+			}
+			$row['department_name'] = implode(', ', $department_names);
+
+			$key_id = $staff['staffid'] . '_' . $current_month;
+
+			if (isset($reimbursement_value[$key_id])) {
+				if (!empty($reimbursement_value[$key_id]['reimbursement_value'])) {
+					$row = array_merge($row, $reimbursement_value[$key_id]['reimbursement_value']);
+				} else {
+					$row = array_merge($row, $format['array_reimbursement']);
+				}
+				$row['id'] = $reimbursement_value[$key_id]['id'];
+			} else {
+				$row = array_merge($row, $format['array_reimbursement']);
+				$row['id'] = 0;
+			}
+
+			$data_object[] = $row;
+		}
+
+		$data['button_name'] = count($reimbursement_value) > 0 ? _l('hrp_update') : _l('submit');
+		$data['departments'] = $this->departments_model->get();
+		$data['roles'] = $this->roles_model->get();
+		$data['staffs'] = $staffs;
+
+		$data['body_value'] = json_encode($data_object);
+		$data['columns'] = json_encode($format['column_format']);
+		$data['col_header'] = json_encode($format['header']);
+
+		$this->load->view('reimbursements/reimbursements_manage', $data);
+	}
+
+
 	public function manage_deductions() {
 		if (!has_permission('hrp_deduction', '', 'view') && !has_permission('hrp_deduction', '', 'view_own') && !is_admin()) {
 			access_denied('hrp_deduction');
@@ -2350,6 +2579,36 @@ class hr_payroll extends AdminController {
 		}
 
 	}
+
+	public function add_manage_reimbursements() {
+		if (!has_permission('hrp_reimbursement', '', 'create') && !has_permission('hrp_reimbursement', '', 'edit') && !is_admin()) {
+			access_denied('hrp_reimbursement');
+		}
+
+		if ($this->input->post()) {
+		$data = $this->input->post();
+
+		if ($data['hrp_reimbursements_rel_type'] == 'update') {
+			// Call update method in model
+			$success = $this->hr_payroll_model->reimbursements_update($data);
+		} else {
+			$success = false;
+		}
+
+	    if (isset($success['success']) && $success['success']) {
+			set_alert('success', _l('updated_successfully'));
+		} elseif (isset($success['error'])) {
+			set_alert('danger', $success['error']);
+		} else {
+			set_alert('danger', _l('hrp_updated_successfully'));
+		}
+
+
+
+		redirect(admin_url('hr_payroll/manage_reimbursements'));
+	  }
+    }
+
 
 	/**
 	 * deductions filter
@@ -3961,6 +4220,8 @@ class hr_payroll extends AdminController {
 	 */
 	public function view_payslip_detail($id = "") {
 
+	    log_message('debug', 'This is a debug view_payslip_detail.');
+
 		if (!is_admin() && !has_permission('hrp_payslip', '', 'view')) {
 			access_denied('view_payslip');
 		}
@@ -3969,11 +4230,11 @@ class hr_payroll extends AdminController {
 
 		if ($this->input->post()) {
 			$data = $this->input->post();
-
+             log_message('debug', 'This is a debug data: ' . print_r($data, true));
 			if (!is_admin() && !has_permission('hrp_payslip', '', 'edit') && !has_permission('hrp_payslip', '', 'create')) {
 				$message = _l('access_denied');
 				echo json_encode(['danger' => false, 'message' => $message]);
-				die;
+			
 			}
 			$id = $data['id'];
 			unset($data['id']);
@@ -3981,30 +4242,41 @@ class hr_payroll extends AdminController {
 			if ($success == true) {
 				$message = _l('payslip_template') . ' ' . _l('updated_successfully');
 				echo json_encode(['success' => true, 'message' => $message]);
-				die;
+			
 			} else {
 				$message = _l('payslip_template') . ' ' . _l('updated_failed');
 				echo json_encode(['success' => false, 'message' => $message]);
-				die;
+			
 			}
 
 		}
 
 		if ($id != '') {
-			$data['id'] = $id;
-			$payslip = $this->hr_payroll_model->get_hrp_payslip($data['id']);
+		$data['id'] = $id;
+log_message('debug', 'Fetching payslip with ID: ' . $id);
 
-			$data['payslip'] = $payslip;
+$payslip = $this->hr_payroll_model->get_hrp_payslip($data['id']);
+log_message('debug', 'Payslip data retrieved: ' . json_encode($payslip));
 
-			$path = HR_PAYROLL_PAYSLIP_FILE . $payslip->file_name;
-			if(!file_exists($path)){
-				set_alert('warning', _l('hrp_The_physical_file_has_been_deleted'));
-				redirect(admin_url('hr_payroll/payslip_manage'));
-			}
-			$mystring = file_get_contents($path, true);
+$data['payslip'] = $payslip;
 
-			//$data['data_form'] = replace_spreadsheet_value($mystring);
-			$data['data_form'] = $mystring;
+$path = HR_PAYROLL_PAYSLIP_FILE . $payslip->file_name;
+log_message('debug', 'Generated payslip file path: ' . $path);
+
+if (!file_exists($path)) {
+    log_message('error', 'Payslip file not found at path: ' . $path);
+    set_alert('warning', _l('hrp_The_physical_file_has_been_deleted'));
+    redirect(admin_url('hr_payroll/payslip_manage'));
+}
+
+log_message('debug', 'Payslip file found. Reading content...');
+$mystring = file_get_contents($path, true);
+log_message('debug', 'Payslip file content loaded. Length: ' . strlen($mystring));
+
+//$data['data_form'] = replace_spreadsheet_value($mystring);
+$data['data_form'] = $mystring;
+log_message('debug', 'Payslip content assigned to $data["data_form"]');
+
 
 		}
 
@@ -4026,7 +4298,7 @@ class hr_payroll extends AdminController {
 	 * @param  string $id
 	 * @return [type]
 	 */
-	public function view_payslip_detail_v2($id = "") {
+/*	public function view_payslip_detail_v2($id = "") {
 		if (!is_admin() && !has_permission('hrp_payslip', '', 'view_own')) {
 			access_denied('view_payslip');
 		}
@@ -4085,7 +4357,81 @@ class hr_payroll extends AdminController {
 
 		$this->load->view('payslips/payslip_view_own', $data);
 
-	}
+	}*/
+public function view_payslip_detail_v2($id = "") {
+    
+    log_message('debug', 'Entering view_payslip_detail_v2 with ID: ' . $id);
+
+    if (!is_admin() && !has_permission('hrp_payslip', '', 'view_own')) {
+        log_message('error', 'Access denied: user does not have permission to view own payslip');
+        access_denied('view_payslip');
+    }
+
+    $data_form = $this->input->post();
+    log_message('debug', 'POST data received: ' . json_encode($data_form));
+
+    if ($this->input->post()) {
+        $data = $this->input->post();
+        log_message('debug', 'Processing POST request for payslip update: ' . json_encode($data));
+
+        if (!is_admin() && !has_permission('hrp_payslip', '', 'edit') && !has_permission('hrp_payslip', '', 'create')) {
+            $message = _l('access_denied');
+            log_message('error', 'Access denied: user does not have edit/create permission');
+            echo json_encode(['danger' => false, 'message' => $message]);
+            die;
+        }
+
+        $id = $data['id'];
+        unset($data['id']);
+        log_message('debug', 'Updating payslip with ID: ' . $id);
+
+        $success = $this->hr_payroll_model->update_payslip($data, $id);
+        if ($success == true) {
+            $message = _l('payslip_template') . ' ' . _l('updated_successfully');
+            log_message('info', 'Payslip updated successfully for ID: ' . $id);
+            echo json_encode(['success' => true, 'message' => $message]);
+            die;
+        } else {
+            $message = _l('payslip_template') . ' ' . _l('updated_failed');
+            log_message('error', 'Failed to update payslip for ID: ' . $id);
+            echo json_encode(['success' => false, 'message' => $message]);
+            die;
+        }
+    }
+
+    if ($id != '') {
+        log_message('debug', 'Fetching payslip data for ID: ' . $id);
+
+        $data['id'] = $id;
+        $payslip = $this->hr_payroll_model->get_hrp_payslip($data['id']);
+        $data['payslip'] = $payslip;
+
+        $path = HR_PAYROLL_PAYSLIP_FILE . $payslip->file_name;
+        log_message('debug', 'Payslip file path: ' . $path);
+
+        if (!file_exists($path)) {
+            log_message('warning', 'Payslip file not found: ' . $path);
+            set_alert('warning', _l('hrp_The_physical_file_has_been_deleted'));
+            redirect(admin_url('hr_payroll/payslip_manage'));
+        }
+
+        $mystring = file_get_contents($path, true);
+        log_message('debug', 'Original payslip file content loaded');
+
+        // Remove employees not under management
+        $mystring = $this->hr_payroll_model->remove_employees_not_under_management_on_payslip($mystring);
+        log_message('debug', 'Filtered payslip content for management visibility');
+
+        $data['data_form'] = $mystring;
+    }
+
+    $permission_actions = '<a href="#" class="btn mright5 btn-success pull-right payslip_download hide" >Download</a><button  class="btn mright5 btn-info pull-right luckysheet_info_detail_exports ">Create file</button><a href="' . admin_url() . 'hr_payroll/payslip_manage' . '" class="btn mright5 btn-default pull-right" >Back</a>';
+    $data['permission_actions'] = $permission_actions;
+    $data['title'] = _l('view_payslip');
+
+    log_message('debug', 'Loading payslip view with title: ' . $data['title']);
+    $this->load->view('payslips/payslip_view_own', $data);
+}
 
 	/**
 	 * manage bonus

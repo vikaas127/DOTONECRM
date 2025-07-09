@@ -33,7 +33,7 @@ foreach ($rResult as $aRow) {
             if ($is_admin) {
                 $_data = '<a href="' . admin_url('announcements/announcement/' . $aRow['announcementid']) . '">' .e( $_data) . '</a>';
             } else {
-                $_data = '<a href="' . admin_url('announcements/view/' . $aRow['announcementid']) . '">' . e($_data) . '</a>';
+                $_data = '<a href="' . admin_url('announcements/view/' . $aRow['announcementid']) . '">' .($_data) . '</a>';
             }
             $_data .= '<div class="row-options">';
             $_data .= '<a href="' . admin_url('announcements/view/' . $aRow['announcementid']) . '">' . _l('view') . '</a>';
@@ -49,7 +49,7 @@ foreach ($rResult as $aRow) {
 
             $_data .= '</div>';
         } elseif ($aColumns[$i] == 'dateadded') {
-            $_data = e(_d($_data));
+            $_data =(_d($_data));
         }
         $row[] = $_data;
     }

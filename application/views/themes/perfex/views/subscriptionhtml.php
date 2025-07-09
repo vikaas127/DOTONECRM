@@ -133,7 +133,7 @@
                             </tr>
                             <?php
                                 foreach ($items->taxes() as $tax) {
-                                    echo '<tr class="tax-area"><td class="bold !tw-text-neutral-700">' . e($tax['taxname']) . ' (' . e(app_format_number($tax['taxrate'])) . '%)</td><td>' . e(app_format_money($tax['total_tax'], $invoice->currency_name)) . '</td></tr>';
+                                    echo '<tr class="tax-area"><td class="bold !tw-text-neutral-700">' .($tax['taxname']) . ' (' .(app_format_number($tax['taxrate'])) . '%)</td><td>' .(app_format_money($tax['total_tax'], $invoice->currency_name)) . '</td></tr>';
                                 }
                             ?>
                             <tr>

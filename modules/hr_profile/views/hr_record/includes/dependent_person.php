@@ -73,6 +73,10 @@
 												echo render_input('reason','hr_reason_label'); ?>
 											</div>
 										</div>
+										<?php if (isset($member) && $member->staffid != get_staff_user_id()) { ?>
+											<input type="hidden" name="staffid" value="<?php echo html_escape($member->staffid); ?>">
+										<?php } ?>
+
 									</div>
 								</div>
 							</div>

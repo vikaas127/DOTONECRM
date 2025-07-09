@@ -35,6 +35,17 @@ class Hr_profile_model extends App_Model
 	 * staff chart by age
 	 * @return array 
 	 */
+
+	 public function generate_next_staffid()
+{
+    $this->db->select_max('staffid');
+    $query = $this->db->get(db_prefix() . 'staff');
+    $row = $query->row();
+
+    $max_id = intval($row->staffid); // ensure it's numeric
+    return $max_id + 1;
+}
+
 	public function staff_chart_by_age()
 	{
 		$staffs = $this->staff_model->get();
@@ -1076,16 +1087,31 @@ class Hr_profile_model extends App_Model
 	 * @return boolean       
 	 */
 	public function update_salary_form($data, $id)
-	{   
-		$data['salary_val'] = hr_profile_reformat_currency($data['salary_val']);
+{
+    // Format currency
+    $data['salary_val'] = hr_profile_reformat_currency($data['salary_val']);
+	
 
-		$this->db->where('form_id', $id);
-		$this->db->update(db_prefix() . 'hr_salary_form', $data);
-		if ($this->db->affected_rows() > 0) {
-			return true;
-		}
-		return false;
-	}
+    // Set default values for checkboxes if not present
+    $checkbox_fields = [
+        'active',
+        'is_part_of_structure',
+        'is_tax_deducted_monthly',
+        'is_prorated',
+        'consider_for_epf',
+        'consider_for_esi',
+        'show_in_payslip'
+    ];
+
+    foreach ($checkbox_fields as $field) {
+        $data[$field] = isset($data[$field]) ? 1 : 0;
+    }
+
+    $this->db->where('form_id', $id);
+    $this->db->update(db_prefix() . 'hr_salary_form', $data);
+
+    return $this->db->affected_rows() > 0;
+}
 
 
 	/**
@@ -3330,132 +3356,116 @@ public function get_job_position_arrayid()
 	 * @return object
 	 * Get single goal
 	 */
-	public function add_staff($data)
-	{
-		if (isset($data['fakeusernameremembered'])) {
-			unset($data['fakeusernameremembered']);
-		}
-		if (isset($data['fakepasswordremembered'])) {
-			unset($data['fakepasswordremembered']);
-		}
-		// First check for all cases if the email exists.
-		$this->db->where('email', $data['email']);
-		$email = $this->db->get(db_prefix() . 'staff')->row();
-		if ($email) {
-			die('Email already exists');
-		}
-		$data['admin'] = 0;
-		if (is_admin()) {
-			if (isset($data['administrator'])) {
-				$data['admin'] = 1;
-				unset($data['administrator']);
-			}
-		}
+public function add_staff($data, $hra = [], $loans = [], $investments = [])
+{
+    if (isset($data['fakeusernameremembered'])) {
+        unset($data['fakeusernameremembered']);
+    }
+    if (isset($data['fakepasswordremembered'])) {
+        unset($data['fakepasswordremembered']);
+    }
 
-		$send_welcome_email = true;
-		$original_password  = $data['password'];
-		if (!isset($data['send_welcome_email'])) {
-			$send_welcome_email = false;
-		} else {
-			unset($data['send_welcome_email']);
-		}
+    // ✅ Check for existing email
+    $this->db->where('email', $data['email']);
+    $email = $this->db->get(db_prefix() . 'staff')->row();
+    if ($email) {
+        log_message('error', 'Email already exists: ' . $data['email']);
+        die('Email already exists');
+    }
 
-		$data['password']        = app_hash_password($data['password']);
-		$data['datecreated']     = date('Y-m-d H:i:s');
-		if (isset($data['departments'])) {
-			$departments = $data['departments'];
-			unset($data['departments']);
-		}
+    $data['admin'] = 0;
+    if (is_admin() && isset($data['administrator'])) {
+        $data['admin'] = 1;
+        unset($data['administrator']);
+    }
 
-		if(isset($data['role_v'])){
-			$data['role'] = $data['role_v'];
-			unset($data['role_v']);
-		}
+    $send_welcome_email = isset($data['send_welcome_email']);
+    $original_password  = $data['password'];
+    unset($data['send_welcome_email']);
 
-		$permissions = [];
-        if (isset($data['permissions'])) {
-            $permissions = $data['permissions'];
-            unset($data['permissions']);
+    $data['password'] = app_hash_password($data['password']);
+    $data['datecreated'] = date('Y-m-d H:i:s');
+
+    if (isset($data['departments'])) {
+        $departments = $data['departments'];
+        unset($data['departments']);
+    }
+
+    if (isset($data['role_v'])) {
+        $data['role'] = $data['role_v'];
+        unset($data['role_v']);
+    }
+
+    $permissions = isset($data['permissions']) ? $data['permissions'] : [];
+    unset($data['permissions']);
+
+    $custom_fields = isset($data['custom_fields']) ? $data['custom_fields'] : [];
+    unset($data['custom_fields']);
+
+    $data['is_not_staff'] = ($data['admin'] == 1) ? 0 : 1;
+    $data['birthday'] = isset($data['birthday']) ? to_sql_date($data['birthday']) : null;
+    $data['days_for_identity'] = isset($data['days_for_identity']) ? to_sql_date($data['days_for_identity']) : null;
+
+    log_message('debug', 'Saving new staff data: ' . print_r($data, true));
+    $this->db->insert(db_prefix() . 'staff', $data);
+    $staffid = $this->db->insert_id();
+
+    if (!$staffid) {
+        log_message('error', 'Staff insert failed');
+        return false;
+    }
+
+    log_message('debug', 'Staff ID created: ' . $staffid);
+
+    
+    // ✅ Update prefix number
+    $this->update_prefix_number(['staff_code_number' => get_hr_profile_option('staff_code_number') + 1]);
+
+    $slug = $data['firstname'] . ' ' . $data['lastname'];
+    $slug = trim($slug) ?: 'unknown-' . $staffid;
+
+    if ($send_welcome_email) {
+        send_mail_template('staff_created', $data['email'], $staffid, $original_password);
+    }
+
+    $this->db->where('staffid', $staffid);
+    $this->db->update(db_prefix() . 'staff', ['media_path_slug' => slug_it($slug)]);
+
+    if (!empty($custom_fields)) {
+        log_message('debug', 'Saving Custom Fields for Staff ID: ' . $staffid);
+        handle_custom_fields_post($staffid, $custom_fields);
+    }
+
+    if (!empty($departments)) {
+        foreach ($departments as $department) {
+            $this->db->insert(db_prefix() . 'staff_departments', [
+                'staffid' => $staffid,
+                'departmentid' => $department,
+            ]);
         }
+    }
 
-		if (isset($data['custom_fields'])) {
-			$custom_fields = $data['custom_fields'];
-			unset($data['custom_fields']);
-		}
+    $this->update_permissions($data['admin'] == 1 ? [] : $permissions, $staffid);
+    log_activity('New Staff Member Added [ID: ' . $staffid . ', ' . $data['firstname'] . ' ' . $data['lastname'] . ']');
 
-		if ($data['admin'] == 1) {
-			$data['is_not_staff'] = 0;
-		}
+    // ✅ Mark all announcements as read
+    $this->db->select('announcementid')->from(db_prefix() . 'announcements')->where('showtostaff', 1);
+    $announcements = $this->db->get()->result_array();
 
-		if (isset($data['birthday'])) {
-			$data['birthday'] = to_sql_date($data['birthday']);
-		}else{
-			$data['birthday'] = null;
-		}
+    foreach ($announcements as $announcement) {
+        $this->db->insert(db_prefix() . 'dismissed_announcements', [
+            'announcementid' => $announcement['announcementid'],
+            'staff' => 1,
+            'userid' => $staffid,
+        ]);
+    }
 
-		if (isset($data['days_for_identity'])) {
-			$data['days_for_identity'] = to_sql_date($data['days_for_identity']);
-		}else{
-			$data['days_for_identity'] = null;
-		}
+    hooks()->do_action('staff_member_created', $staffid);
 
-		$this->db->insert(db_prefix() . 'staff', $data);
-		$staffid = $this->db->insert_id();
-		if ($staffid) {
-			/*update next number setting*/
-			$this->update_prefix_number(['staff_code_number' =>  get_hr_profile_option('staff_code_number')+1]);
-			
-			$slug = $data['firstname'] . ' ' . $data['lastname'];
+    return $staffid;
+}
 
-			if ($slug == ' ') {
-				$slug = 'unknown-' . $staffid;
-			}
 
-			if ($send_welcome_email == true) {
-				send_mail_template('staff_created', $data['email'], $staffid, $original_password);
-			}
-
-			$this->db->where('staffid', $staffid);
-			$this->db->update(db_prefix() . 'staff', [
-				'media_path_slug' => slug_it($slug),
-			]);
-
-			if (isset($custom_fields)) {
-				handle_custom_fields_post($staffid, $custom_fields);
-			}
-			if (isset($departments)) {
-				foreach ($departments as $department) {
-					$this->db->insert(db_prefix() . 'staff_departments', [
-						'staffid'      => $staffid,
-						'departmentid' => $department,
-					]);
-				}
-			}
-
-			// Delete all staff permission if is admin we dont need permissions stored in database (in case admin check some permissions)
-            $this->update_permissions($data['admin'] == 1 ? [] : $permissions, $staffid);
-
-			log_activity('New Staff Member Added [ID: ' . $staffid . ', ' . $data['firstname'] . ' ' . $data['lastname'] . ']');
-
-			// Get all announcements and set it to read.
-			$this->db->select('announcementid');
-			$this->db->from(db_prefix() . 'announcements');
-			$this->db->where('showtostaff', 1);
-			$announcements = $this->db->get()->result_array();
-			foreach ($announcements as $announcement) {
-				$this->db->insert(db_prefix() . 'dismissed_announcements', [
-					'announcementid' => $announcement['announcementid'],
-					'staff'          => 1,
-					'userid'         => $staffid,
-				]);
-			}
-			hooks()->do_action('staff_member_created', $staffid);
-
-			return $staffid;
-		}
-
-		return false;
-	}
 
 
 	/**
@@ -4981,7 +4991,11 @@ public function add_attachment_to_database($rel_id, $rel_type, $attachment, $ext
 
 			$header[] = 'type';
 			$header[] = 'rel_type';
+			$header[]='calculation_type';
+			$header[]='percentage_value';
+
 			$header[] = 'rel_value';
+			$header[]='annual_value';
 			$header[] = 'since_date';
 			$header[] = 'contract_note';
 
@@ -5346,9 +5360,10 @@ public function add_attachment_to_database($rel_id, $rel_type, $attachment, $ext
 	 */
 	public function add_dependent_person($data)
 	{
-		if(!isset($data['staffid'])){
-			$data['staffid'] = get_staff_user_id();
-		}
+	   log_message('debug', 'Decoded JSON Data: ' . print_r($data, true));
+	
+		$data['staffid'] = isset($data['staffid']) && !empty($data['staffid']) ? $data['staffid'] : get_staff_user_id();
+
 
 		$data['dependent_bir'] = to_sql_date($data['dependent_bir']);
 
@@ -5841,6 +5856,73 @@ public function add_attachment_to_database($rel_id, $rel_type, $attachment, $ext
 
 		return $salary_allowance;
 	}
+
+public function get_default_salary_structure_rows($ctc = 0)
+{
+    $rows = $this->db->query('
+        SELECT 
+            CONCAT("st_", form_id) AS rel_type,
+            form_id,
+            form_name,
+            calculation_type,
+            salary_val,
+            CASE 
+                WHEN calculation_type = 0 THEN salary_val
+                WHEN calculation_type = 1 THEN NULL  -- calculated in PHP below
+                WHEN calculation_type = 2 THEN 0     -- placeholder
+                ELSE NULL
+            END AS rel_value,
+            CASE 
+                WHEN calculation_type = 0 THEN salary_val * 12
+                ELSE NULL
+            END AS annual_value,
+           salary_val AS percentage_value,
+
+            NULL AS since_date,
+            "salary" AS type,
+            NULL AS contract_note,
+            NULL AS contract_detail_id,
+            NULL AS staff_contract_id
+        FROM ' . db_prefix() . 'hr_salary_form 
+        WHERE is_part_of_structure = 1
+    ')->result_array();
+
+    // Step 1: Extract "Basic" value from form_id = 4
+    $basic_value = null;
+    foreach ($rows as $r) {
+        if ((int)$r['form_id'] === 4) {
+            if ((int)$r['calculation_type'] === 0) {
+                $basic_value = $r['salary_val']; // Fixed amount
+            } elseif ((int)$r['calculation_type'] === 2 && is_numeric($r['salary_val']) && $ctc > 0) {
+                $basic_value = ($r['salary_val'] * $ctc) / (12 * 100); // % of CTC
+            }
+            break;
+        }
+    }
+
+    // Step 2: Update rel_value and annual_value based on type
+    foreach ($rows as &$row) {
+		$percent = $row['salary_val'];
+
+		if ((int)$row['calculation_type'] === 2 && is_numeric($percent) && $ctc > 0) {
+			$row['rel_value'] = round(($percent * $ctc) / (12 * 100), 2);
+			$row['annual_value'] = round(($percent * $ctc) / 100, 2);
+		}
+
+		if ((int)$row['calculation_type'] === 1 && is_numeric($percent) && $basic_value !== null) {
+			$row['rel_value'] = round(($percent * $basic_value) / 100, 2);
+			$row['annual_value'] = round(($percent * $basic_value * 12) / 100, 2);
+		}
+	}
+
+
+    return $rows;
+}
+
+
+
+
+
 
 
 	/**

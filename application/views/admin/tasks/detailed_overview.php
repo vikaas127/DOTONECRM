@@ -76,10 +76,10 @@
                                } ?>
                         <h4 class="bold tw-mb-6 text-success"><?php echo  _l(date('F', mktime(0, 0, 0, $month, 1))); ?>
                             <?php if ($this->input->get('project_id')) {
-                                   echo ' - ' . e(get_project_name_by_id($this->input->get('project_id')));
+                                   echo ' - ' .(get_project_name_by_id($this->input->get('project_id')));
                                } ?>
                             <?php if (is_numeric($staff_id) && staff_can('view',  'tasks')) {
-                                   echo ' (' . e(get_staff_full_name($staff_id)) . ')';
+                                   echo ' (' .(get_staff_full_name($staff_id)) . ')';
                                } ?>
                         </h4>
                         <table class="table tasks-overview dt-table">
@@ -108,7 +108,7 @@
                                 </a>
                                 <?php
                                     if (!empty($task['rel_id'])) {
-                                        echo '<br />' . _l('task_related_to') . ': <a class="text-muted" href="' . e(task_rel_link($task['rel_id'], $task['rel_type'])) . '">' . e(task_rel_name($task['rel_name'], $task['rel_id'], $task['rel_type'])) . '</a>';
+                                        echo '<br />' . _l('task_related_to') . ': <a class="text-muted" href="' .(task_rel_link($task['rel_id'], $task['rel_type'])) . '">' .(task_rel_name($task['rel_name'], $task['rel_id'], $task['rel_type'])) . '</a>';
                                     }
                                  ?>
                                     </td>
@@ -139,7 +139,7 @@
                                                 if (!is_numeric($staff_id)) {
                                                     echo ($task['total_comments']);
                                                 } else {
-                                                    echo ($task['total_comments_staff']) . '/' . e($task['total_comments']);
+                                                    echo ($task['total_comments_staff']) . '/' .($task['total_comments']);
                                                 }
                                             ?>
                                         </span>

@@ -43,7 +43,7 @@
                     <?php
                   $custom_fields = get_custom_fields('items');
                   foreach ($custom_fields as $cf) {
-                      echo '<th width="15%" align="left" class="custom_field">' . e($cf['name']) . '</th>';
+                      echo '<th width="15%" align="left" class="custom_field">' .($cf['name']) . '</th>';
                   }
 
                   $qty_heading = _l('estimate_table_quantity_heading');

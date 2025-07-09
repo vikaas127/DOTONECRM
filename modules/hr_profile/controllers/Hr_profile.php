@@ -493,38 +493,50 @@ class Hr_profile extends AdminController {
 	 * salary form
 	 * @param  integer $id
 	 */
-	public function salary_form($id = '') {
-		if ($this->input->post()) {
-			$message = '';
-			$data = $this->input->post();
+public function salary_form($id = '') {
+    if ($this->input->post()) {
+        $data = $this->input->post();
+        log_message('info', 'HR Salary Form POST data: ' . json_encode($data));
 
-			if (!$this->input->post('id')) {
-				$id = $this->hr_profile_model->add_salary_form($data);
-				if ($id) {
-					$success = true;
-					$message = _l('added_successfully', _l('hr_salary_form'));
-				}
-				/*echo json_encode([
-					'success' => $success,
-					'message' => $message,
-				]);*/
-				redirect(admin_url('hr_profile/setting?group=salary_type'));
-			} else {
-				$id = $data['id'];
-				unset($data['id']);
-				$success = $this->hr_profile_model->update_salary_form($data, $id);
-				if ($success) {
-					$message = _l('updated_successfully', _l('hr_salary_form'));
-					set_alert('success', $message);
-				} else {
-					$message = _l('hr_updated_failed', _l('hr_allowance_type'));
-					set_alert('warning', $message);
-				}
-				redirect(admin_url('hr_profile/setting?group=salary_type'));
-			}
-			die;
-		}
-	}
+        $message = '';
+
+        if (!$this->input->post('id')) {
+            // Adding a new salary form
+            $id = $this->hr_profile_model->add_salary_form($data);
+            log_message('info', 'New salary form inserted with ID: ' . $id);
+
+            if ($id) {
+                $success = true;
+                $message = _l('added_successfully', _l('hr_salary_form'));
+            } else {
+                log_message('error', 'Failed to insert new salary form.');
+            }
+
+            redirect(admin_url('hr_profile/setting?group=salary_type'));
+        } else {
+            // Updating an existing salary form
+            $id = $data['id'];
+            unset($data['id']);
+
+            log_message('info', 'Updating salary form ID: ' . $id);
+            $success = $this->hr_profile_model->update_salary_form($data, $id);
+
+            if ($success) {
+                $message = _l('updated_successfully', _l('hr_salary_form'));
+                set_alert('success', $message);
+                log_message('info', 'Salary form updated successfully.');
+            } else {
+                $message = _l('hr_updated_failed', _l('hr_allowance_type'));
+                set_alert('warning', $message);
+                log_message('error', 'Salary form update failed for ID: ' . $id);
+            }
+
+            redirect(admin_url('hr_profile/setting?group=salary_type'));
+        }
+        die;
+    }
+}
+
 
 	/**
 	 * delete salary form
@@ -2757,6 +2769,9 @@ class Hr_profile extends AdminController {
 									$rd['email_signature'] = '';
 									//insert staff
 									$response = $this->hr_profile_model->add_staff($rd);
+									log_activity('Import Staff: ADD - Email: ' . $rd['email'] . ' | Result: ' . var_export($response, true));
+									log_message('debug', 'Staff Insert Debug (After Insert): ' . print_r($rd, true) );
+
 									if ($response) {
 										$total_row_success++;
 									}
@@ -2766,7 +2781,11 @@ class Hr_profile extends AdminController {
 									unset($data['password']);
 
 									$rd['email_signature'] = '';
+									log_message('debug', 'Staff Insert Debug (Before Insert): ' . print_r($rd, true));
+
 									$response = $this->hr_profile_model->update_staff($rd, $rd['staffid']);
+									log_activity('Import Staff: UPDATE - ID: ' . $rd['staffid'] . ' | Email: ' . $rd['email'] . ' | Result: ' . var_export($response, true));
+
 									if ($response) {
 										$total_row_success++;
 									}
@@ -4401,12 +4420,16 @@ class Hr_profile extends AdminController {
 
 		if ($this->input->post()) {
 			$data = $this->input->post();
+			log_message('info', 'Contract POST Data: ' . print_r($data, true));
+
 			$count_file = 0;
 			if ($id == '') {
 				if (!has_permission('hrm_contract', '', 'create') && !is_admin()) {
 					access_denied('staff_contract');
 				}
 				$id = $this->hr_profile_model->add_contract($data);
+				log_message('info', 'New contract inserted with ID: ' . $id);
+
 
 				//upload file
 				if ($id) {
@@ -4414,6 +4437,8 @@ class Hr_profile extends AdminController {
 					$_id = $id;
 					$message = _l('added_successfully', _l('contract_attachment'));
 					$uploadedFiles = hr_profile_handle_contract_attachments_array($id, 'file');
+					log_message('info', 'Uploaded Files: ' . print_r($uploadedFiles, true));
+
 
 					if ($uploadedFiles && is_array($uploadedFiles)) {
 						foreach ($uploadedFiles as $file) {
@@ -4434,6 +4459,8 @@ class Hr_profile extends AdminController {
 				}
 
 				$response = $this->hr_profile_model->update_contract($data, $id);
+				log_message('info', 'Update Response: ' . print_r($response, true));
+
 				//upload file
 				if ($id) {
 					$success = true;
@@ -4475,6 +4502,8 @@ class Hr_profile extends AdminController {
 		} else {
 
 			$contract = $this->hr_profile_model->get_contract($id);
+			log_message('debug', 'Loaded Contract Data: ' . print_r($contract, true));
+
 
 			//load deparment by manager
 			if (!is_admin() && !has_permission('hrm_contract', '', 'view')) {
@@ -4493,6 +4522,8 @@ class Hr_profile extends AdminController {
 			}
 
 			$contract_detail = $this->hr_profile_model->get_contract_detail($id);
+			log_message('debug', 'Loaded Contract Details: ' . print_r($contract_detail, true));
+
 			$data['contract_attachment'] = $this->hr_profile_model->get_hrm_attachments_file($id, 'hr_contract');
 			if (!$contract) {
 				blank_page('Contract Not Found', 'danger');
@@ -4519,6 +4550,11 @@ class Hr_profile extends AdminController {
 		$data['staff'] = $this->hr_profile_model->get_staff_active();
 		$data['allowance_type'] = $this->hr_profile_model->get_allowance_type();
 		$data['salary_allowance_type'] = $this->hr_profile_model->get_salary_allowance_handsontable();
+		if ($id == '') {
+			$data['default_structure_rows'] = $this->hr_profile_model->get_default_salary_structure_rows();
+		}
+		
+
 		$types = [];
 		$types[] = [
 			'id' => 'salary',
@@ -4530,6 +4566,7 @@ class Hr_profile extends AdminController {
 		];
 
 		$data['types'] = $types;
+     log_message('debug', ' Default Salary Structure Rows: ' . print_r($data['default_structure_rows'], true));
 
 		$this->load->view('hr_profile/contracts/contract', $data);
 	}
@@ -4757,12 +4794,15 @@ class Hr_profile extends AdminController {
 					$message = _l('added_failed', _l('hr_dependent_persons'));
 					set_alert('warning', $message);
 				}
+				
+				$redirect_staff_id = isset($data['staffid']) ? $data['staffid'] : get_staff_user_id();
 
 				if ($manage) {
 					redirect(admin_url('hr_profile/dependent_persons'));
 				} else {
-					redirect(admin_url('hr_profile/member/' . get_staff_user_id() . '/dependent_person'));
+					redirect(admin_url('hr_profile/member/' . $redirect_staff_id . '/dependent_person'));
 				}
+				
 			} else {
 				$manage = $this->input->post('manage');
 				$id = $data['id'];
@@ -5645,6 +5685,22 @@ class Hr_profile extends AdminController {
 		$this->load->view('hr_record/new_member', $data);
 	}
 
+	public function get_investment_types_by_section($section)
+{
+    $section = strtoupper($section);
+    $types = [];
+
+    if ($section === '80C') {
+        $types = ['LIC', 'PPF', 'NSC', 'Sukanya Samriddhi', 'Tuition Fees'];
+    } elseif ($section === '80D') {
+        $types = ['Health Insurance (Self)', 'Health Insurance (Parents)'];
+    } elseif ($section === '24B') {
+        $types = ['Home Loan Interest'];
+    }
+
+    echo json_encode($types);
+}
+
 	/**
 	 * add edit member
 	 * @param string $id
@@ -5727,6 +5783,9 @@ class Hr_profile extends AdminController {
 
 		$this->load->view('hr_record/new_member', $data);
 	}
+
+
+
 
 	/**
 	 * change staff status: Change status to staff active or inactive
@@ -7510,7 +7569,7 @@ class Hr_profile extends AdminController {
 		}
 
 		$header_key = [
-			'staffid',
+			'',
 			'staff_identifi', //*
 			'firstname', //*
 			'lastname', //*

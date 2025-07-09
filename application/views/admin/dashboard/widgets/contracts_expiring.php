@@ -42,10 +42,10 @@
                         <?php foreach ($expiringContracts as $contract) { ?>
                         <tr>
                             <td>
-                                <?php echo '<a href="' . admin_url('contracts/contract/' . $contract['id']) . '">' . e($contract['subject']) . '</a>'; ?>
+                                <?php echo '<a href="' . admin_url('contracts/contract/' . $contract['id']) . '">' .($contract['subject']) . '</a>'; ?>
                             </td>
                             <td>
-                                <?php echo '<a href="' . admin_url('clients/client/' . $contract['client']) . '">' . e(get_company_name($contract['client'])) . '</a>'; ?>
+                                <?php echo '<a href="' . admin_url('clients/client/' . $contract['client']) . '">' .(get_company_name($contract['client'])) . '</a>'; ?>
                             </td>
                             <td>
                                 <?php echo (_d($contract['datestart'])); ?>

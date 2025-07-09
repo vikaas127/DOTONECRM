@@ -142,14 +142,14 @@
                 $names             = '';
                 $contacts_selected = '';
                 foreach ($share_contacts_id as $file_share) {
-                    $names .= e(get_contact_full_name($file_share['contact_id'])) . ', ';
+                    $names .=(get_contact_full_name($file_share['contact_id'])) . ', ';
                     $contacts_selected .= $file_share['contact_id'] . ',';
                 }
                 if ($contacts_selected != '') {
                     $contacts_selected = substr($contacts_selected, 0, -1);
                 }
                 if ($names != '') {
-                    echo '<a href="#" onclick="do_share_file_contacts(\'' . $contacts_selected . '\',' . $_att['id'] . '); return false;"><i class="fa-regular fa-pen-to-square"></i></a> ' . e(_l('share_file_with_show', mb_substr($names, 0, -2)));
+                    echo '<a href="#" onclick="do_share_file_contacts(\'' . $contacts_selected . '\',' . $_att['id'] . '); return false;"><i class="fa-regular fa-pen-to-square"></i></a> ' .(_l('share_file_with_show', mb_substr($names, 0, -2)));
                 }
             }
         } ?>

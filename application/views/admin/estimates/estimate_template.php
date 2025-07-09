@@ -42,7 +42,7 @@
                       $project_id = $estimate->project_id;
                   }
                   if ($project_id) {
-                      echo '<option value="' . $project_id . '" selected>' . e(get_project_name_by_id($project_id)) . '</option>';
+                      echo '<option value="' . $project_id . '" selected>' .(get_project_name_by_id($project_id)) . '</option>';
                   }
                 ?>
                         </select>

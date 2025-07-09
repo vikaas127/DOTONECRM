@@ -135,7 +135,7 @@ return App_table::find('clients')
             if ($aRow['customerGroups']) {
                 $groups = explode(',', $aRow['customerGroups']);
                 foreach ($groups as $group) {
-                    $groupsRow .= '<span class="label label-default mleft5 customer-group-list pointer">' . e($group) . '</span>';
+                    $groupsRow .= '<span class="label label-default mleft5 customer-group-list pointer">' .($group) . '</span>';
                 }
             }
 

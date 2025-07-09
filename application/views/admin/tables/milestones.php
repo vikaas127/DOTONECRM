@@ -30,7 +30,7 @@ $rResult = $result['rResult'];
 foreach ($rResult as $aRow) {
     $row = [];
 
-    $nameRow = e($aRow['name']);
+    $nameRow =($aRow['name']);
 
     if (staff_can('edit_milestones', 'projects')) {
         $nameRow = '<a href="#" onclick="edit_milestone(this,' . $aRow['id'] . '); return false" data-name="' . $nameRow . '" data-start_date="' . _d($aRow['start_date']) . '" data-due_date="' . _d($aRow['due_date']) . '" data-order="' . $aRow['milestone_order'] . '" data-description="' . htmlspecialchars(clear_textarea_breaks($aRow['description'])) . '" data-description-visible-to-customer="' . $aRow['description_visible_to_customer'] . '" data-hide-from-customer="' . $aRow['hide_from_customer'] . '">' . $nameRow . '</a>';
@@ -43,9 +43,9 @@ foreach ($rResult as $aRow) {
     }
 
     $row[] = $nameRow;
-    $row[] =  e(_d($aRow['start_date']));
+    $row[] = (_d($aRow['start_date']));
 
-    $dateRow = e(_d($aRow['due_date']));
+    $dateRow =(_d($aRow['due_date']));
 
     if (date('Y-m-d') > $aRow['due_date'] && total_rows(db_prefix() . 'tasks', [
                 'milestone' => $aRow['id'],

@@ -98,7 +98,7 @@ $('.account-template-form-submiter').on('click', function() {
   //salary type validation
   appValidateForm($('#add_salary_form'), {
       form_name: 'required',
-      salary_val: 'required',
+      
   });
 
   //procedure retire validation

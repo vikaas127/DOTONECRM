@@ -81,9 +81,9 @@ return App_table::find('expenses_detailed_report')
                 }
 
                 if ($aColumns[$i] == db_prefix() . 'expenses.category') {
-                    $_data = '<a href="' . admin_url('expenses/list_expenses/' . $aRow['id']) . '" target="_blank">' . e($aRow['category_name']) . '</a>';
+                    $_data = '<a href="' . admin_url('expenses/list_expenses/' . $aRow['id']) . '" target="_blank">' .($aRow['category_name']) . '</a>';
                 } elseif ($aColumns[$i] == 'expense_name') {
-                    $_data = '<a href="' . admin_url('expenses/list_expenses/' . $aRow['id']) . '" target="_blank">' . e($aRow['expense_name']) . '</a>';
+                    $_data = '<a href="' . admin_url('expenses/list_expenses/' . $aRow['id']) . '" target="_blank">' .($aRow['expense_name']) . '</a>';
                 } elseif ($aColumns[$i] == 'amount' || $i == 6) {
                     $total = $_data;
                     if ($i != 6) {
@@ -98,28 +98,28 @@ return App_table::find('expenses_detailed_report')
                         $footer_data['amount_with_tax'] += $total;
                     }
 
-                    $_data = e(app_format_money($total, $currency->name));
+                    $_data =(app_format_money($total, $currency->name));
                 } elseif ($i == 9) {
-                    $_data = '<a href="' . admin_url('clients/client/' . $aRow['clientid']) . '">' . e($aRow['company']) . '</a>';
+                    $_data = '<a href="' . admin_url('clients/client/' . $aRow['clientid']) . '">' .($aRow['company']) . '</a>';
                 } elseif ($aColumns[$i] == 'paymentmode') {
                     $_data = '';
                     if ($aRow['paymentmode'] != '0' && !empty($aRow['paymentmode'])) {
                         $payment_mode = $this->ci->payment_modes_model->get($aRow['paymentmode'], [], false, true);
                         if ($payment_mode) {
-                            $_data = e($payment_mode->name);
+                            $_data =($payment_mode->name);
                         }
                     }
                 } elseif ($aColumns[$i] == 'date') {
-                    $_data = e(_d($_data));
+                    $_data =(_d($_data));
                 } elseif ($aColumns[$i] == 'tax') {
                     if ($aRow['tax'] != 0) {
-                        $_data = e($aRow['tax1_name'] . ' - ' . app_format_number($aRow['tax1_taxrate']) . '%');
+                        $_data =($aRow['tax1_name'] . ' - ' . app_format_number($aRow['tax1_taxrate']) . '%');
                     } else {
                         $_data = '';
                     }
                 } elseif ($aColumns[$i] == 'tax2') {
                     if ($aRow['tax2'] != 0) {
-                        $_data = e($aRow['tax2_name'] . ' - ' . app_format_number($aRow['tax2_taxrate']) . '%');
+                        $_data =($aRow['tax2_name'] . ' - ' . app_format_number($aRow['tax2_taxrate']) . '%');
                     } else {
                         $_data = '';
                     }
@@ -134,7 +134,7 @@ return App_table::find('expenses_detailed_report')
                             $total += $totalTax2;
                             $footer_data['tax_2'] += $totalTax2;
                         }
-                        $_data = e(app_format_money($total, $currency->name));
+                        $_data =(app_format_money($total, $currency->name));
                         $footer_data['total_tax'] += $total;
                     } else {
                         $_data = app_format_number(0);
@@ -147,7 +147,7 @@ return App_table::find('expenses_detailed_report')
                     }
                 } elseif ($aColumns[$i] == 'invoiceid') {
                     if ($_data) {
-                        $_data = '<a href="' . admin_url('invoices/list_invoices/' . $_data) . '">' . e(format_invoice_number($_data)) . '</a>';
+                        $_data = '<a href="' . admin_url('invoices/list_invoices/' . $_data) . '">' .(format_invoice_number($_data)) . '</a>';
                     } else {
                         $_data = '';
                     }
@@ -158,7 +158,7 @@ return App_table::find('expenses_detailed_report')
         }
 
         foreach ($footer_data as $key => $total) {
-            $footer_data[$key] = e(app_format_money($total, $currency->name));
+            $footer_data[$key] =(app_format_money($total, $currency->name));
         }
 
         $output['sums'] = $footer_data;

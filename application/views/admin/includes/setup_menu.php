@@ -42,7 +42,7 @@ ul.nav.nav-second-level.collapse {
                     class="badge pull-right
                <?=isset($item['badge']['type']) && $item['badge']['type'] != '' ? "bg-{$item['badge']['type']}" : 'bg-info' ?>" <?=(isset($item['badge']['type']) && $item['badge']['type'] == '') ||
                         isset($item['badge']['color']) ? "style='background-color: {$item['badge']['color']}'" : '' ?>>
-                    <?= e($item['badge']['value']) ?>
+                    <?=($item['badge']['value']) ?>
                 </span>
                 <?php } ?>
             </a>
@@ -63,7 +63,7 @@ ul.nav.nav-second-level.collapse {
                     <?=isset($submenu['badge']['type']) && $submenu['badge']['type'] != '' ? "bg-{$submenu['badge']['type']}" : 'bg-info' ?>"
                         <?=(isset($submenu['badge']['type']) && $submenu['badge']['type'] == '') ||
                         isset($submenu['badge']['color']) ? "style='background-color: {$submenu['badge']['color']}'" : '' ?>>
-                        <?= e($submenu['badge']['value']) ?>
+                        <?=($submenu['badge']['value']) ?>
                     </span>
                     <?php } ?>
                 </li>

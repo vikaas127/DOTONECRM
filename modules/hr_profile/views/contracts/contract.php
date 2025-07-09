@@ -96,7 +96,19 @@
 							</div>
 						</div>
 						<div class="row">
-							<div class="col-md-6"></div>
+							<div class="col-md-6">
+									
+
+								<div class="col-md-6">
+    <?php 
+        $ctc = isset($contracts) ? $contracts->ctc : '';
+        $attrs = ['step' => '0.01', 'min' => '0']; 
+        echo render_input('ctc', 'hr_ctc', $ctc, 'number', $attrs); 
+    ?>   
+</div>
+ 
+							
+							</div>
 							<div class="col-md-6">
 								<div class="form-group">
 									<label for="hourly_or_month" class="control-label"><?php echo _l('hr_hourly_rate_month'); ?></label>
@@ -119,6 +131,22 @@
 							</div>
 							<?php echo form_hidden('staff_contract_hs'); ?>
 						</div>
+						<div class="row " style="background-color:rgb(235, 168, 157); padding:20px; margin:20px;">
+							<div class="col-md-6">
+								<div class="d-flex justify-content-between">
+								<strong style="color:black">Total Monthly Amount:</strong>
+								<span  style="color:#292929;" id="total_rel_value">0.00</span>
+								</div>
+							</div>
+							<div class="col-md-6">
+								<div class="d-flex justify-content-between">
+								<strong style="color:black">Total Annual Amount:</strong>
+								<span style="color:#292929;" id="total_annual_value">0.00</span>
+								</div>
+							</div>
+						</div>
+
+
 
 						<br>
 						<h5 class="h5-color"><?php echo _l('hr_signed_information'); ?></h5>

@@ -88,7 +88,7 @@ foreach ($milestones as $milestone) {
                 </a>
                 <?php } ?>
                 <?php if (staff_can('create', 'tasks')) { ?>
-                <?php echo '<p class="tw-text-sm tw-mb-0'.($milestone['id'] !== 0 ? ' tw-ml-5' : '').'">' . e(_l('milestone_total_logged_time') . ': ' . seconds_to_time_format($milestone['total_logged_time'])) . '</p>'; } ?>
+                <?php echo '<p class="tw-text-sm tw-mb-0'.($milestone['id'] !== 0 ? ' tw-ml-5' : '').'">' . (_l('milestone_total_logged_time') . ': ' . seconds_to_time_format($milestone['total_logged_time'])) . '</p>'; } ?>
             </div>
             <div class="kan-ban-content-wrapper">
                 <div class="kan-ban-content">
