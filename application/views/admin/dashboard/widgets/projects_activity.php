@@ -23,7 +23,7 @@
             <div class="activity-feed">
                 <?php
                     foreach ($projects_activity as $activity) {
-                        $name = e($activity['fullname']);
+                        $name = ($activity['fullname']);
                         if ($activity['staff_id'] != 0) {
                             $href = admin_url('profile/' . $activity['staff_id']);
                         } elseif ($activity['contact_id'] != 0) {
