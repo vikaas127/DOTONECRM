@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd /var/www/techdotbit.in
+cd /var/www/html
 
 # Set Git identity (optional if already global)
 git config user.name "Vikas Yadav"
