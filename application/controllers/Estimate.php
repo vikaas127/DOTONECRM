@@ -4,9 +4,10 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 class Estimate extends ClientsController
 {
-    public function index($id, $hash)
+    public function index($id = '', $hash = '')
     {
         check_estimate_restrictions($id, $hash);
+
         $estimate = $this->estimates_model->get($id);
 
         if (!is_client_logged_in()) {
@@ -83,7 +84,7 @@ class Estimate extends ClientsController
         $data['bodyclass']                     = 'viewestimate';
         $data['identity_confirmation_enabled'] = $identity_confirmation_enabled;
         if ($identity_confirmation_enabled == '1') {
-            $data['bodyclass'] .= ' identity-confirmation';
+            $data['bodyclass'] .= 'identity-confirmation';
         }
         $this->data($data);
         $this->view('estimatehtml');

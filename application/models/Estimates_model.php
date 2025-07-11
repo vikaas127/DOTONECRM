@@ -184,6 +184,7 @@ class Estimates_model extends App_Model
         $custom_fields_items                       = get_custom_fields('items');
         $key                                       = 1;
         foreach ($_estimate->items as $item) {
+
             $new_invoice_data['newitems'][$key]['description']      = $item['description'];
             $new_invoice_data['newitems'][$key]['long_description'] = clear_textarea_breaks($item['long_description']);
             $new_invoice_data['newitems'][$key]['qty']              = $item['qty'];
@@ -339,7 +340,9 @@ class Estimates_model extends App_Model
         $new_estimate_data['newitems']   = [];
         $custom_fields_items             = get_custom_fields('items');
         $key                             = 1;
-        foreach ($_estimate->items as $item) {
+        foreach ($_estimate->items as $item) {            
+
+
             $new_estimate_data['newitems'][$key]['description']      = $item['description'];
             $new_estimate_data['newitems'][$key]['long_description'] = clear_textarea_breaks($item['long_description']);
             $new_estimate_data['newitems'][$key]['qty']              = $item['qty'];
@@ -467,6 +470,9 @@ class Estimates_model extends App_Model
      */
     public function add($data)
     {
+        print_r($data, true);
+        
+         log_message('info', 'New start data Es'. print_r($data, true));
         $data['datecreated'] = date('Y-m-d H:i:s');
 
         $data['addedfrom'] = get_staff_user_id();
@@ -514,17 +520,26 @@ class Estimates_model extends App_Model
 
         $data  = $hook['data'];
         $items = $hook['items'];
+        // Remove 'item_id' if it exists
+            if (isset($data['item_id'])) {
+                unset($data['item_id']);
+                log_message('info', "'item_id' key removed from estimate data before insert.");
+            }
+                    log_message('info', 'New data Es'. print_r($data, true));
+                    log_message('info', 'New Es'. print_r($items, true));
 
-        $this->db->insert(db_prefix() . 'estimates', $data);
-        $insert_id = $this->db->insert_id();
-
+                    $this->db->insert(db_prefix() . 'estimates', $data);
+                    $insert_id = $this->db->insert_id();
+            log_message('info', ' before Estimate created successfully with ID: ' . $insert_id);
         if ($insert_id) {
+           log_message('info', 'Estimate created successfully with ID: ' . $insert_id);
             // Update next estimate number in settings
             $this->db->where('name', 'next_estimate_number');
             $this->db->set('value', 'value+1', false);
             $this->db->update(db_prefix() . 'options');
-
+        log_message('info', 'Updated next estimate number in settings.');
             if ($estimateRequestID !== false && $estimateRequestID != '') {
+                  log_message('info', 'Processing Estimate Request ID: ' . $estimateRequestID);
                 $this->load->model('estimate_request_model');
                 $completedStatus = $this->estimate_request_model->get_status_by_flag('completed');
                 $this->estimate_request_model->update_request_status([
@@ -539,7 +554,11 @@ class Estimates_model extends App_Model
 
             handle_tags_save($tags, $insert_id, 'estimate');
 
+            log_message('debug', 'Raw Items Before Processing: ' . print_r($items, true));
+
             foreach ($items as $key => $item) {
+
+              
                 if ($itemid = add_new_sales_item_post($item, $insert_id, 'estimate')) {
                     _maybe_insert_post_item_tax($itemid, $item, $insert_id, 'estimate');
                 }
@@ -565,6 +584,7 @@ class Estimates_model extends App_Model
      * @param mixed $id item id
      * @return object
      */
+    
     public function get_estimate_item($id)
     {
         $this->db->where('id', $id);

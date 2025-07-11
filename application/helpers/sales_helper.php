@@ -74,14 +74,6 @@ function app_format_number($total, $foce_check_zero_decimals = false)
     ]);
 }
 
-/**
- * Format money/amount based on currency settings
- * @since  2.3.2
- * @param  mixed   $amount          amount to format
- * @param  mixed   $currency        currency db object or currency name (ISO code)
- * @param  boolean $excludeSymbol   whether to exclude to symbol from the format
- * @return string
- */
 function app_format_money($amount, $currency, $excludeSymbol = false)
 {
     /**
@@ -551,8 +543,16 @@ function get_items_by_type($type, $id)
     $CI->db->where('rel_id', $id);
     $CI->db->where('rel_type', $type);
     $CI->db->order_by('item_order', 'asc');
+ $items = $CI->db->get()->result_array();
 
-    return $CI->db->get()->result_array();
+    // Log the raw query for debugging
+    log_message('debug', 'get_items_by_type() SQL: ' . $CI->db->last_query());
+
+    // Log the resulting items array
+    log_message('debug', 'get_items_by_type() Result: ' . print_r($items, true));
+
+    return $items;
+   // return $CI->db->get()->result_array();
 }
 /**
 * Function that update total tax in sales table eq. invoice, proposal, estimates, credit note
