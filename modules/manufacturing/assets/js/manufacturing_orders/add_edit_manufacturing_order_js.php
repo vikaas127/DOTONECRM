@@ -676,6 +676,34 @@ $(function () {
 //   });
 // }
 
+function updateProductDropdown(estimateItems) {
+  const $productSelect = $('select[name="product_id"]');
+  $productSelect.prop('disabled', true).empty(); // Clear + disable during update
+
+  // Add default option
+  $productSelect.append(new Option('-- Select Product --', ''));
+
+  estimateItems.forEach(item => {
+    const label = item.description || 'Unnamed Product';
+    const value = item.item_id;
+
+    if (value) {
+      $productSelect.append(new Option(label, value));
+    }
+  });
+
+  $productSelect.prop('disabled', false).selectpicker('refresh');
+
+  // ✅ Optional: Trigger change if exactly one product
+  if (estimateItems.length === 1) {
+    $productSelect.val(estimateItems[0].item_id);
+    $productSelect.trigger('change');
+  }
+
+  // ❌ DO NOT blindly trigger change here
+}
+
+
 // Fetch products dynamically based on estimate selection
 function filterProductsByEstimate(estimateId) {
    

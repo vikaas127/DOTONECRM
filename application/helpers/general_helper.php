@@ -662,7 +662,7 @@ function to_sql_date($date, $datetime = false)
         'from_format' => $from_format,
         'is_datetime' => $datetime,
     ]);
-
+       $datetime = DateTime::createFromFormat($from_format, $date);
     if ($datetime == false) {
         // Is already Y-m-d format?
         if (preg_match('/^(\d{4})-(\d{1,2})-(\d{1,2})$/', $date)) {
@@ -671,7 +671,7 @@ function to_sql_date($date, $datetime = false)
 
         return hooks()->apply_filters(
             'to_sql_date_formatted',
-            DateTime::createFromFormat($from_format, $date)->format($to_date)
+            DateTime::format($to_date)
         );
     }
 

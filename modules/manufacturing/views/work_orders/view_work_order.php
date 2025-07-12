@@ -94,7 +94,7 @@
 						<div class="row">
 						<!--	<div class="col-md-6">
 
-								<?php if(has_permission('manufacturing', '', 'create')&&has_permission('work_order', '', 'operate_assinged') || has_permission('manufacturing', '', 'edit')&&has_permission('work_order', '', 'operate_assinged') ){ ?>
+								<?php if(has_permission('manufacturing', '', 'create')&&has_permission('work_order', '', 'create') || has_permission('manufacturing', '', 'edit')&&has_permission('work_order', '', 'edit') ){ ?>
 
 									<?php if(!$check_mo_cancelled){ ?>
 									<div class="<?php echo new_html_entity_decode($start_working_hide) ?>">
@@ -116,8 +116,8 @@
 								<?php } ?>
 							</div>-->
                            <div class="col-md-6">
-    <?php if (has_permission('manufacturing', '', 'create') && has_permission('work_order', '', 'operate_assinged') ||has_permission('work_order', '', 'operate_global')
-           || has_permission('manufacturing', '', 'edit') && has_permission('work_order', '', 'operate_global')||has_permission('work_order', '', 'operate_assinged')) { ?>
+    <?php if (has_permission('manufacturing', '', 'create') && has_permission('work_order', '', 'create') 
+           || has_permission('manufacturing', '', 'edit') && has_permission('work_order', '', 'edit')) { ?>
 
         <?php if (!$check_mo_cancelled) { ?>
                  
@@ -192,10 +192,22 @@ function startWorkOrder() {
 
 								$id = isset($manufacturing_order) ? $manufacturing_order->id : '';
 								$product_id = isset($work_order) ? $work_order->product_id : '';
+
 								$quantity_produced = isset($work_order) ? $work_order->qty_produced : '';
 								$qty_production = isset($work_order) ? $work_order->qty_production : '';
 
 								$unit_id = isset($work_order) ? $work_order->unit_id : '';
+
+								$labour_charges = isset($work_order) ? $work_order->labour_charges : '';
+								$machinery_charges = isset($work_order) ? $work_order->machinery_charges : '';
+								$electricity_charges = isset($work_order) ? $work_order->electricity_charges : '';
+								$other_charges = isset($work_order) ? $work_order->other_charges : '';
+								$labour_charges_description = isset($work_order) ? $work_order->labour_charges_description : '';
+								$machinery_charges_description = isset($work_order) ? $work_order->machinery_charges_description : '';
+								$electricity_charges_description = isset($work_order) ? $work_order->electricity_charges_description : '';
+								$other_charges_description = isset($work_order) ? $work_order->other_charges_description : '';
+
+
 								$work_center = isset($work_order) ? $work_order->work_center_id : '';
 								$manufacturing_order = isset($work_order) ? $work_order->manufacturing_order_id : '';
 								$qty_producing = isset($work_order) ? $work_order->qty_producing : '';
@@ -222,7 +234,19 @@ function startWorkOrder() {
 <div class="work-order-details">
     <p><strong>Operation:</strong> <?php echo $work_order->operation_name; ?></p>
     <p><strong>Assigned Operator:</strong> <?php echo $operator_name; ?></p>
+	<?php
+	$contactId = isset($work_order->contact_id) ? $work_order->contact_id : null;
+
+	$customerName = ($contactId) ? get_relation_values(get_relation_data('customer', $contactId), 'customer')['name'] : 'Customer Not Found';
+	?>
+
+	<!-- Display in frontend -->
+	<p><strong>Customer Name:</strong> <?= $customerName ?></p>
+
+    <p><strong>Estimate ID:</strong> <?= isset($work_order->estimate_id) ? $work_order->estimate_id : '' ?></p>
+
 </div>
+
 
 										<table class="table border table-striped table-margintop" >
 											<tbody>
@@ -283,6 +307,11 @@ function startWorkOrder() {
 														<span class="fa-regular fa-circle-check menu-icon"></span>&nbsp;<?php echo _l('tasks'); ?>
 													</a>
 												</li>
+												<li role="presentation" class="">
+													<a href="#costing_tab" aria-controls="costing_tab" role="tab" data-toggle="tab">
+														<span class="fa-solid fa-coins"></span>&nbsp;<?php echo _l('costing'); ?>
+													</a>
+											</li>
 
 											</ul>
 										</div>
@@ -439,6 +468,111 @@ function startWorkOrder() {
 											<?php init_relation_tasks_table(array('data-new-rel-id'=>$work_order->id,'data-new-rel-type'=>'work_order')); ?>
 										</div>
 										
+										<div role="tabpanel" class="tab-pane " id="costing_tab">
+										<div class="row">
+    <!-- <table class="table table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th>#</th>
+                <th>Classification</th>
+                <th>Actual Amount</th>
+                <th>Comment</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>1</td>
+                <td>Labour Charges</td>
+                <td>
+                    <input type="number" name="labour_charges" id="labour_charges" value="<?php echo $labour_charges; ?>">
+                </td>
+                <td>
+                    <input type="text" name="labour_charges_description" id="labour_charges_description" value="<?php echo $labour_charges_description; ?>">
+                </td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>Electricity Charges</td>
+                <td>
+                    <input type="number" name="electricity_charges" id="electricity_charges" value="<?php echo $electricity_charges; ?>">
+                </td>
+                <td>
+                    <input type="text" name="electricity_charges_description" id="electricity_charges_description" value="<?php echo $electricity_charges_description; ?>">
+                </td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td>Machinery Charges</td>
+                <td>
+                    <input type="number" name="machinery_charges" id="machinery_charges" value="<?php echo $machinery_charges; ?>">
+                </td>
+                <td>
+                    <input type="text" name="machinery_charges_description" id="machinery_charges_description" value="<?php echo $machinery_charges_description; ?>">
+                </td>
+            </tr>
+            <tr>
+                <td>4</td>
+                <td>Other Charges</td>
+                <td>
+                    <input type="number" name="other_charges" id="other_charges" value="<?php echo $other_charges; ?>">
+                </td>
+                <td>
+                    <input type="text" name="other_charges_description" id="other_charges_description" value="<?php echo $other_charges_description; ?>">
+                </td>
+            </tr>
+        </tbody>
+    </table> -->
+
+	<?php
+$is_editable = $work_order->status == 'in_progress';
+?>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Classification</th>
+            <th>Actual Amount</th>
+            <th>Comment</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php 
+        $fields = ['labour_charges', 'electricity_charges', 'machinery_charges', 'other_charges'];
+        $descriptions = ['labour_charges_description', 'electricity_charges_description', 'machinery_charges_description', 'other_charges_description'];
+        foreach ($fields as $index => $field) { ?>
+            <tr>
+                <td><?php echo ($index + 1); ?></td>
+                <td><?php echo ucfirst(str_replace('_', ' ', $field)); ?></td>
+                <td>
+                    <input type="number" class="editable-field form-control" name="<?php echo $field; ?>" id="<?php echo $field; ?>"
+                        value="<?php echo new_html_entity_decode($work_order->$field); ?>"
+                        <?php echo !$is_editable ? 'readonly' : ''; ?>>
+                </td>
+           
+				<td>
+    <input type="text" class="editable-field form-control" name="<?php echo $descriptions[$index]; ?>" id="<?php echo $descriptions[$index]; ?>"
+        value="<?php echo new_html_entity_decode($work_order->{$descriptions[$index]}); ?>"
+        <?php echo !$is_editable ? 'readonly' : ''; ?>>
+</td>
+
+            </tr>
+        <?php } ?>
+    </tbody>
+</table>
+
+<?php if ($is_editable) { ?>
+    <button class="btn btn-success" id="saveWorkOrderBtn">Save</button>
+<?php } ?>
+
+
+
+
+
+
+
+
+					</div>
+										</div>
 									</div>
 								</div>
 

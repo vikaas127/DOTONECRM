@@ -13,7 +13,6 @@ $aColumns = [
 	'unit_id',
 	'status',
 	'contact_id'
-
 ];
 $sIndexColumn = 'id';
 $sTable = db_prefix() . 'mrp_work_orders';
@@ -21,27 +20,14 @@ $sTable = db_prefix() . 'mrp_work_orders';
 $where = [];
 $join[] = 'LEFT JOIN '.db_prefix().'clients ON '.db_prefix().'mrp_work_orders.contact_id = '.db_prefix().'clients.userid';
 
+
 $manufacturing_order_filter = $this->ci->input->post('manufacturing_order_filter');
 $products_filter = $this->ci->input->post('products_filter');
 $status_filter = $this->ci->input->post('status_filter');
 $customer_filter = $this->ci->input->post('customer_filter');
 
-if (isset($customer_filter)) {
-    $where_customer_ft = '';
-    foreach ($customer_filter as $contact_id) {
-        if ($contact_id != '') {
-            if ($where_customer_ft == '') {
-                $where_customer_ft .= 'AND (' . db_prefix() . 'mrp_work_orders.contact_id = "' . $contact_id . '"';
-            } else {
-                $where_customer_ft .= ' OR ' . db_prefix() . 'mrp_work_orders.contact_id = "' . $contact_id . '"';
-            }
-        }
-    }
-    if ($where_customer_ft != '') {
-        $where_customer_ft .= ')';
-        array_push($where, $where_customer_ft);
-    }
-}
+
+
 
 if (isset($manufacturing_order_filter)) {
 	$where_manufacturing_order_ft = '';
@@ -92,6 +78,23 @@ if (isset($status_filter)) {
 		$where_status_ft .= ')';
 		array_push($where, $where_status_ft);
 	}
+}
+
+if (isset($customer_filter)) {
+    $where_customer_ft = '';
+    foreach ($customer_filter as $contact_id) {
+        if ($contact_id != '') {
+            if ($where_customer_ft == '') {
+                $where_customer_ft .= 'AND (' . db_prefix() . 'mrp_work_orders.contact_id = "' . $contact_id . '"';
+            } else {
+                $where_customer_ft .= ' OR ' . db_prefix() . 'mrp_work_orders.contact_id = "' . $contact_id . '"';
+            }
+        }
+    }
+    if ($where_customer_ft != '') {
+        $where_customer_ft .= ')';
+        array_push($where, $where_customer_ft);
+    }
 }
 // Get logged-in staff ID
 $logged_in_staff_id = get_staff_user_id(); 
@@ -177,10 +180,9 @@ foreach ($rResult as $aRow) {
 			$_data = ' <span class="label label-'.$aRow['status'].'" > '._l($aRow['status']).' </span>';
 			
 
-		}elseif ($aColumns[$i] == 'contact_id') {  
+		}
+		elseif ($aColumns[$i] == 'contact_id') {  
 			$_data = get_relation_values(get_relation_data('customer', $aRow['contact_id']), 'customer')['name'];}
-
-
 
 
 		$row[] = $_data;

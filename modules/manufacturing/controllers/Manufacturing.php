@@ -2400,13 +2400,13 @@ public function add_scrap_modal($id = '') {
 
     log_message('info', 'Valid estimate_id. Fetching items...');
     
-    $items = get_items_by_type('estimate', $estimate_id); // This is a PHP array
+     $items = get_items_by_type('estimate', $estimate_id); // This is a PHP array
 
-    log_message('info', 'Fetched items: ' . json_encode($items));
+     log_message('info', 'Fetched items: ' . json_encode($items));
 
 
-    header('Content-Type: application/json');
-    echo json_encode($items); // Convert PHP array to JSON
+     header('Content-Type: application/json');
+     echo json_encode($items); // Convert PHP array to JSON
 
 
 	}

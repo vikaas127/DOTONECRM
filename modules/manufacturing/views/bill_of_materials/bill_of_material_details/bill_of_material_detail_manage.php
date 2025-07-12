@@ -61,12 +61,22 @@
 									<h4 class="no-margin col-md-8">
 										<?php echo new_html_entity_decode(mrp_get_product_name($product_id) .$product_variant_name); ?>
 									</h4>
-									<div class="col-md-4" style="margin-bottom: 15px;">
-									<a href="<?php echo admin_url('manufacturing/view_bill_of_material_detail/' . $bill_of_material_id); ?>" class="btn btn-info"><?php echo _l('View'); ?></a>
+							<div class="col-md-4" style="margin-bottom: 15px;">
+    <div style="display: flex; justify-content: flex-end; align-items: center; flex-wrap: wrap;">
+        <a href="<?php echo admin_url('manufacturing/view_bill_of_material_detail/' . $bill_of_material_id); ?>" class="btn btn-info" style="margin-left: 8px;">
+            <?php echo _l('View'); ?>
+        </a>
+             <a href="<?php echo admin_url('manufacturing/bill_of_material_manage'); ?>" class="btn btn-default" style="margin-left: 8px;">
+            <?php echo _l('close'); ?>
+        </a>
+        <button type="submit" class="btn btn-info" style="margin-left: 8px;">
+            <?php echo _l('submit'); ?>
+        </button>
 
-											<button type="submit" class="btn btn-info pull-right"><?php echo _l('submit'); ?></button>
-											<a href="<?php echo admin_url('manufacturing/bill_of_material_manage'); ?>"  class="btn btn-default pull-right mright5 "><?php echo _l('close'); ?></a>
-									</div>
+    
+    </div>
+</div>
+
 
 							</div>
 							<hr class="hr-panel-heading" />
