@@ -110,7 +110,18 @@ class Perfex_saas_company_merge_fields extends App_merge_fields
     {
         $fields['{instance_url}'] = perfex_saas_tenant_base_url($company);
         $fields['{instance_admin_url}']   = perfex_saas_tenant_admin_url($company);
-        $data = ['id' => $company->id, 'slug' => $company->slug, 'name' => $company->name, 'status' => $company->status, 'custom_domain' => $company->custom_domain];
+        // $data = ['id' => $company->id, 'slug' => $company->slug, 'name' => $company->name, 'status' => $company->status, 'custom_domain' => $company->custom_domain];
+        $data = [
+            'id'            => $company->id ?? 'N/A',
+            'slug'          => $company->slug ?? 'N/A',
+            'name'          => $company->name ?? 'N/A',
+            'status'        => $company->status ?? 'N/A',
+            'custom_domain' => $company->custom_domain ?? 'N/A',
+
+            
+            
+        ];
+
         foreach ($data as $key => $value) {
             $fields["{instance_$key}"] = $value;
         }

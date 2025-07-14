@@ -1,6 +1,7 @@
 <?php
 
 defined('BASEPATH') or exit('No direct script access allowed');
+require_once(FCPATH . 'modules/perfex_saas/libraries/pdf/NDA_pdf.php');
 
 /**
  * Email template class for all mail sent through the saas.
@@ -62,16 +63,56 @@ trait PerfexSaasMailTemplate
     /**
      * Build the email message.
      */
-    public function build()
-    {
-        // Load required libraries
-        $this->ci->load->library('merge_fields/client_merge_fields');
-        $this->ci->load->library(PERFEX_SAAS_MODULE_NAME . '/merge_fields/perfex_saas_company_merge_fields');
+ public function build()
+{
+    // Load required libraries
+    $this->ci->load->library('merge_fields/client_merge_fields');
+    $this->ci->load->library(PERFEX_SAAS_MODULE_NAME . '/merge_fields/perfex_saas_company_merge_fields');
 
-        // Set email properties
-        $this->to($this->contact_email)                                // Set the recipient email address
-            ->set_rel_id($this->contact_id)                            // Set the relationship ID
-            ->set_merge_fields('client_merge_fields', $this->client_id, $this->contact_id)   // Set merge fields for client
-            ->set_merge_fields('perfex_saas_company_merge_fields', $this->instance_data, $this->other_extra_data);   // Set merge fields for Perfex SaaS company
+    // Set email recipients and merge fields
+    $this->to($this->contact_email)
+        ->set_rel_id($this->contact_id)
+        ->set_merge_fields('client_merge_fields', $this->client_id, $this->contact_id)
+        ->set_merge_fields('perfex_saas_company_merge_fields', $this->instance_data, $this->other_extra_data);
+
+    // ✅ Get merge fields for logging or NDA full name
+    $mergeFields = (new Client_merge_fields())->format($this->client_id, $this->contact_id);
+
+    $first_name = $mergeFields['{contact_firstname}'] ?? '';
+    $last_name  = $mergeFields['{contact_lastname}'] ?? '';
+    $full_name  = trim($first_name . ' ' . $last_name);
+    if (empty($full_name)) {
+        $full_name = $mergeFields['{client_company}'] ?? 'New_Customer';
     }
+
+    log_message('debug', 'PerfexSaasMailTemplate::build - Generating NDA for ' . $full_name);
+
+    try {
+        // ✅ Pass instance_data (must include client_id/contact_id for NDA_pdf to work)
+        $pdf = new NDA_pdf($this->instance_data);
+    } catch (Exception $e) {
+        log_message('error', 'PerfexSaasMailTemplate::build - NDA_pdf instantiation failed: ' . $e->getMessage());
+        return;
+    }
+
+    if (!$pdf->prepare()) {
+        log_message('error', 'PerfexSaasMailTemplate::build - Failed to prepare NDA PDF for ' . $full_name);
+        return;
+    }
+
+    $filename = 'NDA_' . str_replace(' ', '_', $full_name) . '_' . date('Y-m-d') . '.pdf';
+    $nda_attachment = $pdf->Output($filename, 'S');
+
+    // Attach the NDA to the outgoing email
+    $this->add_attachment([
+        'attachment' => $nda_attachment,
+        'filename'   => $filename,
+        'type'       => 'application/pdf',
+    ]);
+
+    log_message('debug', 'PerfexSaasMailTemplate::build - NDA PDF successfully attached: ' . $filename);
 }
+
+
+    }
+

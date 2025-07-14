@@ -312,9 +312,18 @@ function perfex_saas_deploy_company($company, $silent_mode = false)
             // Send email to customer about deployment
             $contact = perfex_saas_get_primary_contact($company->clientid);
 
+            // if (!empty($contact->email)) {
+            //     send_mail_template('customer_deployed_instance', PERFEX_SAAS_MODULE_NAME, $contact->email, $company->clientid, $contact->id, $company);
+            // }
+
             if (!empty($contact->email)) {
+                // ✅ Add these two lines
+                $company->client_id = $company->clientid;
+                $company->contact_id = $contact->id;
+
                 send_mail_template('customer_deployed_instance', PERFEX_SAAS_MODULE_NAME, $contact->email, $company->clientid, $contact->id, $company);
             }
+
 
             // Send email to admin about the deployment
             if (!empty($admin->email)) {

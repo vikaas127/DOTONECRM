@@ -130,7 +130,7 @@ $deployed_template = [
     'name' => 'Deployed CRM instance',
     'subject' => 'Company CRM Instance created successfully',
     'message' => 'Dear {contact_firstname},<br/><br/>
-    I am writing to inform you that we have successfully deployed a CRM instance for your company <b>{instance_name}</b>. 
+    We are writing to inform you that we have successfully deployed a CRM instance for your company <b>{instance_name}</b>. 
     <br/><br/>
     You can access your instance at <b>{instance_admin_url}</b>. Kindly log in with your current email and the respective password. 
     <br/><br/>

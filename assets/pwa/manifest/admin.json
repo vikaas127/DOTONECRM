@@ -1,0 +1,35 @@
+{
+    "name": "DOT One Business Suite",
+    "short_name": "DOT",
+    "description": "All in one Business suite",
+    "start_url": "/admin/authentication",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#000000",
+    "icons": [
+      {
+        "src": "https://techdotbit.in/assets/pwa/tdblogo129.webp",
+        "sizes": "191x191",
+        "type": "image/png"
+      },
+      {
+        "src": "https://techdotbit.in/assets/pwa/tdblogo512.webp",
+        "sizes": "512x512",
+        "type": "image/png"
+      }
+    ],
+    "screenshots": [
+    {
+      "src": "https://techdotbit.in/assets/pwa/tdblogo129.webp",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    },
+    {
+      "src": "https://techdotbit.in/assets/pwa/tdblogo129.webp",
+      "sizes": "720x1280",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ]
+  }

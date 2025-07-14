@@ -5,19 +5,25 @@ defined('BASEPATH') or exit('No direct script access allowed');
 $dimensions = $pdf->getPageDimensions();
 
 // Header layout
-$info_left_column  = pdf_logo_url();
-$info_right_column = '
-    <span style="font-weight:bold;font-size:27px;">NON-DISCLOSURE AGREEMENT</span><br />
-    <span style="color:#4e4e4e;">Date: ' . _d($date) . '</span>
+$info_left_column =pdf_logo_url();
+$info_right_column = 
+'   <p>TechdotBit</p>
+    <p>08CTAPD2435D1Z</p>
+    <p>T 53, Suncity, Jaipur, Rajasthan</p>
+    <p>Phone: +91 8077841585</p>
+    <p>Email: akshay@techdotbit.com</p>
 ';
 pdf_multi_row($info_left_column, $info_right_column, $pdf, ($dimensions['wk'] / 2) - $dimensions['lm']);
-$pdf->Ln(10); 
+$pdf->Ln(2); 
+
+
 
 
 
 $formatted_date = _d($date);
 
 $html = <<<EOD
+ <span style="font-weight:bold;font-size:27px; ">NON-DISCLOSURE AGREEMENT</span><br />
 
 <p style="line-height: 1.5;">
     This Non-Disclosure Agreement (the &ldquo;Agreement&rdquo;) is made and entered into on 

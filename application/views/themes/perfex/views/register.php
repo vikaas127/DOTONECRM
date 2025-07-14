@@ -426,25 +426,37 @@ input.form-control:focus, input[type=color]:focus, input[type=date]:focus, input
                                         ];
                                         ?>
 
-                                        <div class="form-group register-sector-group">
-                                            <label class="control-label" for="sector">
-                                                <?php if ($requiredFields['company']['sector']['is_required']) { ?>
-                                                    <span class="text-danger">*</span>
-                                                <?php } ?>
-                                            <?php echo _l('sector'); ?>
-                                            </label>
-                                            <select data-none-selected-text="<?php echo _l('dropdown_non_selected_tex'); ?>"
-                                                    data-live-search="true" name="sector" class="form-control" id="sector">
-                                                <option value=""></option>
-                                                <?php foreach ($sectors as $sector) { ?>
-                                                    <option value="<?php echo strtolower(str_replace([' ', '&', ',', '/'], ['_', '', '', ''], $sector)); ?>"
-                                                        <?php echo set_select('sector', strtolower(str_replace([' ', '&', ',', '/'], ['_', '', '', ''], $sector))); ?>>
-                                                        <?php echo $sector; ?>
-                                                    </option>
-                                                <?php } ?>
-                                            </select>
-                                                        <?php echo form_error('sector'); ?>
-                                        </div>
+                                       <div class="form-group register-sector-group">
+    <label class="control-label" for="sector">
+        <?php if ($requiredFields['company']['sector']['is_required']) { ?>
+            <span class="text-danger">*</span>
+        <?php } ?>
+        <?php echo _l('sector'); ?>
+    </label>
+
+    <select 
+        id="sector"
+        name="sector"
+        class="form-control"
+        data-live-search="true"
+        data-none-selected-text="<?php echo _l('dropdown_non_selected_tex'); ?>"
+        <?php if (!empty($requiredFields['company']['sector']['disabled']) && $requiredFields['company']['sector']['disabled']) { ?>
+            disabled
+        <?php } ?>
+    >
+        <option value=""></option>
+        <?php foreach ($sectors as $sector): 
+            $formatted_value = strtolower(str_replace([' ', '&', ',', '/'], ['_', '', '', ''], $sector));
+        ?>
+            <option value="<?php echo $formatted_value; ?>" <?php echo set_select('sector', $formatted_value); ?>>
+                <?php echo $sector; ?>
+            </option>
+        <?php endforeach; ?>
+    </select>
+
+    <?php echo form_error('sector'); ?>
+</div>
+
                                 </div>
                                 
 
@@ -480,25 +492,36 @@ input.form-control:focus, input[type=color]:focus, input[type=date]:focus, input
                                         ?>
 
                                         <div class="form-group register-industry-group">
-                                            <label class="control-label" for="industry">
-                                                <?php if ($requiredFields['company']['industry']['is_required']) { ?>
-                                                    <span class="text-danger">*</span>
-                                                <?php } ?>
-                                                                                            <?php echo _l('industry'); ?>
+    <label class="control-label" for="industry">
+        <?php if ($requiredFields['company']['industry']['is_required']) { ?>
+            <span class="text-danger">*</span>
+        <?php } ?>
+        <?php echo _l('industry'); ?>
+    </label>
 
-                                            </label>
-                                            <select data-none-selected-text="<?php echo _l('dropdown_non_selected_tex'); ?>"
-                                                    data-live-search="true" name="industry" class="form-control" id="industry">
-                                                <option value=""></option>
-                                                <?php foreach ($industries as $industry) { ?>
-                                                    <option value="<?php echo strtolower(str_replace([' ', '&', ',', '/'], ['_', '', '', ''], $industry)); ?>"
-                                                        <?php echo set_select('industry', strtolower(str_replace([' ', '&', ',', '/'], ['_', '', '', ''], $industry))); ?>>
-                                                        <?php echo $industry; ?>
-                                                    </option>
-                                                <?php } ?>
-                                            </select>
-                                            <?php echo form_error('industry'); ?>
-                                        </div>
+    <select
+        id="industry"
+        name="industry"
+        class="form-control"
+        data-live-search="true"
+        data-none-selected-text="<?php echo _l('dropdown_non_selected_tex'); ?>"
+        <?php if (!empty($requiredFields['company']['industry']['disabled']) && $requiredFields['company']['industry']['disabled']) { ?>
+            disabled
+        <?php } ?>
+    >
+        <option value=""></option>
+        <?php foreach ($industries as $industry): 
+            $formatted_value = strtolower(str_replace([' ', '&', ',', '/'], ['_', '', '', ''], $industry));
+        ?>
+            <option value="<?php echo $formatted_value; ?>" <?php echo set_select('industry', $formatted_value); ?>>
+                <?php echo $industry; ?>
+            </option>
+        <?php endforeach; ?>
+    </select>
+
+    <?php echo form_error('industry'); ?>
+</div>
+
                                 </div>
                                 </div>
                                 <div class="row">
@@ -599,7 +622,6 @@ input.form-control:focus, input[type=color]:focus, input[type=date]:focus, input
                                                 <?php echo set_checkbox('accept_terms_and_conditions', 'on'); ?>>
                                             <label for="accept_terms_and_conditions">
                                                 <?php echo _l('gdpr_terms_agree', terms_url()); ?>
-
                                             </label>
 
                                         </div>

@@ -74,6 +74,14 @@ function app_format_number($total, $foce_check_zero_decimals = false)
     ]);
 }
 
+/**
+ * Format money/amount based on currency settings
+ * @since  2.3.2
+ * @param  mixed   $amount          amount to format
+ * @param  mixed   $currency        currency db object or currency name (ISO code)
+ * @param  boolean $excludeSymbol   whether to exclude to symbol from the format
+ * @return string
+ */
 function app_format_money($amount, $currency, $excludeSymbol = false)
 {
     /**
@@ -231,7 +239,7 @@ function _maybe_remove_first_and_last_br_tag($text)
  */
 function _info_format_replace($mergeCode, $val, $txt)
 {
-    $tmpVal = strip_tags($val);
+    $tmpVal = strip_tags($val ?: '');
 
     if ($tmpVal != '') {
         $result = preg_replace('/({' . $mergeCode . '})/i', $val, $txt);
@@ -535,7 +543,7 @@ function get_decimal_places()
  * @param  string $type rel_type value
  * @return array
  */
-function get_items_by_type($type, $id)
+/*function get_items_by_type($type, $id)
 {
     $CI = &get_instance();
     $CI->db->select();
@@ -543,7 +551,61 @@ function get_items_by_type($type, $id)
     $CI->db->where('rel_id', $id);
     $CI->db->where('rel_type', $type);
     $CI->db->order_by('item_order', 'asc');
- $items = $CI->db->get()->result_array();
+
+    return $CI->db->get()->result_array();
+}*/
+// function get_items_by_type($type, $id)
+// {
+//     $CI = &get_instance();
+
+//     log_message('info', "Fetching itemable rows for rel_type: {$type}, rel_id: {$id}");
+
+//     // Step 1: Fetch itemable rows
+//     $CI->db->select(db_prefix() . 'itemable.description, ' . db_prefix() . 'itemable.long_description');
+//     $CI->db->from(db_prefix() . 'itemable');
+//     $CI->db->where('rel_id', $id);
+//     $CI->db->where('rel_type', $type);
+//     $itemables = $CI->db->get()->result_array();
+
+//     log_message('info', 'Itemable records found: ' . count($itemables));
+
+//     $result = [];
+
+//     // Step 2: Loop through each itemable row and find matching items
+//     foreach ($itemables as $index => $itemable) {
+//         log_message('info', "Matching itemable row #{$index} - Description: {$itemable['description']}");
+
+//         $CI->db->select('*');
+//         $CI->db->from(db_prefix() . 'items');
+//         $CI->db->group_start();
+//         $CI->db->like('description', $itemable['description']);
+//         $CI->db->or_like('long_description', $itemable['long_description']);
+//         $CI->db->group_end();
+//         $items = $CI->db->get()->result_array();
+
+//         log_message('info', 'Matching items found: ' . count($items));
+
+//         foreach ($items as $item) {
+//             $item['itemable_description'] = $itemable['description'];
+//             $item['itemable_long_description'] = $itemable['long_description'];
+//             $result[] = $item;
+//         }
+//     }
+
+//     log_message('info', 'Total matched items returned: ' . count($result));
+//     return $result;
+// }
+
+function get_items_by_type($type, $id)
+{
+    $CI = &get_instance();
+
+    $CI->db->select('*');
+    $CI->db->from(db_prefix() . 'itemable');
+    $CI->db->where('rel_id', $id);
+    $CI->db->where('rel_type', $type);
+
+    $items = $CI->db->get()->result_array();
 
     // Log the raw query for debugging
     log_message('debug', 'get_items_by_type() SQL: ' . $CI->db->last_query());
@@ -552,8 +614,30 @@ function get_items_by_type($type, $id)
     log_message('debug', 'get_items_by_type() Result: ' . print_r($items, true));
 
     return $items;
-   // return $CI->db->get()->result_array();
 }
+
+
+
+
+/*function get_items_by_type($type, $id)
+{
+    $CI = &get_instance();
+    
+    $query = $CI->db->query("SHOW COLUMNS FROM " . db_prefix() . "itemable");
+    log_message('info', 'itemable Table Columns: ' . print_r($query->result_array(), true));
+
+    $CI->db->select('itemable.*, items.description ');
+    $CI->db->from(db_prefix() . 'itemable as itemable');
+    $CI->db->join(db_prefix() . 'items as items', 'items.id = itemable.item_id', 'left'); // changed from itemid to item_id
+    $CI->db->where('itemable.rel_id', $id);
+    $CI->db->where('itemable.rel_type', $type);
+    $CI->db->order_by('itemable.item_order', 'asc');
+
+    
+    return $CI->db->get()->result_array();
+}
+*/
+
 /**
 * Function that update total tax in sales table eq. invoice, proposal, estimates, credit note
 * @param  mixed $id
@@ -667,6 +751,91 @@ function _maybe_insert_post_item_tax($item_id, $post_item, $rel_id, $rel_type)
  * @param mixed $rel_id   relation id eq. invoice id
  * @param string $rel_type relation type eq invoice
  */
+// function add_new_sales_item_post($item, $rel_id, $rel_type)
+// {
+//     log_message('debug', 'Function add_new_sales_item_post() called.');
+    
+//     // Log relationship type and ID
+//     log_message('debug', 'Relation Type: ' . $rel_type . ', Relation ID: ' . $rel_id);
+
+//     // Check if $item is an array or object, and log its contents
+//     if (is_array($item) || is_object($item)) {
+//         log_message('debug', 'Item Data: ' . print_r($item, true));
+//     } else {
+//         log_message('debug', 'Item (non-array): ' . $item);
+//     }
+//     $custom_fields = false;
+
+//     if (isset($item['custom_fields'])) {
+//         $custom_fields = $item['custom_fields'];
+//     }
+
+//     $CI = &get_instance();
+
+//     log_message('debug', 'Item Data Before Insertion: ' . print_r($item, true));
+
+//     $CI->db->insert(db_prefix() . 'itemable', [
+//                     'description'      => $item['description'],
+//                     'long_description' => nl2br($item['long_description']),
+//                     'item_id' =>         $item['item_id'],
+//                     'qty'              => $item['qty'],
+//                     'rate'             => number_format($item['rate'], get_decimal_places(), '.', ''),
+//                     'rel_id'           => $rel_id,
+//                     'rel_type'         => $rel_type,
+//                     'item_order'       => $item['order'],
+//                     'unit'             => $item['unit'],
+//                 ]);
+
+//     $id = $CI->db->insert_id();
+
+//     if ($custom_fields !== false) {
+//         handle_custom_fields_post($id, $custom_fields);
+//     }
+
+//     return $id;
+// }
+
+// function add_new_sales_item_post($item, $rel_id, $rel_type)
+// {
+//     $custom_fields = false;
+
+//     if (isset($item['custom_fields'])) {
+//         $custom_fields = $item['custom_fields'];
+//     }
+
+//     $CI = &get_instance();
+
+//     // Prepare insert data
+//     $insert_data = [
+//         'description'      => $item['description'],
+//         'long_description' => nl2br($item['long_description']),
+//         'qty'              => $item['qty'],
+//         'rate'             => number_format($item['rate'], get_decimal_places(), '.', ''),
+//         'rel_id'           => $rel_id,
+//         'rel_type'         => $rel_type,
+//         'item_order'       => $item['order'],
+//         'unit'             => $item['unit'],
+//     ];
+
+//     // Log the columns and data being inserted
+//     log_message('debug', 'Itemable Columns: ' . implode(', ', array_keys($insert_data)));
+//     log_message('debug', 'Itemable Data: ' . print_r($insert_data, true));
+
+//     // Optional: print on screen during development (remove in production)
+//     // echo '<pre>'; print_r($insert_data); echo '</pre>';
+
+//     // Insert into database
+//     $CI->db->insert(db_prefix() . 'itemable', $insert_data);
+//     $id = $CI->db->insert_id();
+
+//     // Handle custom fields if present
+//     if ($custom_fields !== false) {
+//         handle_custom_fields_post($id, $custom_fields);
+//     }
+
+//     return $id;
+// }
+
 function add_new_sales_item_post($item, $rel_id, $rel_type)
 {
     $custom_fields = false;
@@ -677,25 +846,42 @@ function add_new_sales_item_post($item, $rel_id, $rel_type)
 
     $CI = &get_instance();
 
-    $CI->db->insert(db_prefix() . 'itemable', [
-                    'description'      => $item['description'],
-                    'long_description' => nl2br($item['long_description']),
-                    'qty'              => $item['qty'],
-                    'rate'             => number_format($item['rate'], get_decimal_places(), '.', ''),
-                    'rel_id'           => $rel_id,
-                    'rel_type'         => $rel_type,
-                    'item_order'       => $item['order'],
-                    'unit'             => $item['unit'],
-                ]);
+    // Prepare insert data
+    $insert_data = [
+        'description'      => $item['description'],
+        'long_description' => nl2br($item['long_description']),
+        'qty'              => $item['qty'],
+        'rate'             => number_format($item['rate'], get_decimal_places(), '.', ''),
+        'rel_id'           => $rel_id,
+        'rel_type'         => $rel_type,
+        'item_order'       => $item['order'],
+        'unit'             => $item['unit'],
+    ];
 
+    // Include item_id if provided
+    if (!empty($item['item_id'])) {
+        $insert_data['item_id'] = $item['item_id'];
+    }
+
+    // Log what is being inserted
+    log_message('debug', 'Itemable Columns: ' . implode(', ', array_keys($insert_data)));
+    log_message('debug', 'Itemable Data: ' . print_r($insert_data, true));
+
+    // Insert into database
+    $CI->db->insert(db_prefix() . 'itemable', $insert_data);
     $id = $CI->db->insert_id();
 
+    // Handle custom fields if present
     if ($custom_fields !== false) {
         handle_custom_fields_post($id, $custom_fields);
     }
 
     return $id;
 }
+
+
+
+
 
 /**
  * Update sales item from $_POST, eq invoice item, estimate item
@@ -734,6 +920,8 @@ function update_sales_item_post($item_id, $data, $field = '')
 
     return $CI->db->affected_rows() > 0 ? true : false;
 }
+
+
 
 /**
  * When item is removed eq from invoice will be stored in removed_items in $_POST

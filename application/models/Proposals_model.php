@@ -100,7 +100,10 @@ class Proposals_model extends App_Model
 
         $data  = $hook['data'];
         $items = $hook['items'];
-
+  if (isset($data['item_id'])) {
+      unset($data['item_id']);
+      log_message('info', "'item_id' key removed from estimate data before insert.");
+  }
         $this->db->insert(db_prefix() . 'proposals', $data);
         $insert_id = $this->db->insert_id();
 

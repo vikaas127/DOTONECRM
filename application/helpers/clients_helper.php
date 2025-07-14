@@ -1282,8 +1282,8 @@ function get_required_fields_for_registration()
             'contact_title' => ['label' => _l('contact_position'), 'is_required' => in_array('contact_title', $required), 'disabled' => false],
         ],
         'company' => [
-            'client_industry' => ['label' => _l('clients_industry'), 'is_required' => (bool) get_option('industry_is_required'), 'disabled' => true],
-            'client_sector' => ['label' => _l('clients_sector'), 'is_required' => (bool) get_option('sector_is_required'), 'disabled' => true],
+            'industry' => ['label' => _l('industry'), 'is_required' => (bool) get_option('industry_is_required'), 'disabled' => false],
+            'sector' => ['label' => _l('sector'), 'is_required' => (bool) get_option('sector_is_required'), 'disabled' => false],
 
             'company_company' => ['label' => _l('clients_company'), 'is_required' => (bool) get_option('company_is_required'), 'disabled' => true],
             'company_vat' => ['label' => _l('clients_vat'), 'is_required' => in_array('company_vat', $required), 'disabled' => false],

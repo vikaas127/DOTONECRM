@@ -2411,6 +2411,7 @@ public function add_scrap_modal($id = '') {
 
 	}
 	
+	
 	public function get_Allproduct()
 	{
 	
