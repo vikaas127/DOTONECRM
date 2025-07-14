@@ -254,21 +254,42 @@ input.form-control:focus, input[type=color]:focus, input[type=date]:focus, input
                             </div>
                             <div class="row">
                             
-                                <div class="col-md-6">
-                                    <div class="form-group mtop15 register-company-group">
-                                            <label class="control-label" for="<?php echo ($fields['company']); ?>">
-                                                <?php if (get_option('company_is_required') == 1) { ?>
-                                                <span class="text-danger">*</span>
-                                                <?php } ?>
-                                                <?php echo _l('clients_company'); ?>
-                                            </label>
-                                            <input type="text" class="form-control" name="<?php echo ($fields['company']); ?>"
-                                                id="<?php echo ($fields['company']); ?>" value="<?php echo set_value($fields['company']); ?>">
-                                            <?php echo form_error($fields['company']); ?>
-                                        </div>
-                                </div>
+                               
+                               
+                               
+                               
+                               
+                               
+                               
+                               
+                               
+                               
+                               
+                               
+                               
                                 <div class="col-md-6 ">
-                                <?php if (get_option('company_requires_vat_number_field') == 1) { ?>
+                                  
+    <?php if (get_option('company_requires_vat_number_field') == 1) { ?>
+        <div class="form-group mtop15 register-vat-group">
+            <label class="control-label" for="vat">
+                <?php if ($requiredFields['company']['company_vat']['is_required']) { ?>
+                    <span class="text-danger">*</span>
+                <?php } ?>
+                <?php echo _l('clients_vat'); ?>
+            </label>
+            <div style="position: relative;">
+                <input type="text" class="form-control" name="vat" id="vat"
+                       value="<?php echo set_value('vat'); ?>" maxlength="15"
+                       oninput="checkGSTLength(this.value)" autocomplete="off">
+                <span id="vat-verified-icon" style="position:absolute; top: 50%; right: 10px; transform: translateY(-50%); display: none;">
+                    <img src="https://cdn-icons-png.flaticon.com/512/845/845646.png" alt="Verified" width="16" height="16">
+                </span>
+            </div>
+            <small id="gstn-info" class="text-success" style="display: none; margin-top: 4px;"></small>
+            <?php echo form_error('vat'); ?>
+        </div>
+    <?php } ?>
+                             <!--     <?php if (get_option('company_requires_vat_number_field') == 1) { ?>
                                         <div class="form-group mtop15 register-vat-group">
                                             <label class="control-label" for="vat">
                                                 <?php if ($requiredFields['company']['company_vat']['is_required']) { ?>
@@ -280,27 +301,31 @@ input.form-control:focus, input[type=color]:focus, input[type=date]:focus, input
                                                 <input   type="text" class="form-control" name="vat" id="vat"
                                                     value="<?php echo set_value('vat'); ?>" maxlength="15"
                                                     oninput="toggleVerifyButton()">
-                                                <!-- <button type="button" id="verifyBtn" class="btn btn-success " disabled style="margin-left: 10px; ">
-                                                    Verify
-                                                </button> -->
+                                                
+                                                
+                                                
                                             </div>
                                             <?php echo form_error('vat'); ?>
                                         </div>
-            
-                                        <script>
-                                            function toggleVerifyButton() {
-                                                var vatInput = document.getElementById('vat');
-                                                var verifyBtn = document.getElementById('verifyBtn');
-            
-                                                // Enable the button if input has a value, else disable it
-                                                verifyBtn.disabled = vatInput.value.trim().length === 0;
-                                            }
-                                        </script>
-            
-                                    <?php } ?>
+                                    <?php } ?> -->
 
 </div>  
+ <div class="col-md-6">
+     <div class="form-group mtop15 register-company-group">
+             <label class="control-label" for="<?php echo ($fields['company']); ?>">
+                 <?php if (get_option('company_is_required') == 1) { ?>
+                 <span class="text-danger">*</span>
+                 <?php } ?>
+                 <?php echo _l('clients_company'); ?>
+             </label>
+             <input type="text" class="form-control" name="<?php echo ($fields['company']); ?>"
+                 id="<?php echo ($fields['company']); ?>" value="<?php echo set_value($fields['company']); ?>">
+             <?php echo form_error($fields['company']); ?>
+         </div>
+ </div>
 </div>
+
+
 <div class="row">
 
 
@@ -655,7 +680,7 @@ input.form-control:focus, input[type=color]:focus, input[type=date]:focus, input
                                 <div class="col-md-12">
                                                 <div class="checkbox">
                                                     <input type="checkbox" name="agree" id="agree">
-                                                    <label  for="agree">Agree for <a style="color:#337ab7;" href="https://techdotbit.com/terms-and-conditions/" target="_blank">terms & conditions</a> </label>
+                                                    <label  for="agree">Agree for <a style="color:#337ab7;" href="https://techdotbit.com/terms-and-conditions/" target="_blank">Terms & Conditions</a>  and <a style="color:#337ab7;" href="https://techdotbit.com/privacy-policy/" target="_blank">Privacy policy</a> </label>
                                                 </div>
                                             </div>
                                 <div class="col-md-12">
@@ -705,6 +730,50 @@ input.form-control:focus, input[type=color]:focus, input[type=date]:focus, input
     </div>
 </div>
 
+<script>
+function checkGSTLength(val) {
+    if (val.length === 15) {
+        verifyGSTIN(val);
+    } else {
+        $('#vat-verified-icon').hide();
+        $('#gstn-info').hide().text('');
+    }
+}
+
+function verifyGSTIN(gstin) {
+    $.ajax({
+        url: '<?php echo base_url("authentication/verify_gst"); ?>',
+        method: 'POST',
+        data: { gstin: gstin },
+        success: function (res) {
+            try {
+                let data = JSON.parse(res);
+                if (data.status_cd === "1") {
+                    let info = data.data;
+                    $('#vat-verified-icon').show();
+                    $('#gstn-info').show().text(`${info.LegalName}, ${info.AddrBno}, ${info.AddrSt}, ${info.AddrLoc} - ${info.AddrPncd}`);
+
+                    // Replace company name field if exists
+                    let companyField = document.querySelector('input[name="<?php echo $fields['company']; ?>"]');
+
+                    if (companyField && info.LegalName) {
+                        companyField.value = info.LegalName;
+                    }
+                } else {
+                    $('#vat-verified-icon').hide();
+                    $('#gstn-info').show().text('Invalid GSTIN or not found.').css('color', 'red');
+                }
+            } catch (e) {
+                console.error("Parse error", e);
+                $('#gstn-info').show().text('Verification error.').css('color', 'red');
+            }
+        },
+        error: function () {
+            $('#gstn-info').show().text('Request failed.').css('color', 'red');
+        }
+    });
+}
+</script>
 
 
 <script>
