@@ -79,7 +79,7 @@ public function whitebooks_authenticate()
     $email = 'vikas@techdotbit.com';
     $gstin = '29AAGCB1286Q000'; // Replace with actual GSTIN
 
-    $url = 'https://apisandbox.whitebooks.in/einvoice/authenticate?email=' . urlencode($email);
+    $url = 'https://api.whitebooks.in/einvoice/authenticate?email=' . urlencode($email);
 
     $headers = [
         'username: BVMGSP',
@@ -141,7 +141,7 @@ public function verify_gst()
     $email = 'vikas@techdotbit.com';
     $ip = '49.36.189.194';
 
-    $url = 'https://apisandbox.whitebooks.in/einvoice/type/GSTNDETAILS/version/V1_03?param1=' . $gstinToLookup . '&email=' . urlencode($email);
+    $url = 'https://api.whitebooks.in/einvoice/type/GSTNDETAILS/version/V1_03?param1=' . $gstinToLookup . '&email=' . urlencode($email);
 
     $headers = [
         'accept: */*',
