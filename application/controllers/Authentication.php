@@ -77,7 +77,7 @@ class Authentication extends ClientsController
 public function whitebooks_authenticate()
 {
     $email = 'vikas@techdotbit.com';
-    $gstin = '29ABCDE1234F2Z5'; // Replace with actual GSTIN
+    $gstin = '29AAGCB1286Q000'; // Replace with actual GSTIN
 
     $url = 'https://apisandbox.whitebooks.in/einvoice/authenticate?email=' . urlencode($email);
 
@@ -100,19 +100,43 @@ public function whitebooks_authenticate()
     $error = curl_error($ch);
     curl_close($ch);
 
-    if ($error) {
-        echo 'Curl Error: ' . $error;
-    } else {
-        $responseData = json_decode($response, true);
-        echo '<pre>';
-        print_r($responseData);
-        echo '</pre>';
-    }
+    
+    $data = json_decode($response, true);
+log_message('info', 'WhiteBooks Auth API response: ' . $response);
+    if (!empty($data['data']['AuthToken'])) {
+        // Save token + expiry time in session (expiry is 6 hours from now)
+        $this->session->set_userdata('wb_auth_token', $data['data']['AuthToken']);
+        $this->session->set_userdata('wb_token_expires', time() + (6 * 60 * 60)); // 6 hours
+        log_message('info', 'WhiteBooks Auth Token saved in session. Token: ' . $data['data']['AuthToken']);
+        return $data['data']['AuthToken'];
+    } 
+log_message('error', 'WhiteBooks Auth Token fetch failed or missing AuthToken.');
+    return false;
+    
+    
+    
+    
+    
+    
 }
 public function verify_gst()
 {
     $gstinToLookup = $this->input->post('gstin');
-    $authToken = '1xlbN9wkKuBbV6C7Ydd1QHNOw'; // Replace with your real token or fetch from session
+   // $authToken = '1U3ejIw57jWMgk88KSJ5Tj0jW';
+    // Check session for token
+   // $authToken = $this->session->userdata('wb_auth_token');
+  //  $expires = $this->session->userdata('wb_token_expires');
+
+   // if (!$authToken || $expires < time()) {
+        $authToken = $this->whitebooks_authenticate(); // Refresh token
+   // }
+ log_message('info', 'WhiteBooks Auth Token saved in session. Token:11111 ' . $authToken);
+    if (!$authToken) {
+        echo json_encode(['status_cd' => '0', 'message' => 'Auth token fetch failed']);
+        return;
+    }
+
+    // Replace with your real token or fetch from session
     $userGstin = '29AAGCB1286Q000';
     $email = 'vikas@techdotbit.com';
     $ip = '49.36.189.194';
@@ -138,46 +162,6 @@ public function verify_gst()
     curl_close($ch);
 
     echo $response;
-}
-
-public function get_gstn_details_ci()
-{
-    $authToken = '1xlbN9wkKuBbV6C7Ydd1QHNOw';
-    $gstnLookup = '09ABACA3332M1ZO';
-    $userGstin = '29AAGCB1286Q000'; // Your registered GSTIN
-    $email = 'vikas@techdotbit.com';
-    $ip = '49.36.189.194';
-
-    $url = 'https://apisandbox.whitebooks.in/einvoice/type/GSTNDETAILS/version/V1_03?param1=' . $gstnLookup . '&email=' . urlencode($email);
-
-    $headers = [
-        'accept: */*',
-        'ip_address: ' . $ip,
-        'client_id: EINS6674d356-f9f0-4ce6-a9d0-cd29b32325e8',
-        'client_secret: EINS4923d1a3-3ee2-4421-ada6-0f0c65112014',
-        'username: BVMGSP',
-        'auth-token: ' . $authToken,
-        'gstin: ' . $userGstin
-    ];
-
-    $ch = curl_init();
-
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-
-    $response = curl_exec($ch);
-    $error = curl_error($ch);
-    curl_close($ch);
-
-    if ($error) {
-        echo 'Curl Error: ' . $error;
-    } else {
-        $responseData = json_decode($response, true);
-        echo '<pre>';
-        print_r($responseData);
-        echo '</pre>';
-    }
 }
 
     public function register()
