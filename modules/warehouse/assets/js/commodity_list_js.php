@@ -559,6 +559,10 @@ warehouse_type_value = warehouse_type;
     data.model_id = $('select[name="model_id"]').val();
     data.size_id = $('select[name="size_id"]').val();
     data.color = $('select[name="color"]').val();
+    
+    
+    
+
     data.guarantee = $('input[name="guarantee"]').val();
     data.warehouse_id = $('select[name="warehouse_id"]').val();
     data.parent_id = $('select[name="parent_id"]').val();
@@ -1005,6 +1009,7 @@ warehouse_type_value = warehouse_type;
 
 
   function new_commodity_item(){
+    
     "use strict";
 
     $.post(admin_url + 'warehouse/get_commodity_barcode').done(function(response) {
