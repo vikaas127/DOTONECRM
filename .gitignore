@@ -1,0 +1,3 @@
+# Ignore all logs and backups
+/application/logs/
+/uploads/tenants/*/backups/
