@@ -99,10 +99,8 @@ public function whitebooks_authenticate()
     $response = curl_exec($ch);
     $error = curl_error($ch);
     curl_close($ch);
-
-    
-    $data = json_decode($response, true);
-log_message('info', 'WhiteBooks Auth API response: ' . $response);
+     $data = json_decode($response, true);
+    log_message('info', 'WhiteBooks Auth API response: ' . $response);
     if (!empty($data['data']['AuthToken'])) {
         // Save token + expiry time in session (expiry is 6 hours from now)
         $this->session->set_userdata('wb_auth_token', $data['data']['AuthToken']);
@@ -163,8 +161,203 @@ public function verify_gst()
 
     echo $response;
 }
+/*
+public function register()
+    {
+        if (get_option('allow_registration') != 1 || is_client_logged_in()) {
+            redirect(site_url());
+        }
+        log_message('debug', 'Registration Data11: ' );
+        $requiredFields = get_required_fields_for_registration();
+       
+        $honeypot = get_option('enable_honeypot_spam_validation') == 1;
 
-    public function register()
+        $fields = [
+            'firstname' => $honeypot ? 'firstnamemjxw' : 'firstname',
+            'lastname'  => $honeypot ? 'lastnamemjxw' : 'lastname',
+            'email'     => $honeypot ? 'emailmjxw' : 'email',
+            'company'   => $honeypot ? 'companymjxw' : 'company',
+        ];
+
+        if (get_option('company_is_required') == 1) {
+            $this->form_validation->set_rules($fields['company'], _l('client_company'), 'required');
+        }
+  
+        $emailRules = 'trim|is_unique[' . db_prefix() . 'contacts.email]|valid_email';
+
+        foreach(['contact', 'company'] as $fieldsKey) {
+            foreach($requiredFields[$fieldsKey] as $key => $field) {
+                $formKey = strafter($key, '_');
+
+                if(isset($fields[$formKey])) {
+                    $formKey = $fields[$formKey];
+                }
+                
+                if($key !== 'contact_email'){
+                    if($field['is_required']) {
+                        $this->form_validation->set_rules($formKey, $field['label'], 'required');
+                    }
+                } else {
+                    if($field['is_required']) {
+                        $emailRules .= '|required';
+                    }
+
+                    $this->form_validation->set_rules($formKey, $field['label'], $emailRules);
+                }
+            }
+        }
+
+        if (is_gdpr() && get_option('gdpr_enable_terms_and_conditions') == 1) {
+            $this->form_validation->set_rules(
+                'accept_terms_and_conditions',
+                _l('terms_and_conditions'),
+                'required',
+                ['required' => _l('terms_and_conditions_validation')]
+            );
+        }
+       
+        $this->form_validation->set_rules('password', _l('clients_register_password'), 'required');
+        $this->form_validation->set_rules('passwordr', _l('clients_register_password_repeat'), 'required|matches[password]');
+
+        if (show_recaptcha_in_customers_area()) {
+            $this->form_validation->set_rules('g-recaptcha-response', 'Captcha', 'callback_recaptcha');
+        }
+
+        $custom_fields = get_custom_fields('customers', [
+            'show_on_client_portal' => 1,
+            'required'              => 1,
+        ]);
+
+        $custom_fields_contacts = get_custom_fields('contacts', [
+            'show_on_client_portal' => 1,
+            'required'              => 1,
+        ]);
+
+        foreach ($custom_fields as $field) {
+            $field_name = 'custom_fields[' . $field['fieldto'] . '][' . $field['id'] . ']';
+            if ($field['type'] == 'checkbox' || $field['type'] == 'multiselect') {
+                $field_name .= '[]';
+            }
+            $this->form_validation->set_rules($field_name, $field['name'], 'required');
+        }
+
+        foreach ($custom_fields_contacts as $field) {
+            $field_name = 'custom_fields[' . $field['fieldto'] . '][' . $field['id'] . ']';
+            if ($field['type'] == 'checkbox' || $field['type'] == 'multiselect') {
+                $field_name .= '[]';
+            }
+            $this->form_validation->set_rules($field_name, $field['name'], 'required');
+        }
+
+        if ($this->input->post()) {
+            if ($honeypot &&
+                count(array_filter($this->input->post(['email', 'firstname', 'lastname', 'company']))) > 0) {
+                show_404();
+            }
+
+            if ($this->form_validation->run() !== false) {
+                $data      = $this->input->post();
+                $countryId = is_numeric($data['country']) ? $data['country'] : 0;
+
+                if (is_automatic_calling_codes_enabled()) {
+                    $customerCountry = get_country($countryId);
+
+                    if ($customerCountry) {
+                        $callingCode = '+' . ltrim($customerCountry->calling_code, '+');
+
+                        if (startsWith($data['contact_phonenumber'], $customerCountry->calling_code)) { // with calling code but without the + prefix
+                            $data['contact_phonenumber'] = '+' . $data['contact_phonenumber'];
+                        } elseif (!startsWith($data['contact_phonenumber'], $callingCode)) {
+                            $data['contact_phonenumber'] = $callingCode . $data['contact_phonenumber'];
+                        }
+                    }
+                }
+
+                define('CONTACT_REGISTERING', true);
+
+                log_message('debug', 'Registration Data: ' . print_r($data, true));
+
+                $clientid = $this->clients_model->add([
+
+                    //   'billing_street'      => $data['address'],
+                    //   'billing_city'        => $data['city'],
+                    //   'billing_state'       => $data['state'],
+                    //   'billing_zip'         => $data['zip'],
+                    //   'billing_country'     => $countryId,
+                      'firstname'           => $data[$fields['firstname']],
+                      'lastname'            => $data[$fields['lastname']],
+
+                      'email'               => $data[$fields['email']],
+                      'contact_phonenumber' => $data['contact_phonenumber'] ,
+                    //   'website'             => $data['website'],
+                    //   'title'               => $data['title'],
+                      'password'            => $data['passwordr'],
+                      'company'             => $data[$fields['company']],
+                      'vat'                 => isset($data['vat']) ? $data['vat'] : '',
+                    //   'phonenumber'         => $data['phonenumber'],
+                      'sector'       =>$data['sector'],
+                      'industry'       =>$data['industry'],
+                      'continue_from_date'            => $data['continue_from_date'],
+
+                    //   'country'             => $data['country'],
+                    //   'city'                => $data['city'],
+                    //   'address'             => $data['address'],
+                    //   'zip'                 => $data['zip'],
+                    //   'state'               => $data['state'],
+                      'custom_fields'       => isset($data['custom_fields']) && is_array($data['custom_fields']) ? $data['custom_fields'] : [],
+                      'default_language'    => (get_contact_language() != '') ? get_contact_language() : get_option('active_language'),
+                ], true);
+
+                if ($clientid) {
+                    log_message('debug', 'Client Registered: Client ID - ' . $clientid);
+                    log_message('debug', 'Registration saved Data: ' . print_r($data, true));
+
+                    hooks()->do_action('after_client_register', $clientid);
+
+                    if (get_option('customers_register_require_confirmation') == '1') {
+                        send_customer_registered_email_to_administrators($clientid);
+
+                        $this->clients_model->require_confirmation($clientid);
+                        set_alert('success', _l('customer_register_account_confirmation_approval_notice'));
+                        redirect(site_url('authentication/login'));
+                    }
+
+                    $this->load->model('authentication_model');
+
+                    $logged_in = $this->authentication_model->login(
+                        $data[$fields['email']],
+                        $this->input->post('password', false),
+                        false,
+                        false
+                    );
+
+                    $redUrl = site_url();
+
+                    if ($logged_in) {
+                        hooks()->do_action('after_client_register_logged_in', $clientid);
+                        set_alert('success', _l('clients_successfully_registered'));
+                    } else {
+                        set_alert('warning', _l('clients_account_created_but_not_logged_in'));
+                        $redUrl = site_url('authentication/login');
+                    }
+
+                    send_customer_registered_email_to_administrators($clientid);
+                    redirect($redUrl);
+                }
+            }
+        }
+
+        $data['requiredFields'] = $requiredFields;
+        $data['title']     = _l('clients_register_heading');
+        $data['bodyclass'] = 'register';
+        $data['honeypot']  = $honeypot;
+        $data['fields']    = $fields;
+        $this->data($data);
+        $this->view('register');
+        $this->layout();
+    }
+*/
+   /* public function register()
     {
         if (get_option('allow_registration') != 1 || is_client_logged_in()) {
             redirect(site_url());
@@ -359,7 +552,195 @@ public function verify_gst()
         $this->data($data);
         $this->view('register');
         $this->layout();
+    }*/
+    public function register()
+{
+    log_message('info', '[REGISTER] Entry into register() method');
+
+    if (get_option('allow_registration') != 1 || is_client_logged_in()) {
+        log_message('warning', '[REGISTER] Registration disabled or client already logged in.');
+        redirect(site_url());
     }
+
+    $requiredFields = get_required_fields_for_registration();
+    $honeypot = get_option('enable_honeypot_spam_validation') == 1;
+
+    $fields = [
+        'firstname' => $honeypot ? 'firstnamemjxw' : 'firstname',
+        'lastname'  => $honeypot ? 'lastnamemjxw' : 'lastname',
+        'email'     => $honeypot ? 'emailmjxw' : 'email',
+        'company'   => $honeypot ? 'companymjxw' : 'company',
+    ];
+
+    log_message('debug', '[REGISTER] Honeypot enabled: ' . ($honeypot ? 'Yes' : 'No'));
+
+    if (get_option('company_is_required') == 1) {
+        $this->form_validation->set_rules($fields['company'], _l('client_company'), 'required');
+        log_message('debug', '[REGISTER] Company is marked required.');
+    }
+
+    $emailRules = 'trim|is_unique[' . db_prefix() . 'contacts.email]|valid_email';
+
+    foreach(['contact', 'company'] as $fieldsKey) {
+        foreach($requiredFields[$fieldsKey] as $key => $field) {
+            $formKey = strafter($key, '_');
+            if(isset($fields[$formKey])) {
+                $formKey = $fields[$formKey];
+            }
+
+            if($key !== 'contact_email'){
+                if($field['is_required']) {
+                    $this->form_validation->set_rules($formKey, $field['label'], 'required');
+                }
+            } else {
+                if($field['is_required']) {
+                    $emailRules .= '|required';
+                }
+                $this->form_validation->set_rules($formKey, $field['label'], $emailRules);
+            }
+        }
+    }
+
+    if (is_gdpr() && get_option('gdpr_enable_terms_and_conditions') == 1) {
+        $this->form_validation->set_rules(
+            'accept_terms_and_conditions',
+            _l('terms_and_conditions'),
+            'required',
+            ['required' => _l('terms_and_conditions_validation')]
+        );
+        log_message('debug', '[REGISTER] GDPR terms validation added.');
+    }
+
+    $this->form_validation->set_rules('password', _l('clients_register_password'), 'required');
+    $this->form_validation->set_rules('passwordr', _l('clients_register_password_repeat'), 'required|matches[password]');
+    log_message('debug', '[REGISTER] Password fields added to validation.');
+
+    if (show_recaptcha_in_customers_area()) {
+        $this->form_validation->set_rules('g-recaptcha-response', 'Captcha', 'callback_recaptcha');
+        log_message('debug', '[REGISTER] Recaptcha validation added.');
+    }
+
+    $custom_fields = get_custom_fields('customers', ['show_on_client_portal' => 1, 'required' => 1]);
+    $custom_fields_contacts = get_custom_fields('contacts', ['show_on_client_portal' => 1, 'required' => 1]);
+
+    foreach ($custom_fields as $field) {
+        $field_name = 'custom_fields[' . $field['fieldto'] . '][' . $field['id'] . ']';
+        if (in_array($field['type'], ['checkbox', 'multiselect'])) {
+            $field_name .= '[]';
+        }
+        $this->form_validation->set_rules($field_name, $field['name'], 'required');
+    }
+
+    foreach ($custom_fields_contacts as $field) {
+        $field_name = 'custom_fields[' . $field['fieldto'] . '][' . $field['id'] . ']';
+        if (in_array($field['type'], ['checkbox', 'multiselect'])) {
+            $field_name .= '[]';
+        }
+        $this->form_validation->set_rules($field_name, $field['name'], 'required');
+    }
+
+    if ($this->input->post()) {
+        log_message('info', '[REGISTER] Post data received.');
+        $post_data = $this->input->post();
+        log_message('debug', '[REGISTER] Post data: ' . json_encode($post_data));
+
+        if ($honeypot && count(array_filter($this->input->post(['email', 'firstname', 'lastname', 'company']))) > 0) {
+            log_message('error', '[REGISTER] Honeypot triggered - bot suspected.');
+            show_404();
+        }
+
+      /*  if ($this->form_validation->run() !== false) {*/
+            log_message('info', '[REGISTER] Form validation passed.');
+
+            $data      = $this->input->post();
+            $countryId = is_numeric($data['country']) ? $data['country'] : 0;
+
+            if (is_automatic_calling_codes_enabled()) {
+                $customerCountry = get_country($countryId);
+                if ($customerCountry) {
+                    $callingCode = '+' . ltrim($customerCountry->calling_code, '+');
+                    if (startsWith($data['contact_phonenumber'], $customerCountry->calling_code)) {
+                        $data['contact_phonenumber'] = '+' . $data['contact_phonenumber'];
+                         $data['phonenumber']=$callingCode . $data['contact_phonenumber'];
+                    } elseif (!startsWith($data['contact_phonenumber'], $callingCode)) {
+                        $data['contact_phonenumber'] = $callingCode . $data['contact_phonenumber'];
+                        $data['phonenumber']=$callingCode . $data['contact_phonenumber'];
+                    }
+                    log_message('debug', '[REGISTER] Phone number adjusted to: ' . $data['contact_phonenumber']);
+                }
+            }
+
+            define('CONTACT_REGISTERING', true);
+            log_message('debug', '[REGISTER] Attempting client creation...');
+
+            $clientid = $this->clients_model->add([
+                'firstname'           => $data[$fields['firstname']],
+                'lastname'            => $data[$fields['lastname']],
+                'email'               => $data[$fields['email']],
+                'contact_phonenumber' => $data['contact_phonenumber'],
+                 'phonenumber'         => $data['phonenumber'],
+                'password'            => $data['passwordr'],
+                'company'             => $data[$fields['company']],
+                'vat'                 => $data['vat'] ?? '',
+                'sector'              => $data['sector'],
+                'industry'            => $data['industry'],
+                'continue_from_date'  => $data['continue_from_date'],
+                'custom_fields'       => $data['custom_fields'] ?? [],
+                'default_language'    => get_contact_language() ?: get_option('active_language'),
+            ], true);
+
+            if ($clientid) {
+                log_message('info', '[REGISTER] Client successfully created. ID: ' . $clientid);
+                hooks()->do_action('after_client_register', $clientid);
+
+                if (get_option('customers_register_require_confirmation') == '1') {
+                    log_message('info', '[REGISTER] Account requires confirmation.');
+                    send_customer_registered_email_to_administrators($clientid);
+                    $this->clients_model->require_confirmation($clientid);
+                    set_alert('success', _l('customer_register_account_confirmation_approval_notice'));
+                    redirect(site_url('authentication/login'));
+                }
+
+                $this->load->model('authentication_model');
+                $logged_in = $this->authentication_model->login(
+                    $data[$fields['email']],
+                    $this->input->post('password', false),
+                    false,
+                    false
+                );
+
+                $redUrl = site_url();
+                if ($logged_in) {
+                    log_message('info', '[REGISTER] Auto-login successful for client ID: ' . $clientid);
+                    hooks()->do_action('after_client_register_logged_in', $clientid);
+                    set_alert('success', _l('clients_successfully_registered'));
+                } else {
+                    log_message('warning', '[REGISTER] Account created but auto-login failed.');
+                    set_alert('warning', _l('clients_account_created_but_not_logged_in'));
+                    $redUrl = site_url('authentication/login');
+                }
+
+                send_customer_registered_email_to_administrators($clientid);
+                redirect($redUrl);
+            } else {
+                log_message('error', '[REGISTER] Client creation failed.');
+            }
+     /*   } else {
+            log_message('error', '[REGISTER] Validation failed. Errors: ' . strip_tags(validation_errors()));
+        }*/
+    }
+
+    $data['requiredFields'] = $requiredFields;
+    $data['title']     = _l('clients_register_heading');
+    $data['bodyclass'] = 'register';
+    $data['honeypot']  = $honeypot;
+    $data['fields']    = $fields;
+
+    log_message('info', '[REGISTER] Loading register view...');
+    $this->data($data);
+    $this->view('register');
+    $this->layout();
+}
 
     public function forgot_password()
     {
