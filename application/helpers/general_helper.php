@@ -669,9 +669,10 @@ function to_sql_date($date, $datetime = false)
             return $date;
         }
 
+        $dt = new DateTime();
         return hooks()->apply_filters(
             'to_sql_date_formatted',
-            DateTime::format($to_date)
+            $dt->format($to_date)
         );
     }
 
