@@ -67,7 +67,8 @@
             </table>
         </div>
     </div>
-    <?php
+    <?php hooks()->do_action('after_total_summary_proposalhtml', $proposal); ?>
+<?php
       if (get_option('total_to_words_enabled') == 1) { ?>
     <div class="col-md-12 text-center proposal-html-total-to-words">
         <p class="tw-font-medium">

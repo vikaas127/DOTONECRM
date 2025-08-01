@@ -1,5 +1,11 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed'); ?>
 <?php init_head(); ?>
+<style>
+    textarea {
+    visibility: visible !important;
+    display: block !important;
+    }
+</style>
 <div id="wrapper">
     <div class="content">
         <div class="row">
