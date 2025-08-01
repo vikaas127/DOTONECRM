@@ -189,7 +189,7 @@ function timesheets_module_init_menu_items() {
 				'position' => 2,
 
 			]);
-		}*/
+		}
 		if (has_permission('route_management', '', 'view_own') 
 			|| has_permission('route_management', '', 'view') || is_admin()) {
 			$allow_attendance_by_route = 0;
@@ -238,7 +238,7 @@ function timesheets_module_init_menu_items() {
 				'position' => 5,
 			]);
 		}
-		/*
+		
 		$data_attendance_by_coordinates = get_timesheets_option('allow_attendance_by_coordinates');
 		if ($data_attendance_by_coordinates) {
 			if ($data_attendance_by_coordinates == 1) {
