@@ -179,7 +179,8 @@ function timesheets_module_init_menu_items() {
 				'position' => 1,
 			]);
 		}
-		if (has_permission('leave_management', '', 'view_own') || has_permission('leave_management', '', 'view') || is_admin()) {
+		/*if (has_permission('leave_management', '', 'view_own') || 
+		has_permission('leave_management', '', 'view') || is_admin()) {
 			$CI->app_menu->add_sidebar_children_item('timesheets', [
 				'slug' => 'timesheets_timekeeping_mnrh',
 				'name' => _l('leave'),
@@ -188,8 +189,9 @@ function timesheets_module_init_menu_items() {
 				'position' => 2,
 
 			]);
-		}
-		if (has_permission('route_management', '', 'view_own') || has_permission('route_management', '', 'view') || is_admin()) {
+		}*/
+		if (has_permission('route_management', '', 'view_own') 
+			|| has_permission('route_management', '', 'view') || is_admin()) {
 			$allow_attendance_by_route = 0;
 			$data_by_route = get_timesheets_option('allow_attendance_by_route');
 			if ($data_by_route) {
@@ -206,7 +208,8 @@ function timesheets_module_init_menu_items() {
 				]);
 			}
 		}
-		if (has_permission('table_shiftwork_management', '', 'view_own') || has_permission('table_shiftwork_management', '', 'view') || is_admin()) {
+		if (has_permission('table_shiftwork_management', '', 'view_own') 
+			|| has_permission('table_shiftwork_management', '', 'view') || is_admin()) {
 			$CI->app_menu->add_sidebar_children_item('timesheets', [
 				'slug' => 'timesheets_table_shiftwork',
 				'name' => _l('shiftwork'),
@@ -215,7 +218,8 @@ function timesheets_module_init_menu_items() {
 				'position' => 4,
 			]);
 		}
-		if (has_permission('table_shiftwork_management', '', 'view_own') || has_permission('table_shiftwork_management', '', 'view') || is_admin()) {
+		if (has_permission('table_shiftwork_management', '', 'view_own') 
+			|| has_permission('table_shiftwork_management', '', 'view') || is_admin()) {
 			$CI->app_menu->add_sidebar_children_item('timesheets', [
 				'slug' => 'timesheets_shift_management',
 				'name' => _l('shift_management'),
@@ -224,7 +228,8 @@ function timesheets_module_init_menu_items() {
 				'position' => 4,
 			]);
 		}
-		if (has_permission('table_shiftwork_management', '', 'view_own') || has_permission('table_shiftwork_management', '', 'view') || is_admin()) {
+		if (has_permission('table_shiftwork_management', '', 'view_own') 
+			|| has_permission('table_shiftwork_management', '', 'view') || is_admin()) {
 			$CI->app_menu->add_sidebar_children_item('timesheets', [
 				'slug' => 'timesheets_shift_type',
 				'name' => _l('shift_type'),
@@ -233,6 +238,7 @@ function timesheets_module_init_menu_items() {
 				'position' => 5,
 			]);
 		}
+		/*
 		$data_attendance_by_coordinates = get_timesheets_option('allow_attendance_by_coordinates');
 		if ($data_attendance_by_coordinates) {
 			if ($data_attendance_by_coordinates == 1) {
@@ -265,7 +271,7 @@ function timesheets_module_init_menu_items() {
 				'icon' => 'fa fa-gears',
 				'position' => 9,
 			]);
-		}
+		}*/
 	}
 }
 /**

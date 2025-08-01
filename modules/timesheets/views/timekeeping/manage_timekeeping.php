@@ -5,10 +5,131 @@
   <div class="row">
     <div class="col-md-12">
       <div class="panel_s">
-       <div class="panel-body">
-        <h4><?php echo _l('timekeeping') ?>
-        <hr>
-      </h4>
+      
+      <div class="panel-body">
+    <h4><?php echo _l('timekeeping'); ?></h4>
+    <hr>
+
+    <div class="row">
+        <div class="col-md-12 d-flex justify-content-end gap-2 flex-wrap">
+            <?php
+            // Reports Button
+           
+        
+
+            // Workplace Management Button
+            $data_attendance_by_coordinates = get_timesheets_option('allow_attendance_by_coordinates');
+            if ($data_attendance_by_coordinates == 1) {
+                if (
+                    has_permission('table_workplace_management', '', 'view_own') || 
+                    has_permission('table_workplace_management', '', 'view') || 
+                    is_admin()
+                ) {
+                    echo '
+                    <a href="' . admin_url('timesheets/workplace_mgt?group=workplace_assign') . '" class="btn btn-primary">
+                        <i class="fa fa-street-view"></i> ' . _l('workplace_mgt') . '
+                    </a>';
+                }
+            }
+            if (has_permission('leave_management', '', 'view_own') || has_permission('leave_management', '', 'view') || is_admin()) {
+   echo '
+ <a href="' . admin_url('timesheets/requisition_manage') . '" class="btn btn-info">
+     <i class="fa fa-clipboard"></i> ' . _l('leave') . '
+ </a>';
+/*	$CI->app_menu->add_sidebar_children_item('timesheets', [
+		'slug' => 'timesheets_timekeeping_mnrh',
+		'name' => _l('leave'),
+		'icon' => 'fa fa-clipboard',
+		'href' => admin_url('timesheets/requisition_manage'),
+		'position' => 2,
+	]);*/
+
+}
+if (has_permission('route_management', '', 'view_own') 
+	|| has_permission('route_management', '', 'view') || is_admin()) {
+	$allow_attendance_by_route = 0;
+	$data_by_route = get_timesheets_option('allow_attendance_by_route');
+	if ($data_by_route) {
+		$allow_attendance_by_route = $data_by_route;
+	}
+	if ($allow_attendance_by_route == 1) {
+    echo '
+ <a href="' . admin_url('timesheets/route_management?tab=route') . '" class="btn btn-info">
+  <i class="fa fa-map-signs"></i> ' . _l('route_management') . ' </a>';
+	/*	$CI->app_menu->add_sidebar_children_item('timesheets', [
+			'slug' => 'timesheets_route_management',
+			'name' => _l('route_management'),
+			'icon' => 'fa fa-map-signs',
+			'href' => admin_url('timesheets/route_management?tab=route'),
+			'position' => 3,
+		]);*/
+	}
+}
+if (has_permission('table_shiftwork_management', '', 'view_own') 
+	|| has_permission('table_shiftwork_management', '', 'view') || is_admin()) {
+echo '
+ <a href="' . admin_url('timesheets/table_shiftwork') . '" class="btn btn-info">
+  <i class="fa fa-ticket"></i> ' . _l('shiftwork') . ' </a>';
+	/*$CI->app_menu->add_sidebar_children_item('timesheets', [
+		'slug' => 'timesheets_table_shiftwork',
+		'name' => _l('shiftwork'),
+		'href' => admin_url('timesheets/table_shiftwork'),
+		'icon' => 'fa fa-ticket',
+		'position' => 4,
+	]);*/
+}
+if (has_permission('table_shiftwork_management', '', 'view_own') 
+	|| has_permission('table_shiftwork_management', '', 'view') || is_admin()) {
+ echo '
+  <a href="' . admin_url('timesheets/shift_management') . '" class="btn btn-info">
+   <i class="fa fa-calendar"></i> ' . _l('shift_management') . '  </a>';
+	/*$CI->app_menu->add_sidebar_children_item('timesheets', [
+		'slug' => 'timesheets_shift_management',
+		'name' => _l('shift_management'),
+		'href' => admin_url('timesheets/shift_management'),
+		'icon' => 'fa fa-calendar',
+		'position' => 4,
+	]);*/
+}
+if (has_permission('table_shiftwork_management', '', 'view_own') 
+	|| has_permission('table_shiftwork_management', '', 'view') || is_admin()) {
+
+     echo '
+      <a href="' . admin_url('timesheets/manage_shift_type') . '" class="btn btn-info">
+       <i class="fa fa-magic"></i> ' . _l('shift_type') . ' </a>';
+/*	$CI->app_menu->add_sidebar_children_item('timesheets', [
+		'slug' => 'timesheets_shift_type',
+		'name' => _l('shift_type'),
+		'href' => admin_url('timesheets/manage_shift_type'),
+		'icon' => 'fa fa-magic',
+		'position' => 5,
+	]);*/
+}
+             if (
+     has_permission('report_management', '', 'view_own') || 
+     has_permission('report_management', '', 'view') || 
+     is_admin()
+ ) {
+     echo '
+     <a href="' . admin_url('timesheets/reports') . '" class="btn btn-info">
+         <i class="fa fa-line-chart"></i> ' . _l('reports') . '
+     </a>';
+ }
+  // Settings Button (only for admin)
+ if (is_admin()) {
+     echo '
+     <a href="' . admin_url('timesheets/setting?group=manage_leave') . '" class="btn btn-secondary">
+         <i class="fa fa-gears"></i> ' . _l('settings') . '
+     </a>';
+ }
+            ?>
+        </div>
+    </div>
+ 
+ 
+    </div>
+</div>
+
       <div class="horizontal-tabs mb-5">
       </div>
       <input type="hidden" name="current_month" value="<?php echo date('Y-m'); ?>">
@@ -86,16 +207,7 @@
           data-target="#import_timesheets_modal" data-original-title="<?php echo _l('import_timesheets'); ?>">
           <?php echo _l('import_timesheets'); ?></button>
         <?php } ?>
-         <?php if($data_timekeeping_form == 'timekeeping_manually'){ ?>
-   <button type="button" onclick="open_check_in_out();" 
-   class="btn btn-info pull-right display-block mtop5 check_in_out_timesheet" data-toggle="tooltip" title="" 
-   data-original-title="<?php echo _l('check_in').' / '._l('check_out'); ?>">
-   <?php echo _l('check_in'); ?> / <?php echo _l('check_out'); ?></button>
- <?php }elseif($data_timekeeping_form == 'csv_clsx'){ ?>
-   <button type="button" class="btn btn-info pull-right display-block mtop5 check_in_out_timesheet" data-toggle="modal" 
-   data-target="#import_timesheets_modal" data-original-title="<?php echo _l('import_timesheets'); ?>">
-   <?php echo _l('import_timesheets'); ?></button>
- <?php } ?>
+        
       </div>
       <div class="clearfix"></div>
       <br>
