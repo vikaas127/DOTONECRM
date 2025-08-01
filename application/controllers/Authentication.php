@@ -60,7 +60,7 @@ class Authentication extends ClientsController
 
             hooks()->do_action('after_contact_login');
 
-            maybe_redirect_to_previous_url();
+            // maybe_redirect_to_previous_url();
             redirect(site_url());
         }
         if (get_option('allow_registration') == 1) {
