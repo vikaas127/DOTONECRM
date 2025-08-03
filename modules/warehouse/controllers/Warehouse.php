@@ -568,6 +568,7 @@ class warehouse extends AdminController {
 
 		$this->load->model('departments_model');
 		$this->load->model('staff_model');
+		$this->load->model('client_groups_model');
 
 		$data['units'] = $this->warehouse_model->get_unit_add_commodity();
 		$data['commodity_types'] = $this->warehouse_model->get_commodity_type_add_commodity();
@@ -577,6 +578,8 @@ class warehouse extends AdminController {
 		$data['styles'] = $this->warehouse_model->get_style_add_commodity();
 		$data['models'] = $this->warehouse_model->get_body_add_commodity();
 		$data['sizes'] = $this->warehouse_model->get_size_add_commodity();
+		$data['customer_groups'] = $this->client_groups_model->get_groups();
+
 		//filter
 		$data['warehouse_filter'] = $this->warehouse_model->get_warehouse();
 		// $data['commodity_filter'] = $this->warehouse_model->get_commodity_active();
@@ -5533,7 +5536,38 @@ class warehouse extends AdminController {
      * @param  integer $id 
      * @return [type]     
      */
-    public function get_warehouse_by_id($id)
+    // public function get_warehouse_by_id($id)
+    // {
+    // 	if ($this->input->is_ajax_request()) {
+
+    // 		$warehouse_value                     = $this->warehouse_model->get_warehouse($id);
+
+    // 		$warehouse_value->warehouse_code   	= $warehouse_value->warehouse_code;
+    // 		$warehouse_value->warehouse_name   	= $warehouse_value->warehouse_name;
+    // 		$warehouse_value->warehouse_address   = nl2br($warehouse_value->warehouse_address);
+    // 		$warehouse_value->note   = nl2br($warehouse_value->note);
+
+    // 		$warehouse_value->custom_fields      = [];
+
+    // 		$warehouse_value->custom_fields_html = wh_render_custom_fields('warehouse_name', $id, []);
+
+    // 		$cf = get_custom_fields('warehouse_name');
+
+    // 		foreach ($cf as $custom_field) {
+    // 			$val = get_custom_field_value($id, $custom_field['id'], 'warehouse_name');
+    // 			if ($custom_field['type'] == 'textarea') {
+    // 				$val = clear_textarea_breaks($val);
+    // 			}
+    // 			$custom_field['value'] = $val;
+    // 			$warehouse_value->custom_fields[] = $custom_field;
+    // 		}
+    // 		$warehouse_value->assign_to_staff = $this->warehouse_model->getStaffAssignedToWarehouseHtml($id);
+
+    // 		echo json_encode($warehouse_value);
+    // 	}
+    // }
+
+		   public function get_warehouse_by_id($id)
     {
     	if ($this->input->is_ajax_request()) {
 
@@ -5543,7 +5577,30 @@ class warehouse extends AdminController {
     		$warehouse_value->warehouse_name   	= $warehouse_value->warehouse_name;
     		$warehouse_value->warehouse_address   = nl2br($warehouse_value->warehouse_address);
     		$warehouse_value->note   = nl2br($warehouse_value->note);
+			// Get all racks
+			$this->db->where('warehouse_id', $id);
+			$racks = $this->db->get(db_prefix().'wr_rack')->result_array();
 
+			foreach ($racks as &$rack) {
+				// For each rack, get shelves
+				$this->db->where('rack_id', $rack['rack_id']);
+				$shelves = $this->db->get(db_prefix().'wr_shelf')->result_array();
+				$rack['shelves'] = $shelves;
+			}
+
+			$warehouse_value->racks = $racks;
+
+
+			$warehouse_value->rack_shelf_data = $racks;
+
+			$this->db->where('warehouse_id', $id);
+			$lots = $this->db->get(db_prefix().'wr_lot')->result_array();
+
+			// Optional: clean to just lot names
+			$lot_names = array_column($lots, 'lot_name');
+
+			$warehouse_value->lots_data = $lot_names;
+			
     		$warehouse_value->custom_fields      = [];
 
     		$warehouse_value->custom_fields_html = wh_render_custom_fields('warehouse_name', $id, []);
@@ -5563,6 +5620,41 @@ class warehouse extends AdminController {
     		echo json_encode($warehouse_value);
     	}
     }
+
+	
+public function get_rack_lot_by_warehouse()
+{
+    if ($this->input->is_ajax_request()) {
+        $warehouse_id = $this->input->post('warehouse_id');
+
+        $racks = $this->warehouse_model->get_racks_by_warehouse($warehouse_id);
+        $lots = $this->warehouse_model->get_lots_by_warehouse($warehouse_id);
+
+        // Convert to {id: ..., label: ...}
+        $racks = array_map(function ($r) {
+            return ['id' => $r['rack_id'], 'label' => $r['rack_name']];
+        }, $racks);
+
+        $lots = array_map(function ($l) {
+            return ['id' => $l['lot_id'], 'label' => $l['lot_name']];
+        }, $lots);
+
+        echo json_encode(['racks' => $racks, 'lots' => $lots]);
+    }
+}
+public function get_shelf_by_rack()
+{
+    if ($this->input->is_ajax_request()) {
+        $rack_id = $this->input->post('rack_id');
+        $shelves = $this->warehouse_model->get_shelves_by_rack($rack_id);
+
+        $shelves = array_map(function ($s) {
+            return ['id' => $s['id'], 'label' => $s['shelf_name']];
+        }, $shelves);
+
+        echo json_encode(['shelves' => $shelves]);
+    }
+}
 
     /**
      * get warehouse custom fields html
@@ -6669,7 +6761,36 @@ class warehouse extends AdminController {
     /**
      * add opening stock modal
      */
-    public function add_opening_stock_modal()
+    // public function add_opening_stock_modal()
+	// {
+	// 	if (!$this->input->is_ajax_request()) {
+	// 		show_404();
+	// 	}
+	// 	$id = $this->input->post('id');
+	// 	$parent_id = $this->input->post('parent_id');
+
+	// 	$data=[];
+		
+
+
+	// 	$item_name='';
+	// 	$item = $this->warehouse_model->get_commodity($id);
+	// 	if($item){
+	// 		$item_name = $item->description;
+	// 	}
+
+	// 	$data['title'] = _l('add_opening_stock').' ( '.$item_name.' )';
+	// 	$data['item_name'] =  $item_name;
+	// 	$data['opening_stock_data'] = $this->warehouse_model->get_inventory_quantity_by_warehouse_variant($id);
+	// 	$data['min_row'] =  count($data['opening_stock_data']);
+	// 	$data['commodity_code_name'] = $this->warehouse_model->get_commodity_code_name();
+	// 	$data['units_warehouse_name'] = $this->warehouse_model->get_warehouse_code_name();
+	// 	$data['parent_id'] = $parent_id;
+		
+	// 	$this->load->view('item_add_opening_stock', $data);
+	// }
+
+		  public function add_opening_stock_modal()
 	{
 		if (!$this->input->is_ajax_request()) {
 			show_404();
@@ -6690,10 +6811,20 @@ class warehouse extends AdminController {
 		$data['title'] = _l('add_opening_stock').' ( '.$item_name.' )';
 		$data['item_name'] =  $item_name;
 		$data['opening_stock_data'] = $this->warehouse_model->get_inventory_quantity_by_warehouse_variant($id);
+		
+
 		$data['min_row'] =  count($data['opening_stock_data']);
 		$data['commodity_code_name'] = $this->warehouse_model->get_commodity_code_name();
 		$data['units_warehouse_name'] = $this->warehouse_model->get_warehouse_code_name();
 		$data['parent_id'] = $parent_id;
+		// $data['lot_list'] = [];
+		// $data['rack_list'] = [];
+		// $data['shelf_list'] = [];
+		$data['lot_list']   = $this->warehouse_model->get_all_lots();    // Returns id + label
+		$data['rack_list']  = $this->warehouse_model->get_all_racks();   // Returns id + label
+		$data['shelf_list'] = $this->warehouse_model->get_all_shelves(); // Returns id + label
+
+
 		
 		$this->load->view('item_add_opening_stock', $data);
 	}

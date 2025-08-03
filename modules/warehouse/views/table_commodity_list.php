@@ -352,7 +352,10 @@ $item_have_variation = $this->ci->warehouse_model->arr_item_have_variation();
 				$code .= '<a href="' . admin_url('warehouse/view_commodity_detail/' . $aRow['id']) . '" >' . _l('view') . '</a>';
 
 				if (has_permission('warehouse_item', '', 'edit') || is_admin()) {
-					$code .= ' | <a href="#" onclick="edit_commodity_item(this); return false;"  data-commodity_id="' . $aRow['id'] . '" data-description="' . $aRow['description'] . '" data-unit_id="' . $aRow['unit_id'] . '" data-commodity_code="' . $aRow['commodity_code'] . '" data-commodity_barcode="' . $aRow['commodity_barcode'] . '" data-commodity_type="' . $aRow['commodity_type'] . '" data-origin="' . $aRow['origin'] . '" data-color_id="' . $aRow['color_id'] . '" data-style_id="' . $aRow['style_id'] . '" data-model_id="' . $aRow['model_id'] . '" data-size_id="' . $aRow['size_id'] . '"  data-rate="' . $aRow['rate'] . '" data-group_id="' . $aRow['group_id'] . '" data-tax="' . $aRow['tax'] . '"  data-warehouse_id="' . $aRow['warehouse_id'] . '" data-sku_code="' . $aRow['sku_code'] . '" data-sku_name="' . $aRow['sku_name'] . '" data-sub_group="' . $aRow['sub_group'] . '" data-purchase_price="' . $aRow['purchase_price'] . '" data-color="' . $aRow['color'] . '" data-guarantee="' . $aRow['guarantee'] . '" data-profif_ratio="' . $aRow['profif_ratio'] . '" data-without_checking_warehouse="' . $aRow['without_checking_warehouse'] . '" data-parent_id="' . $aRow['parent_id'] . '" data-tax2="' . $aRow['tax2'] . '" data-can_be_sold="' . $aRow['can_be_sold'] . '" data-can_be_purchased="' . $aRow['can_be_purchased'] . '" data-can_be_manufacturing="' . $aRow['can_be_manufacturing'] . '" data-can_be_inventory="' . $aRow['can_be_inventory'] . '"  >' . _l('edit') . '</a>';
+					$CI =& get_instance();
+					$CI->load->model('warehouse_model');
+					$group_discounts = $CI->warehouse_model->get_group_discounts_for_commodity($aRow['id']);
+					$code .= ' | <a href="#" onclick="edit_commodity_item(this); return false;"  data-commodity_id="' . $aRow['id'] . '" data-description="' . $aRow['description'] . '" data-unit_id="' . $aRow['unit_id'] . '" data-commodity_code="' . $aRow['commodity_code'] . '" data-commodity_barcode="' . $aRow['commodity_barcode'] . '" data-commodity_type="' . $aRow['commodity_type'] . '" data-origin="' . $aRow['origin'] . '" data-color_id="' . $aRow['color_id'] . '" data-style_id="' . $aRow['style_id'] . '" data-model_id="' . $aRow['model_id'] . '" data-size_id="' . $aRow['size_id'] . '"  data-rate="' . $aRow['rate'] . '" data-group_id="' . $aRow['group_id'] . '" data-tax="' . $aRow['tax'] . '"  data-warehouse_id="' . $aRow['warehouse_id'] . '" data-sku_code="' . $aRow['sku_code'] . '" data-sku_name="' . $aRow['sku_name'] . '" data-sub_group="' . $aRow['sub_group'] . '" data-purchase_price="' . $aRow['purchase_price'] . '" data-color="' . $aRow['color'] . '" data-guarantee="' . $aRow['guarantee'] . '" data-profif_ratio="' . $aRow['profif_ratio'] . '" data-without_checking_warehouse="' . $aRow['without_checking_warehouse'] . '" data-parent_id="' . $aRow['parent_id'] . '" data-tax2="' . $aRow['tax2'] . '" data-can_be_sold="' . $aRow['can_be_sold'] . '" data-can_be_purchased="' . $aRow['can_be_purchased'] . '" data-can_be_manufacturing="' . $aRow['can_be_manufacturing'] . '" data-can_be_inventory="' . $aRow['can_be_inventory'] . '" data-group-discounts=\'' . json_encode($group_discounts) . '\' >' . _l('edit') . '</a>';
 				}
 
 				if ((has_permission('warehouse_item', '', 'edit') || has_permission('warehouse_item', '', 'create') ) && ($aRow['without_checking_warehouse'] == 0) ) {
@@ -393,86 +396,100 @@ $item_have_variation = $this->ci->warehouse_model->arr_item_have_variation();
 				$_data = $aRow['group_name'];
 
 			} elseif ($aColumns[$i] == db_prefix() . 'items.warehouse_id') {
-				$_data = '';
-				// log_message('debug', 'Processing item ID: ' . $aRow['id']);
+    $_data = '';
 
-			
-				if (isset($item_have_variation[$aRow['id']]) && (float)$item_have_variation[$aRow['id']]['total_child'] > 0) {
-					$arr_warehouse = get_inventory_by_warehouse_variation($aRow['id']);
-			
-					if (count($arr_warehouse) > 0) {
-						foreach ($arr_warehouse as $wh_key => $warehouseid) {
-							if (!empty($warehouse_ft) && !in_array($warehouseid['warehouse_id'], $warehouse_ft)) {
-								continue;
-							}
-							
-			
-							if ($warehouseid['warehouse_id'] != '' && $warehouseid['warehouse_id'] != '0') {
-								$quantity_by_warehouse = $warehouseid['inventory_number'];
-								$product_inventory_quantity += $quantity_by_warehouse;
-			
-								$team = get_warehouse_name($warehouseid['warehouse_id']);
-								if ($team) {
-									$check_hide_warehouse = false;
-									if ($team->hide_warehouse_when_out_of_stock == 1 && (float)$quantity_by_warehouse == 0) {
-										$check_hide_warehouse = true;
-									}
-			
-									if (!$check_hide_warehouse) {
-										$value = get_object_vars($team)['warehouse_name'];
-										// log_message('debug', 'Matched warehouse (variation): ' . $value . ' | Qty: ' . $quantity_by_warehouse);
-			
-										$str = '<span class="label label-tag tag-id-1"><span class="tag">' . $value . ': ( ' . $quantity_by_warehouse . ' )</span><span class="hide">, </span></span>&nbsp';
-										$_data .= $str;
-										if ($wh_key % 3 == 0) {
-											$_data .= '<br/>';
-										}
-									}
-								}
-							}
-						}
-					} else {
-						$_data = '';
-					}
-			
-				} else {
-					if (isset($arr_warehouse_by_item[$aRow['id']]) > 0) {
-						foreach ($arr_warehouse_by_item[$aRow['id']] as $wh_key => $warehouse_value) {
-							if (!empty($warehouse_ft) && !in_array($warehouse_value['warehouse_id'], $warehouse_ft)) {
-								continue;
-							}
-							
-			
-							if ($warehouse_value['warehouse_id'] != '' && $warehouse_value['warehouse_id'] != '0') {
-								$quantity_by_warehouse = $warehouse_value['inventory_number'];
-								$product_inventory_quantity += $quantity_by_warehouse;
-			
-								if (isset($arr_warehouse_id[$warehouse_value['warehouse_id']])) {
-									$check_hide_warehouse = false;
-									if ($arr_warehouse_id[$warehouse_value['warehouse_id']]['hide_warehouse_when_out_of_stock'] == 1 &&
-										(float)$quantity_by_warehouse == 0) {
-										$check_hide_warehouse = true;
-									}
-			
-									if (!$check_hide_warehouse) {
-										$warehouse_name = $arr_warehouse_id[$warehouse_value['warehouse_id']]['warehouse_name'];
-										// log_message('debug', 'Matched warehouse: ' . $warehouse_name . ' | Qty: ' . $quantity_by_warehouse);
-			
-										$str = '<span class="label label-tag tag-id-1"><span class="tag">' . $warehouse_name . ': ( ' . $quantity_by_warehouse . ' )</span><span class="hide">, </span></span>&nbsp';
-										$_data .= $str;
-			
-										if ($wh_key % 3 == 0) {
-											$_data .= '<br/>';
-										}
-									}
-								}
-							}
-						}
-					} else {
-						$_data = '';
-					}
-				}
-			}
+    if (isset($item_have_variation[$aRow['id']]) && (float)$item_have_variation[$aRow['id']]['total_child'] > 0) {
+        $arr_warehouse = get_inventory_by_warehouse_variation($aRow['id']);
+
+        if (count($arr_warehouse) > 0) {
+            foreach ($arr_warehouse as $warehouseid) {
+                if (!empty($warehouse_ft) && !in_array($warehouseid['warehouse_id'], $warehouse_ft)) {
+                    continue;
+                }
+
+                if (!empty($warehouseid['warehouse_id']) && $warehouseid['warehouse_id'] != '0') {
+                    $quantity_by_warehouse = $warehouseid['inventory_number'];
+                    $product_inventory_quantity += $quantity_by_warehouse;
+
+                    $team = get_warehouse_name($warehouseid['warehouse_id']);
+                    if ($team) {
+                        $check_hide_warehouse = $team->hide_warehouse_when_out_of_stock == 1 && (float)$quantity_by_warehouse == 0;
+
+                        if (!$check_hide_warehouse) {
+                            $warehouse_name = $team->warehouse_name;
+
+                            // Create tooltip content as an HTML table
+                            $breakdown = $this->ci->warehouse_model->get_inventory_breakdown_by_location($aRow['id'], $warehouseid['warehouse_id']);
+                            $tooltip = '<table class="table table-bordered" style=\'font-size:12px;\'>
+                                            <thead><tr><th>Lot</th><th>Rack</th><th>Shelf</th><th>Qty</th></tr></thead>
+                                            <tbody>';
+                            if (!empty($breakdown)) {
+                                foreach ($breakdown as $b) {
+                                    $lot = $b['lot_name'] ?: 'N/A';
+                                    $rack = $b['rack_name'] ?: 'N/A';
+                                    $shelf = $b['shelf_name'] ?: 'N/A';
+                                    $qty = $b['inventory_number'];
+                                    $tooltip .= "<tr><td>{$lot}</td><td>{$rack}</td><td>{$shelf}</td><td>{$qty}</td></tr>";
+                                }
+                            } else {
+                                $tooltip .= "<tr><td colspan='4'>No detailed breakdown</td></tr>";
+                            }
+                            $tooltip .= '</tbody></table>';
+
+                            $_data .= '<span class="label label-tag tag-id-1" data-toggle="tooltip" data-html="true" data-original-title="' . htmlspecialchars($tooltip, ENT_QUOTES) . '">
+                                            <span class="tag">' . $warehouse_name . ': ( ' . $quantity_by_warehouse . ' )</span>
+                                        </span> ';
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+        if (!empty($arr_warehouse_by_item[$aRow['id']])) {
+            foreach ($arr_warehouse_by_item[$aRow['id']] as $warehouse_value) {
+                if (!empty($warehouse_ft) && !in_array($warehouse_value['warehouse_id'], $warehouse_ft)) {
+                    continue;
+                }
+
+                if (!empty($warehouse_value['warehouse_id']) && $warehouse_value['warehouse_id'] != '0') {
+                    $quantity_by_warehouse = $warehouse_value['inventory_number'];
+                    $product_inventory_quantity += $quantity_by_warehouse;
+
+                    if (!empty($arr_warehouse_id[$warehouse_value['warehouse_id']])) {
+                        $warehouse_info = $arr_warehouse_id[$warehouse_value['warehouse_id']];
+                        $check_hide_warehouse = $warehouse_info['hide_warehouse_when_out_of_stock'] == 1 && (float)$quantity_by_warehouse == 0;
+
+                        if (!$check_hide_warehouse) {
+                            $warehouse_name = $warehouse_info['warehouse_name'];
+
+                            // Tooltip breakdown
+                            $breakdown = $this->ci->warehouse_model->get_inventory_breakdown_by_location($aRow['id'], $warehouse_value['warehouse_id']);
+                            $tooltip = '<table class="table table-bordered" style=\'font-size:12px;\'>
+                                            <thead><tr><th>Lot</th><th>Rack</th><th>Shelf</th><th>Qty</th></tr></thead>
+                                            <tbody>';
+                            if (!empty($breakdown)) {
+                                foreach ($breakdown as $b) {
+                                    $lot = $b['lot_name'] ?: 'N/A';
+                                    $rack = $b['rack_name'] ?: 'N/A';
+                                    $shelf = $b['shelf_name'] ?: 'N/A';
+                                    $qty = $b['inventory_number'];
+                                    $tooltip .= "<tr><td>{$lot}</td><td>{$rack}</td><td>{$shelf}</td><td>{$qty}</td></tr>";
+                                }
+                            } else {
+                                $tooltip .= "<tr><td colspan='4'>No detailed breakdown</td></tr>";
+                            }
+                            $tooltip .= '</tbody></table>';
+
+                            $_data .= '<span class="label label-tag tag-id-1" data-toggle="tooltip" data-html="true" data-original-title="' . htmlspecialchars($tooltip, ENT_QUOTES) . '">
+                                            <span class="tag">' . $warehouse_name . ': ( ' . $quantity_by_warehouse . ' )</span>
+                                        </span> ';
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 			elseif($aColumns[$i] == '(SELECT GROUP_CONCAT(name SEPARATOR ",") FROM ' . db_prefix() . 'taggables JOIN ' . db_prefix() . 'tags ON ' . db_prefix() . 'taggables.tag_id = ' . db_prefix() . 'tags.id WHERE rel_id = ' . db_prefix() . 'items.id and rel_type="item_tags" ORDER by tag_order ASC) as tags'){
 				
 				$_data = render_tags($aRow['tags']);

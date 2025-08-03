@@ -636,7 +636,37 @@ body #wrapper .dataTables_wrapper .table tr th {
 
 
                                 </div>
+
                             </div>
+                            <div class="row">
+  <div class="col-md-12">
+    <h4 class="bold">Customer Group Discounts</h4>
+  </div>
+
+  <?php foreach ($customer_groups as $group): ?>
+    <div class="form-group col-md-4" >
+      <label for="group_discount_<?= $group['id']; ?>">
+        <?= htmlspecialchars($group['name']); ?> Discount (%)
+      </label>
+
+      <!-- Hidden input to carry group ID -->
+      <input type="hidden" name="group_discount_input_group_id[]" value="<?= $group['id']; ?>">
+
+      <!-- Discount input -->
+      <input type="number"
+             step="0.01"
+             min="0"
+             max="100"
+             class="form-control"
+             name="group_discount_input[]"
+             value="<?= html_escape($group['default_discount']); ?>"
+             <?= $group['override_allowed'] ? '' : 'readonly'; ?>
+             data-group-id="<?= $group['id']; ?>"
+             data-default="<?= html_escape($group['default_discount']); ?>">
+    </div>
+  <?php endforeach; ?>
+</div>
+
                             <div class="row">
                               <div class="col-md-12">
                                     <?php echo render_textarea('long_description', 'description'); ?>

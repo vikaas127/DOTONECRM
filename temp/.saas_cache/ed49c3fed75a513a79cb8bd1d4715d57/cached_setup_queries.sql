@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS `{TENANT_SLUG_PLACEHOLDER}activity_log` (
   `staffid` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `staffid` (`staffid`)
-) ENGINE=InnoDB AUTO_INCREMENT=611 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=612 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ALTER TABLE `{TENANT_SLUG_PLACEHOLDER}activity_log` AUTO_INCREMENT = 1;
 CREATE TABLE IF NOT EXISTS `{TENANT_SLUG_PLACEHOLDER}announcements` (
   `announcementid` int(11) NOT NULL AUTO_INCREMENT,
@@ -293,6 +293,9 @@ ALTER TABLE `{TENANT_SLUG_PLACEHOLDER}currencies` AUTO_INCREMENT = 1;
 CREATE TABLE IF NOT EXISTS `{TENANT_SLUG_PLACEHOLDER}customers_groups` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(191) NOT NULL,
+  `default_discount` decimal(5,2) DEFAULT NULL COMMENT 'Default discount to apply unless item overrides',
+  `default_profit_margin` decimal(5,2) DEFAULT NULL COMMENT 'Used to auto-calculate selling price from cost',
+  `override_allowed` tinyint(1) DEFAULT 1 COMMENT '1 = allow item-level override, 0 = enforce group defaults only',
   PRIMARY KEY (`id`),
   KEY `name` (`name`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

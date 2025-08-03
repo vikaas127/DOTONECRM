@@ -1,4 +1,25 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed'); ?>
+<style>
+  .rack-block {
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-bottom: 15px;
+    position: relative;
+    background: #f9f9f9;
+  }
+  .remove-rack-btn {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+  }
+  .shelves-container {
+    padding-left: 20px;
+    margin-top: 10px;
+  }
+  .shelf-row {
+    margin-bottom: 5px;
+  }
+</style>
 <?php init_head(); ?>
 
 <div id="wrapper">
@@ -68,7 +89,7 @@
 
 
 
-                <div class="modal1 fade" id="warehouse_type" tabindex="-1" role="dialog">
+                    <div class="modal1 fade" id="warehouse_type" tabindex="-1" role="dialog">
                         <div class="modal-dialog setting-handsome-table">
                           <?php echo form_open_multipart(admin_url('warehouse/warehouse_'), array('id'=>'add_warehouse_type')); ?>
 
@@ -101,7 +122,7 @@
                                 </div>
                                 <?php echo form_close(); ?>
                             </div>
-                        </div>
+                    </div>
 
                     <!-- add one warehouse -->
                     <div class="modal1 fade" id="a_warehouse" tabindex="-1" role="dialog">
@@ -130,10 +151,20 @@
                                            <span class="glyphicon glyphicon-align-justify"></span>&nbsp;<?php echo _l('general_infor'); ?>
                                            </a>
                                         </li>
+                                        <li role="presentation">
+                                           <a href="#racks_and_shelfs" aria-controls="racks_and_shelfs" role="tab" data-toggle="tab" aria-controls="racks_and_shelfs">
+                                           <i class="fas fa-th-large"></i>&nbsp;<?php echo _l('racks_and_shelfs'); ?>
+                                           </a>
+                                        </li>
+                                        <li role="presentation">
+                                           <a href="#lots" aria-controls="lots" role="tab" data-toggle="tab" aria-controls="lots">
+                                           <i class="fas fa-calendar-alt"></i>	</i>	</i>&nbsp;<?php echo _l('lots'); ?>
+                                           </a>
+                                        </li>
                                         
                                         <li role="presentation">
                                            <a href="#custom_fields" aria-controls="custom_fields" role="tab" data-toggle="tab" aria-controls="custom_fields">
-                                           <i class="fa fa-bars menu-icon"></i>&nbsp;<?php echo _l('custom_fields'); ?>
+                                          <i class="fas fa-th-list"></i>	&nbsp;<?php echo _l('custom_fields'); ?>
                                            </a>
                                         </li>
                                         
@@ -144,111 +175,150 @@
 
                             <div class="tab-content">
               
-                            <!-- interview process start -->
+                              <!-- interview process start -->
                               <div role="tabpanel" class="tab-pane active" id="interview_infor">
 
-                                    <div class="row">
-                                        <div class="col-md-12">
-                                             <div id="color_id_t"></div>   
-                                          <div class="form"> 
-                                            <div class="col-md-6">
-                                              <?php echo render_input('warehouse_code', 'warehouse_code', '', '', ['maxlength' => 100]); ?>
-                                            </div>
+                                      <div class="row">
+                                          <div class="col-md-12">
+                                              <div id="color_id_t"></div>   
+                                            <div class="form"> 
+                                              <div class="col-md-6">
+                                                <?php echo render_input('warehouse_code', 'warehouse_code', '', '', ['maxlength' => 100]); ?>
+                                              </div>
 
-                                            <div class="col-md-6">
-                                              <?php echo render_input('warehouse_name', 'warehouse_name'); ?>
-                                            </div>
-                                            <div class="col-md-12">
-                                              <?php $mint_point_f="1";
-                                                        $min_p =[];
-                                                        $min_p['min']='0';
-                                                        $min_p['required']='true';
-                                                        $min_p['step']= 1;
-                                                        $min_p['maxlength']= 10;
+                                              <div class="col-md-6">
+                                                <?php echo render_input('warehouse_name', 'warehouse_name'); ?>
+                                              </div>
+                                              <div class="col-md-12">
+                                                <?php $mint_point_f="1";
+                                                          $min_p =[];
+                                                          $min_p['min']='0';
+                                                          $min_p['required']='true';
+                                                          $min_p['step']= 1;
+                                                          $min_p['maxlength']= 10;
 
-                                                     ?>
-                                                <?php echo render_input('order','order',new_html_entity_decode($mint_point_f),'number', $min_p) ?>
-                                            </div>
-                                            <?php if(is_admin()){ ?>
-                                                <div class="col-md-12">
-                                                    <?php echo render_select('assign_to_staffs[]', $staffs, ['staffid', ['firstname', 'lastname']], 'wh_assign_to_staffs', [], ['multiple' => true, 'data-width' => '100%', 'class' => 'selectpicker', 'data-actions-box' => true], array(), '', '', false); ?>
-                                                </div>
-                                            <?php } ?>
-                                            
-                                            <div class="col-md-6">
-                                              <?php echo render_textarea('warehouse_address', 'warehouse_address', '', ['rows' =>4, ]); ?>
-                                            </div>
+                                                      ?>
+                                                  <?php echo render_input('order','order',new_html_entity_decode($mint_point_f),'number', $min_p) ?>
+                                              </div>
+                                              <?php if(is_admin()){ ?>
+                                                  <div class="col-md-12">
+                                                      <?php echo render_select('assign_to_staffs[]', $staffs, ['staffid', ['firstname', 'lastname']], 'wh_assign_to_staffs', [], ['multiple' => true, 'data-width' => '100%', 'class' => 'selectpicker', 'data-actions-box' => true], array(), '', '', false); ?>
+                                                  </div>
+                                              <?php } ?>
+                                              
+                                              <div class="col-md-6">
+                                                <?php echo render_textarea('warehouse_address', 'warehouse_address', '', ['rows' =>4, ]); ?>
+                                              </div>
 
-                                            <div class="col-md-6">
-                                              <?php echo render_input('city', 'city'); ?>
-                                            </div>
-                                            
-                                            <div class="col-md-6">
-                                              <?php echo render_input('state', 'state'); ?>
-                                            </div>
-                                            <div class="col-md-6">
-                                              <?php echo render_input('zip_code', 'zip_code'); ?>
-                                            </div>
-                                            <div class="col-md-6">
-                                              <?php $countries= get_all_countries();
+                                              <div class="col-md-6">
+                                                <?php echo render_input('city', 'city'); ?>
+                                              </div>
+                                              
+                                              <div class="col-md-6">
+                                                <?php echo render_input('state', 'state'); ?>
+                                              </div>
+                                              <div class="col-md-6">
+                                                <?php echo render_input('zip_code', 'zip_code'); ?>
+                                              </div>
+                                              <div class="col-md-6">
+                                                <?php $countries= get_all_countries();
 
-                                               $customer_default_country = get_option('customer_default_country');
-                                               $selected =( isset($client) ? $client->country : $customer_default_country);
-                                               
-                                               echo render_select( 'country',$countries,array( 'country_id',array( 'short_name')), 'clients_country',$selected,array('data-none-selected-text'=>_l('dropdown_non_selected_tex')));
-                                               ?>
+                                                $customer_default_country = get_option('customer_default_country');
+                                                $selected =( isset($client) ? $client->country : $customer_default_country);
+                                                
+                                                echo render_select( 'country',$countries,array( 'country_id',array( 'short_name')), 'clients_country',$selected,array('data-none-selected-text'=>_l('dropdown_non_selected_tex')));
+                                                ?>
 
+                                              </div>
+
+                                              <div class="col-md-12">
+                                                <?php echo render_textarea('note', 'note', '', ['rows' => 4]); ?>
+
+                                              </div>
+
+                                              <div class="col-md-12">
+                                                <input data-can-view="" type="checkbox" class="capability" name="display"  id="display" checked>
+                                                <label for="display" class="pt-2">
+                                                        <?php echo _l('display'); ?>               
+                                                      </label>
+                                              </div>
+
+                                              <div class="col-md-12">
+                                                  <input data-can-view="" type="checkbox" class="capability" name="hide_warehouse_when_out_of_stock"  id="hide_warehouse_when_out_of_stock">
+                                                <label for="hide_warehouse_when_out_of_stock" class="pt-2">
+                                                    <?php echo _l('hide_warehouse_when_out_of_stock_popup'); ?>               
+                                                </label>
                                             </div>
-
-                                            <div class="col-md-12">
-                                              <?php echo render_textarea('note', 'note', '', ['rows' => 4]); ?>
-
+                                              
                                             </div>
-
-                                            <div class="col-md-12">
-                                              <input data-can-view="" type="checkbox" class="capability" name="display"  id="display" checked>
-                                              <label for="display" class="pt-2">
-                                                      <?php echo _l('display'); ?>               
-                                                    </label>
-                                            </div>
-
-                                            <div class="col-md-12">
-                                                <input data-can-view="" type="checkbox" class="capability" name="hide_warehouse_when_out_of_stock"  id="hide_warehouse_when_out_of_stock">
-                                              <label for="hide_warehouse_when_out_of_stock" class="pt-2">
-                                                  <?php echo _l('hide_warehouse_when_out_of_stock_popup'); ?>               
-                                              </label>
                                           </div>
-                                            
-                                          </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                      </div>
+                              </div>
 
-                                <!-- custome fields -->
-                                  <div role="tabpanel" class="tab-pane" id="custom_fields">
+                              <!-- racks and shelves -->
+                              <div role="tabpanel" class="tab-pane" id="racks_and_shelfs">
                                     <div class="row">
                                       <div class="col-md-12">
-                                        <div class="form">
-                                          <div id="custom_fields_items">
-                                            <?php echo wh_render_custom_fields('warehouse_name'); ?>
-                                          </div>
-
+                                        <div class="form-group">
+                                            <label><strong>Racks & Shelves</strong></label>
+                                            <div id="racks-container"></div>
+                                            <button type="button" class="btn btn-sm btn-success mt-2" onclick="addRack()">
+                                              <i class="fa fa-plus"></i> Add Rack
+                                            </button>
                                         </div>
+                                
+                                        <input type="hidden" name="rack_shelf_data" id="rack_shelf_data">
+                                        
+
+
                                      </div>
                                    </div>
-                                 </div>
+                              </div>
+
+                              <!-- lots -->
+                              <div role="tabpanel" class="tab-pane" id="lots">
+                                  <div class="row">
+                                    <div class="col-md-12">
+                                      <div class="form-group">
+                                        <label><strong>Lots</strong></label>
+                                        <div id="lots-container"></div>
+                                        <button type="button" class="btn btn-sm btn-success mt-2" onclick="addLot()">
+                                          <i class="fa fa-plus"></i> Add Lot
+                                        </button>
+                                      </div>
+                                      <input type="hidden" name="lots_data" id="lots_data">-
+                                    </div> 
+                                  </div>
+                              </div>
 
 
-                                </div>
-                                    <div class="modal-footer">
+
+
+                              <!-- custome fields -->
+                              <div role="tabpanel" class="tab-pane" id="custom_fields">
+                                      <div class="row">
+                                        <div class="col-md-12">
+                                          <div class="form">
+                                            <div id="custom_fields_items">
+                                              <?php echo wh_render_custom_fields('warehouse_name'); ?>
+                                            </div>
+
+                                          </div>
+                                      </div>
+                                    </div>
+                              </div>
+
+
+                            </div>
+                          <div class="modal-footer">
                                         <button type="button" class="btn btn-default" data-dismiss="modal"><?php echo _l('close'); ?></button>
                                         
                                          <button type="submit" class="btn btn-info intext-btn"><?php echo _l('submit'); ?></button>
-                                    </div>
-                            </div>
-                            <?php echo form_close(); ?>
+                          </div>
                         </div>
-                    </div> 
+                            <?php echo form_close(); ?>
+                      </div>
+                  </div> 
 
 
                 </div>

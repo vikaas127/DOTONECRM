@@ -205,6 +205,48 @@
                   }
                   echo render_date_input('expirydate', 'estimate_add_edit_expirydate', $value); ?>
                     </div>
+
+                    <div class="col-md-6">
+    <?php
+        $selected_prod = '';
+        foreach ($staff as $member) {
+            if (isset($estimate)) {
+                if ($estimate->production_assigned_to == $member['staffid']) {
+                    $selected_prod = $member['staffid'];
+                }
+            }
+        }
+        echo render_select(
+            'production_assigned_to',
+            $staff,
+            ['staffid', ['firstname', 'lastname']],
+            'production_assigned_to',
+            $selected_prod
+        );
+    ?>
+</div>
+
+
+
+                    <div class="col-md-6">
+                        <?php
+$production_type_options = [
+    ['id' => 'custom', 'name' => 'Custom'],
+    ['id' => 'standard', 'name' => 'Standard']
+];
+
+echo render_select(
+    'production_type',                                
+    $production_type_options,                         
+    ['id', 'name'],                                   
+    'production_type',                                
+    isset($estimate) ? $estimate->production_type : '',
+    [], [], '', 'form-group'
+);
+?>
+
+                    </div>
+                    
                 </div>
                 <div class="clearfix mbot15"></div>
                 <?php $rel_id = (isset($estimate) ? $estimate->id : false); ?>

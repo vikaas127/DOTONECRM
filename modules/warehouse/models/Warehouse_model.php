@@ -113,7 +113,17 @@ public function delete_warehouse_permission($id)
 		return false;
 
 	}
+	public function get_inventory_breakdown_by_location($commodity_id, $warehouse_id) {
+		$this->db->select('im.inventory_number, r.rack_name, s.shelf_name, l.lot_name');
+		$this->db->from(db_prefix() . 'inventory_manage as im');
+		$this->db->join(db_prefix() . 'wr_rack r', 'im.rack_id = r.rack_id', 'left');
+		$this->db->join(db_prefix() . 'wr_shelf s', 'im.shelf_id = s.shelf_id', 'left');
+		$this->db->join(db_prefix() . 'wr_lot l', 'im.lot_id = l.lot_id', 'left');
+		$this->db->where('im.commodity_id', $commodity_id);
+		$this->db->where('im.warehouse_id', $warehouse_id);
 
+		return $this->db->get()->result_array();
+	}
 	/**
 	 *  get commodity type
 	 * @param  boolean $id
@@ -1693,7 +1703,8 @@ public function delete_warehouse_permission($id)
 			$this->db->where('warehouse_id', $data['warehouse_id']);
 			$this->db->where('commodity_id', $data['commodity_code']);
 
-			$total_rows = $this->db->count_all_results(db_prefix().'inventory_manage');
+			$this->apply_inventory_match_conditions($data);
+            $total_rows = $this->db->count_all_results(db_prefix().'inventory_manage');
 
 			if ($total_rows > 0) {
 				$status_insert_update = false;
@@ -1763,6 +1774,10 @@ public function delete_warehouse_permission($id)
 				$data_insert['expiry_date'] = $data['expiry_date'];
 				$data_insert['lot_number'] = $data['lot_number'];
 				$data_insert['purchase_price'] = $data['unit_price'];
+				$data_insert['lot_id'] = isset($data['lot_id']) ? $data['lot_id'] : null;
+				$data_insert['rack_id'] = isset($data['rack_id']) ? $data['rack_id'] : null;
+				$data_insert['shelf_id'] = isset($data['shelf_id']) ? $data['shelf_id'] : null;
+
 
 				$this->db->insert(db_prefix() . 'inventory_manage', $data_insert);
 				$insert_id = $this->db->insert_id();
@@ -2010,6 +2025,51 @@ public function delete_warehouse_permission($id)
 		}
 
 	}
+private function apply_inventory_match_conditions($data)
+{
+    $this->db->where('purchase_price', $data['unit_price']);
+    $this->db->where('warehouse_id', $data['warehouse_id']);
+    $this->db->where('commodity_id', $data['commodity_code']);
+
+    // Match rack
+    if (isset($data['rack_id']) && $data['rack_id'] !== '') {
+        $this->db->where('rack_id', $data['rack_id']);
+    } else {
+        $this->db->where('rack_id IS NULL');
+    }
+
+    // Match shelf
+    if (isset($data['shelf_id']) && $data['shelf_id'] !== '') {
+        $this->db->where('shelf_id', $data['shelf_id']);
+    } else {
+        $this->db->where('shelf_id IS NULL');
+    }
+
+    // Match lot_number
+    if (!empty($data['lot_number']) && $data['lot_number'] !== '0') {
+        $this->db->where('lot_number', $data['lot_number']);
+    } else {
+        $this->db->group_start();
+        $this->db->where('lot_number', '0');
+        $this->db->or_where('lot_number', '');
+        $this->db->or_where('lot_number IS NULL');
+        $this->db->group_end();
+    }
+
+    // Match expiry_date
+    if (!empty($data['expiry_date'])) {
+        $this->db->where('expiry_date', $data['expiry_date']);
+    } else {
+        $this->db->where('expiry_date IS NULL');
+    }
+
+    // Match lot_id
+    if (isset($data['lot_id']) && $data['lot_id'] !== '') {
+        $this->db->where('lot_id', $data['lot_id']);
+    } else {
+        $this->db->where('lot_id IS NULL');
+    }
+}
 
 
 	public function send_low_inventory_alert($subject,$message){
@@ -5334,111 +5394,90 @@ public function get_stock_export_pdf_html($goods_delivery_id) {
 	 * @return integer
 	 */
 	public function add_commodity_one_item($data) {
-		$arr_insert_cf=[];
-		$arr_variation=[];
-		$arr_attributes=[];
-		/*get custom fields*/
-		if(isset($data['formdata'])){
-			$arr_custom_fields=[];
+		log_message('error', '[DEBUG] Starting add_commodity_one_item');
 
-			$arr_variation_temp=[];
-			$variation_name_temp='';
-			$variation_option_temp='';
+		$arr_insert_cf = [];
+		$arr_variation = [];
+		$arr_attributes = [];
+
+		if (isset($data['formdata'])) {
+			log_message('error', '[DEBUG] Processing custom fields');
+
+			$arr_custom_fields = [];
+			$arr_variation_temp = [];
+			$variation_name_temp = '';
+			$variation_option_temp = '';
 
 			foreach ($data['formdata'] as $value_cf) {
-				if(preg_match('/^custom_fields/', $value_cf['name'])){
-					if(strpos($value_cf['name'], '[]')){
-						$index =  new_str_replace('custom_fields[items][', '', $value_cf['name']);
-						$index =  new_str_replace('][]', '', $index);
-
+				if (preg_match('/^custom_fields/', $value_cf['name'])) {
+					if (strpos($value_cf['name'], '[]')) {
+						$index = new_str_replace('custom_fields[items][', '', $value_cf['name']);
+						$index = new_str_replace('][]', '', $index);
 						$arr_custom_fields[$index][] = $value_cf['value'];
-
-					}else{
-						$index =  new_str_replace('custom_fields[items][', '', $value_cf['name']);
-						$index =  new_str_replace(']', '', $index);
-
+					} else {
+						$index = new_str_replace('custom_fields[items][', '', $value_cf['name']);
+						$index = new_str_replace(']', '', $index);
 						$arr_custom_fields[$index] = $value_cf['value'];
 					}
 				}
 
-				//get variation (parent attribute)
-				
-				if(preg_match('/^name/', $value_cf['name'])){
+				if (preg_match('/^name/', $value_cf['name'])) {
 					$variation_name_temp = $value_cf['value'];
 				}
 
-				if(preg_match('/^options/', $value_cf['name'])){
+				if (preg_match('/^options/', $value_cf['name'])) {
 					$variation_option_temp = $value_cf['value'];
 
-					array_push($arr_variation, [
+					$arr_variation[] = [
 						'name' => $variation_name_temp,
 						'options' => new_explode(',', $variation_option_temp),
-					]);
+					];
 
-					$variation_name_temp='';
-					$variation_option_temp='';
+					$variation_name_temp = '';
+					$variation_option_temp = '';
 				}
 
-				//get attribute
-				if(preg_match("/^variation_names_/", $value_cf['name'])){
-					array_push($arr_attributes, [
+				if (preg_match("/^variation_names_/", $value_cf['name'])) {
+					$arr_attributes[] = [
 						'name' => new_str_replace('variation_names_', '', $value_cf['name']),
 						'option' => $value_cf['value'],
-					]);
+					];
 				}
-
 			}
 
 			$arr_insert_cf['items_pr'] = $arr_custom_fields;
-
 			$formdata = $data['formdata'];
 			unset($data['formdata']);
 		}
 
-		
-		//get attribute
-		if(count($arr_attributes) > 0){
-			$data['attributes'] = json_encode($arr_attributes);
-		}else{
-			$data['attributes'] = null;
-		}
+		log_message('error', '[DEBUG] Finished processing custom fields');
 
-		if(count($arr_variation) > 0){
-			$data['parent_attributes'] = json_encode($arr_variation);
-		}else{
-			$data['parent_attributes'] = null;
-		}
+		$data['attributes'] = count($arr_attributes) > 0 ? json_encode($arr_attributes) : null;
+		$data['parent_attributes'] = count($arr_variation) > 0 ? json_encode($arr_variation) : null;
 
 		if (isset($data['custom_fields'])) {
 			$custom_fields = $data['custom_fields'];
 			unset($data['custom_fields']);
 		}
 
-		/*add data tblitem*/
-		$data['rate'] = $data['rate'];
+		$group_discounts = [];
 
-		if(isset($data['purchase_price']) && $data['purchase_price']){
-			
-			$data['purchase_price'] = $data['purchase_price'];
-		}
-		/*create sku code*/
-		if($data['sku_code'] != ''){
-			
-			$data['sku_code'] = get_warehouse_option('item_sku_prefix').new_str_replace(' ', '', $data['sku_code']) ;
-			$sku_code_none_prefix = new_str_replace(' ', '', $data['sku_code']) ;
-
-		}else{
-			//data sku_code = group_character.sub_code.commodity_str_betwen.next_commodity_id; // X_X_000.id auto increment
-			$data['sku_code'] = get_warehouse_option('item_sku_prefix').$this->create_sku_code($data['group_id'], isset($data['sub_group']) ? $data['sub_group'] : '' );
-			$sku_code_none_prefix = $this->create_sku_code($data['group_id'], isset($data['sub_group']) ? $data['sub_group'] : '' );
-			/*create sku code*/
+		if (isset($data['group_discounts']) && is_array($data['group_discounts'])) {
+			$group_discounts = $data['group_discounts'];
+			unset($data['group_discounts']); // prevent inserting it into tblitems
 		}
 
+
+		log_message('error', '[DEBUG] Preparing for item insert: ' . json_encode($data));
+
+		if ($data['sku_code'] != '') {
+			$data['sku_code'] = get_warehouse_option('item_sku_prefix') . new_str_replace(' ', '', $data['sku_code']);
+			$sku_code_none_prefix = new_str_replace(' ', '', $data['sku_code']);
+		} else {
+			$data['sku_code'] = get_warehouse_option('item_sku_prefix') . $this->create_sku_code($data['group_id'], isset($data['sub_group']) ? $data['sub_group'] : '');
+			$sku_code_none_prefix = $this->create_sku_code($data['group_id'], isset($data['sub_group']) ? $data['sub_group'] : '');
+		}
 		$data['sku_code'] = strtoupper(new_str_replace(" ", "", $data['sku_code']));
-
-		// if(get_warehouse_option('barcode_with_sku_code') == 1){
-		// 	$data['commodity_barcode'] = $sku_code_none_prefix;
-		// }
 
 		$tags = '';
 		if (isset($data['tags'])) {
@@ -5446,55 +5485,81 @@ public function get_stock_export_pdf_html($goods_delivery_id) {
 			unset($data['tags']);
 		}
 
-		//update column unit name use sales/items
 		$unit_type = get_unit_type($data['unit_id']);
-		if(isset($unit_type->unit_name)){
+		if (isset($unit_type->unit_name)) {
 			$data['unit'] = $unit_type->unit_name;
 		}
 
+		// Define keys that should NOT go into tblitems
+		$excluded_array_keys = ['group_discounts', 'tags', 'attributes', 'parent_attributes', 'something_else'];
+
+		foreach ($excluded_array_keys as $key) {
+			if (isset($data[$key]) && is_array($data[$key])) {
+				unset($data[$key]);
+			}
+		}
+
+
+		log_message('error', '[DEBUG] Inserting into tblitems');
 		$this->db->insert(db_prefix() . 'items', $data);
 		$insert_id = $this->db->insert_id();
+		log_message('error', '[DEBUG] Inserted item_id: ' . $insert_id);
 
-		/*add data tblinventory*/
 		if ($insert_id) {
+			if (!empty($group_discounts)) {
+				foreach ($group_discounts as $gd) {
+					$this->db->insert(db_prefix() . 'item_group_discounts', [
+						'item_id' => $insert_id,
+						'group_id' => $gd['group_id'],
+						'discount' => $gd['discount'],
+					]);
+					log_message('error', '[DEBUG] Inserted group discount: ' . json_encode($gd));
+				}
+			}
+
 			$data_inventory_min['commodity_id'] = $insert_id;
 			$data_inventory_min['commodity_code'] = $data['commodity_code'];
 			$data_inventory_min['commodity_name'] = $data['description'];
 			$this->add_inventory_min($data_inventory_min);
 
-			/*habdle add tags*/
 			handle_tags_save($tags, $insert_id, 'item_tags');
 
-
-			/*handle custom fields*/
-
-			if(isset($formdata)){
-				$data_insert_cf = [];
-
+			if (isset($formdata)) {
 				handle_custom_fields_post($insert_id, $arr_insert_cf, true);
 			}
 
-
-			//create variant
-			$add_variant=false;
-			if(count($arr_variation) > 0 &&  new_strlen(json_encode($arr_variation)) > 28){
+			$add_variant = false;
+			if (count($arr_variation) > 0 && new_strlen(json_encode($arr_variation)) > 28) {
 				$response_create_variant = $this->create_variant_product($insert_id, $data, $arr_variation);
-
-				if($response_create_variant){
-					$add_variant = true;
-				}
+				$add_variant = $response_create_variant ? true : false;
 			}
 
 			hooks()->do_action('item_created', $insert_id);
-
 			log_activity('New Warehouse Item Added [ID:' . $insert_id . ', ' . $data['description'] . ']');
+			log_message('error', '[DEBUG] add_commodity_one_item completed successfully');
 
 			return ['insert_id' => $insert_id, 'add_variant' => $add_variant];
-
 		}
 
+		log_message('error', '[ERROR] Item insert failed');
 		return false;
+	}
 
+
+	public function save_item_group_discounts($item_id, $group_discounts)
+	{
+		// Clear old discounts for this item
+		$this->db->where('item_id', $item_id);
+		$this->db->delete(db_prefix() . 'item_group_discounts');
+
+		// Insert new discounts
+		foreach ($group_discounts as $discount_data) {
+			$this->db->insert(db_prefix() . 'item_group_discounts', [
+				'item_id'  => $item_id,
+				'group_id' => $discount_data['group_id'],
+				'discount' => $discount_data['discount'],
+			]);
+		}
 	}
 
 	/**
@@ -5631,160 +5696,160 @@ public function get_stock_export_pdf_html($goods_delivery_id) {
 	 * @param  integer $id
 	 * @return boolean
 	 */
-	public function update_commodity_one_item($data, $id) {
-		if (isset($data['custom_fields'])) {
-			$custom_fields = $data['custom_fields'];
-			unset($data['custom_fields']);
-		}
+	// public function update_commodity_one_item($data, $id) {
+	// 	if (isset($data['custom_fields'])) {
+	// 		$custom_fields = $data['custom_fields'];
+	// 		unset($data['custom_fields']);
+	// 	}
 
-		$arr_insert_cf=[];
-		$arr_variation=[];
-		$arr_attributes=[];
-		/*get custom fields, get variation value*/
-		if(isset($data['formdata'])){
-			$arr_custom_fields=[];
+	// 	$arr_insert_cf=[];
+	// 	$arr_variation=[];
+	// 	$arr_attributes=[];
+	// 	/*get custom fields, get variation value*/
+	// 	if(isset($data['formdata'])){
+	// 		$arr_custom_fields=[];
 
-			$arr_variation_temp=[];
-			$variation_name_temp='';
-			$variation_option_temp='';
-			foreach ($data['formdata'] as $value_cf) {
-				if(preg_match('/^custom_fields/', $value_cf['name'])){
-					if(strpos($value_cf['name'], '[]')){
-						$index =  new_str_replace('custom_fields[items][', '', $value_cf['name']);
-						$index =  new_str_replace('][]', '', $index);
+	// 		$arr_variation_temp=[];
+	// 		$variation_name_temp='';
+	// 		$variation_option_temp='';
+	// 		foreach ($data['formdata'] as $value_cf) {
+	// 			if(preg_match('/^custom_fields/', $value_cf['name'])){
+	// 				if(strpos($value_cf['name'], '[]')){
+	// 					$index =  new_str_replace('custom_fields[items][', '', $value_cf['name']);
+	// 					$index =  new_str_replace('][]', '', $index);
 
-						$arr_custom_fields[$index][] = $value_cf['value'];
+	// 					$arr_custom_fields[$index][] = $value_cf['value'];
 
-					}else{
-						$index =  new_str_replace('custom_fields[items][', '', $value_cf['name']);
-						$index =  new_str_replace(']', '', $index);
+	// 				}else{
+	// 					$index =  new_str_replace('custom_fields[items][', '', $value_cf['name']);
+	// 					$index =  new_str_replace(']', '', $index);
 
-						$arr_custom_fields[$index] = $value_cf['value'];
-					}
-				}
+	// 					$arr_custom_fields[$index] = $value_cf['value'];
+	// 				}
+	// 			}
 
-				//get variation (parent attribute)
-				if(preg_match('/^name/', $value_cf['name'])){
-					$variation_name_temp = $value_cf['value'];
-				}
+	// 			//get variation (parent attribute)
+	// 			if(preg_match('/^name/', $value_cf['name'])){
+	// 				$variation_name_temp = $value_cf['value'];
+	// 			}
 
-				if(preg_match('/^options/', $value_cf['name'])){
-					$variation_option_temp = $value_cf['value'];
+	// 			if(preg_match('/^options/', $value_cf['name'])){
+	// 				$variation_option_temp = $value_cf['value'];
 
-					array_push($arr_variation, [
-						'name' => $variation_name_temp,
-						'options' => new_explode(',', $variation_option_temp),
-					]);
+	// 				array_push($arr_variation, [
+	// 					'name' => $variation_name_temp,
+	// 					'options' => new_explode(',', $variation_option_temp),
+	// 				]);
 
-					$variation_name_temp='';
-					$variation_option_temp='';
-				}
+	// 				$variation_name_temp='';
+	// 				$variation_option_temp='';
+	// 			}
 
-				//get attribute
-				if(preg_match("/^variation_names_/", $value_cf['name'])){
-					array_push($arr_attributes, [
-						'name' => new_str_replace('variation_names_', '', $value_cf['name']),
-						'option' => $value_cf['value'],
-					]);
-				}
+	// 			//get attribute
+	// 			if(preg_match("/^variation_names_/", $value_cf['name'])){
+	// 				array_push($arr_attributes, [
+	// 					'name' => new_str_replace('variation_names_', '', $value_cf['name']),
+	// 					'option' => $value_cf['value'],
+	// 				]);
+	// 			}
 
-			}
+	// 		}
 
-			$arr_insert_cf['items'] = $arr_custom_fields;
+	// 		$arr_insert_cf['items'] = $arr_custom_fields;
 
-			$formdata = $data['formdata'];
-			unset($data['formdata']);
-		}
+	// 		$formdata = $data['formdata'];
+	// 		unset($data['formdata']);
+	// 	}
 		
 
-		//get attribute
-		if(count($arr_attributes) > 0){
-			$data['attributes'] = json_encode($arr_attributes);
-		}else{
-			$data['attributes'] = null;
-		}
+	// 	//get attribute
+	// 	if(count($arr_attributes) > 0){
+	// 		$data['attributes'] = json_encode($arr_attributes);
+	// 	}else{
+	// 		$data['attributes'] = null;
+	// 	}
 
-		if(count($arr_variation) > 0){
-			$data['parent_attributes'] = json_encode($arr_variation);
-		}else{
-			$data['parent_attributes'] = null;
-		}
-
-
-		/*handle custom fields*/
-
-		if(isset($formdata)){
-			$data_insert_cf = [];
-			handle_custom_fields_post($id, $arr_insert_cf, true);
-		}
-
-		/*handle update item tag*/
-
-		if(new_strlen($data['tags']) > 0){
-
-			$this->db->where('rel_id', $id);
-			$this->db->where('rel_type', 'item_tags');
-			$arr_tag = $this->db->get(db_prefix() . 'taggables')->result_array();
-
-			if(count($arr_tag) > 0){
-	        	//update
-				$arr_tag_insert =  new_explode(',', $data['tags']);
-
-				$total_tag = count($arr_tag);
-				$tag_order_last = $arr_tag[$total_tag-1]['tag_order']+1;
-
-				foreach ($arr_tag_insert as $value) {
-					$this->db->insert(db_prefix() . 'tags', ['name' => $value]);
-					$insert_tag_id = $this->db->insert_id();
-
-					if($insert_tag_id){
-						$this->db->insert(db_prefix() . 'taggables', ['rel_id' => $id, 'rel_type'=>'item_tags', 'tag_id' => $insert_tag_id, 'tag_order' => $tag_order_last]);
-						$this->db->insert_id();
-
-						$tag_order_last++;
-					}
-
-				}
-
-			}else{
-	        	//insert
-				handle_tags_save($data['tags'], $id, 'item_tags');
-
-			}
-		}
-
-		if (isset($data['tags'])) {
-			unset($data['tags']);
-		}
-
-		$data['sku_code'] = strtoupper(new_str_replace(" ", "", $data['sku_code']));
-
-		// if(get_warehouse_option('barcode_with_sku_code') == 1){
-		// 	$data['commodity_barcode'] = $data['sku_code'];
-		// }
+	// 	if(count($arr_variation) > 0){
+	// 		$data['parent_attributes'] = json_encode($arr_variation);
+	// 	}else{
+	// 		$data['parent_attributes'] = null;
+	// 	}
 
 
-		$data['rate'] = $data['rate'];
-		$data['purchase_price'] = $data['purchase_price'];
+	// 	/*handle custom fields*/
 
-		//update column unit name use sales/items
-		$unit_type = get_unit_type($data['unit_id']);
-		if(isset($unit_type->unit_name)){
-			$data['unit'] = $unit_type->unit_name;
-		}
+	// 	if(isset($formdata)){
+	// 		$data_insert_cf = [];
+	// 		handle_custom_fields_post($id, $arr_insert_cf, true);
+	// 	}
 
-		$this->db->where('id', $id);
-		$this->db->update(db_prefix() . 'items', $data);
+	// 	/*handle update item tag*/
 
-		//update commodity min
-		$this->db->where('commodity_id', $id);
-		$data_inventory_min=[];
-		$data_inventory_min['commodity_code'] = $data['commodity_code'];
-		$data_inventory_min['commodity_name'] = $data['description'];
-		$this->db->update(db_prefix() . 'inventory_commodity_min', $data_inventory_min);
+	// 	if(new_strlen($data['tags']) > 0){
 
-		return true;
-	}
+	// 		$this->db->where('rel_id', $id);
+	// 		$this->db->where('rel_type', 'item_tags');
+	// 		$arr_tag = $this->db->get(db_prefix() . 'taggables')->result_array();
+
+	// 		if(count($arr_tag) > 0){
+	//         	//update
+	// 			$arr_tag_insert =  new_explode(',', $data['tags']);
+
+	// 			$total_tag = count($arr_tag);
+	// 			$tag_order_last = $arr_tag[$total_tag-1]['tag_order']+1;
+
+	// 			foreach ($arr_tag_insert as $value) {
+	// 				$this->db->insert(db_prefix() . 'tags', ['name' => $value]);
+	// 				$insert_tag_id = $this->db->insert_id();
+
+	// 				if($insert_tag_id){
+	// 					$this->db->insert(db_prefix() . 'taggables', ['rel_id' => $id, 'rel_type'=>'item_tags', 'tag_id' => $insert_tag_id, 'tag_order' => $tag_order_last]);
+	// 					$this->db->insert_id();
+
+	// 					$tag_order_last++;
+	// 				}
+
+	// 			}
+
+	// 		}else{
+	//         	//insert
+	// 			handle_tags_save($data['tags'], $id, 'item_tags');
+
+	// 		}
+	// 	}
+
+	// 	if (isset($data['tags'])) {
+	// 		unset($data['tags']);
+	// 	}
+
+	// 	$data['sku_code'] = strtoupper(new_str_replace(" ", "", $data['sku_code']));
+
+	// 	// if(get_warehouse_option('barcode_with_sku_code') == 1){
+	// 	// 	$data['commodity_barcode'] = $data['sku_code'];
+	// 	// }
+
+
+	// 	$data['rate'] = $data['rate'];
+	// 	$data['purchase_price'] = $data['purchase_price'];
+
+	// 	//update column unit name use sales/items
+	// 	$unit_type = get_unit_type($data['unit_id']);
+	// 	if(isset($unit_type->unit_name)){
+	// 		$data['unit'] = $unit_type->unit_name;
+	// 	}
+
+	// 	$this->db->where('id', $id);
+	// 	$this->db->update(db_prefix() . 'items', $data);
+
+	// 	//update commodity min
+	// 	$this->db->where('commodity_id', $id);
+	// 	$data_inventory_min=[];
+	// 	$data_inventory_min['commodity_code'] = $data['commodity_code'];
+	// 	$data_inventory_min['commodity_name'] = $data['description'];
+	// 	$this->db->update(db_prefix() . 'inventory_commodity_min', $data_inventory_min);
+
+	// 	return true;
+	// }
 
 	/**
 	 * get sub group
@@ -11667,60 +11732,112 @@ public function get_stock_export_pdf_html($goods_delivery_id) {
      * add one warehouse
      * @param [type] $data 
      */
-    public function add_one_warehouse($data) {
+	public function add_one_warehouse($data) 
+{
+	log_message('error', 'Raw posted warehouse data: ' . print_r($data, true));
 
-    	$option = 'off';
-    	if (isset($data['display'])) {
-    		$option = $data['display'];
-    		unset($data['display']);
-    	}
+	$option = isset($data['display']) ? $data['display'] : 'off';
+	$data['display'] = $option === 'on' ? 1 : 0;
+	unset($data['display']);
 
-    	if ($option == 'on') {
-    		$data['display'] = 1;
-    	} else {
-    		$data['display'] = 0;
-    	}
+	$hide_out = isset($data['hide_warehouse_when_out_of_stock']) ? $data['hide_warehouse_when_out_of_stock'] : 'off';
+	$data['hide_warehouse_when_out_of_stock'] = $hide_out === 'on' ? 1 : 0;
+	unset($data['hide_warehouse_when_out_of_stock']);
 
-    	if(isset($data['assign_to_staffs'])){
-    		$assign_to_staffs = $data['assign_to_staffs'];
-    		unset($data['assign_to_staffs']);
-    	}
+	$assign_to_staffs = $data['assign_to_staffs'] ?? [];
+	unset($data['assign_to_staffs']);
 
-    	$hide_warehouse_when_out_of_stock = 'off';
-    	if (isset($data['hide_warehouse_when_out_of_stock'])) {
-    		$hide_warehouse_when_out_of_stock = $data['hide_warehouse_when_out_of_stock'];
-    		unset($data['hide_warehouse_when_out_of_stock']);
-    	}
+	$custom_fields = $data['custom_fields'] ?? null;
+	unset($data['custom_fields']);
 
-    	if ($hide_warehouse_when_out_of_stock == 'on') {
-    		$data['hide_warehouse_when_out_of_stock'] = 1;
-    	} else {
-    		$data['hide_warehouse_when_out_of_stock'] = 0;
-    	}
-
-    	if (isset($data['custom_fields'])) {
-    		$custom_fields = $data['custom_fields'];
-    		unset($data['custom_fields']);
-    	}
-
-    	$this->db->insert(db_prefix() . 'warehouse', $data);
-    	$insert_id = $this->db->insert_id();
-
-    	if ($insert_id) {
-    		if (isset($custom_fields)) {
-    			handle_custom_fields_post($insert_id, $custom_fields);
-    		}
-
-    		// assigned warehouse to staffs
-    		if(is_admin() && isset($assign_to_staffs)){
-    			$this->assignWarehouseToStaffs($insert_id, $assign_to_staffs);
-    		}
-    		return $insert_id;
-    	}
+	$rack_shelf_data = [];
+	if (!empty($data['rack_shelf_data'])) {
+		$rack_shelf_data = json_decode($data['rack_shelf_data'], true);
+		if (!is_array($rack_shelf_data)) {
+			log_message('error', 'rack_shelf_data is not a valid array after decoding.');
+			$rack_shelf_data = [];
+		}
+	}
 
 
-    	return false;
-    }
+	log_message('error', 'Decoded rack_shelf_data: ' . print_r($rack_shelf_data, true));
+
+	$rack_names = $data['rack_name'] ?? [];
+	$shelf_names = $data['shelf_name'] ?? [];
+
+	unset($data['rack_shelf_data'], $data['rack_name'], $data['shelf_name']);
+
+	$lots_data = [];
+	if (!empty($data['lots_data'])) {
+	$lots_data = json_decode($data['lots_data'], true);
+	if (!is_array($lots_data)) {
+		log_message('error', 'lots_data is not a valid array after decoding.');
+		$lots_data = [];
+	}
+	}
+
+	//  This is the missing line causing your error:
+	unset($data['lots_data'], $data['lot_name']);  // <-- You must unset both
+
+
+	log_message('error', 'Final warehouse insert data: ' . print_r($data, true));
+
+	$this->db->insert(db_prefix() . 'warehouse', $data);
+	$insert_id = $this->db->insert_id();
+
+	if ($insert_id) {
+		if ($custom_fields) {
+			handle_custom_fields_post($insert_id, $custom_fields);
+		}
+
+		// Insert racks and shelves
+		foreach ($rack_shelf_data as $rack) {
+			if (!isset($rack['rack_name'])) {
+				log_message('error', 'Rack missing rack_name: ' . print_r($rack, true));
+				continue;
+			}
+
+			$this->db->insert(db_prefix() . 'wr_rack', [
+				'warehouse_id' => $insert_id,
+				'rack_name' => $rack['rack_name']
+			]);
+			$rack_id = $this->db->insert_id();
+
+			if (isset($rack['shelves']) && is_array($rack['shelves'])) {
+				foreach ($rack['shelves'] as $shelf_name) {
+					$this->db->insert(db_prefix() . 'wr_shelf', [
+						'rack_id' => $rack_id,
+						'shelf_name' => $shelf_name
+					]);
+				}
+			} else {
+				log_message('error', 'Rack has no shelves or shelves not array: ' . print_r($rack, true));
+			}
+		}
+
+		if (is_admin() && !empty($assign_to_staffs)) {
+			$this->assignWarehouseToStaffs($insert_id, $assign_to_staffs);
+		}
+
+		if (!empty($lots_data)) {
+		foreach ($lots_data as $lot_name) {
+			if (trim($lot_name) !== '') {
+			$this->db->insert(db_prefix() . 'wr_lot', [
+				'warehouse_id' => $insert_id,
+				'lot_name' => $lot_name
+			]);
+			}
+		}
+		}
+
+
+		log_message('error', 'Warehouse added successfully with ID: ' . $insert_id);
+		return $insert_id;
+	}
+
+	log_message('error', 'Warehouse insert failed.');
+	return false;
+}
 
 	/**
 	 * update color
@@ -11728,67 +11845,313 @@ public function get_stock_export_pdf_html($goods_delivery_id) {
 	 * @param  integer $id
 	 * @return boolean
 	 */
-	public function update_one_warehouse($data, $id) {
-		$option = 'off';
-		if (isset($data['display'])) {
-			$option = $data['display'];
-			unset($data['display']);
-		}
-
-		if ($option == 'on') {
-			$data['display'] = 1;
-		} else {
-			$data['display'] = 0;
-		}
-
-		$assign_to_staffs = [];
-		if(isset($data['assign_to_staffs'])){
-			$assign_to_staffs = $data['assign_to_staffs'];
-			unset($data['assign_to_staffs']);
-		}
-
-		$hide_warehouse_when_out_of_stock = 'off';
-		if (isset($data['hide_warehouse_when_out_of_stock'])) {
-			$hide_warehouse_when_out_of_stock = $data['hide_warehouse_when_out_of_stock'];
-			unset($data['hide_warehouse_when_out_of_stock']);
-		}
-
-		if ($hide_warehouse_when_out_of_stock == 'on') {
-			$data['hide_warehouse_when_out_of_stock'] = 1;
-		} else {
-			$data['hide_warehouse_when_out_of_stock'] = 0;
-		}
-
+public function update_commodity_one_item($data, $id) {
 		if (isset($data['custom_fields'])) {
 			$custom_fields = $data['custom_fields'];
 			unset($data['custom_fields']);
 		}
 
-		$affectedRows = 0;
+		$arr_insert_cf=[];
+		$arr_variation=[];
+		$arr_attributes=[];
+		$group_discount_values = [];
+        $group_discount_group_ids = [];
 
-		$this->db->where('warehouse_id', $id);
-		$this->db->update(db_prefix() . 'warehouse', $data);
+		/*get custom fields, get variation value*/
+		if(isset($data['formdata'])){
+			$arr_custom_fields=[];
 
-		if ($this->db->affected_rows() > 0) {
-			$affectedRows++;
+			$arr_variation_temp=[];
+			$variation_name_temp='';
+			$variation_option_temp='';
+			foreach ($data['formdata'] as $value_cf) {
+				// NEW: Extract group discount values
+				if ($value_cf['name'] === 'group_discount_input[]') {
+					$group_discount_values[] = $value_cf['value'];
+				}
+
+				if ($value_cf['name'] === 'group_discount_input_group_id[]') {
+					$group_discount_group_ids[] = $value_cf['value'];
+				}
+
+				if(preg_match('/^custom_fields/', $value_cf['name'])){
+					if(strpos($value_cf['name'], '[]')){
+						$index =  new_str_replace('custom_fields[items][', '', $value_cf['name']);
+						$index =  new_str_replace('][]', '', $index);
+
+						$arr_custom_fields[$index][] = $value_cf['value'];
+
+					}else{
+						$index =  new_str_replace('custom_fields[items][', '', $value_cf['name']);
+						$index =  new_str_replace(']', '', $index);
+
+						$arr_custom_fields[$index] = $value_cf['value'];
+					}
+				}
+
+				//get variation (parent attribute)
+				if(preg_match('/^name/', $value_cf['name'])){
+					$variation_name_temp = $value_cf['value'];
+				}
+
+				if(preg_match('/^options/', $value_cf['name'])){
+					$variation_option_temp = $value_cf['value'];
+
+					array_push($arr_variation, [
+						'name' => $variation_name_temp,
+						'options' => new_explode(',', $variation_option_temp),
+					]);
+
+					$variation_name_temp='';
+					$variation_option_temp='';
+				}
+
+				//get attribute
+				if(preg_match("/^variation_names_/", $value_cf['name'])){
+					array_push($arr_attributes, [
+						'name' => new_str_replace('variation_names_', '', $value_cf['name']),
+						'option' => $value_cf['value'],
+					]);
+				}
+
+			}
+
+			$arr_insert_cf['items'] = $arr_custom_fields;
+
+			$formdata = $data['formdata'];
+			unset($data['formdata']);
 		}
+		
+		// NEW: Save group discount values into item_group_discounts table
+		if (!empty($group_discount_group_ids) && !empty($group_discount_values)) {
+			foreach ($group_discount_group_ids as $index => $group_id) {
+				$discount = isset($group_discount_values[$index]) ? (float)$group_discount_values[$index] : 0;
 
-		if (isset($custom_fields)) {
-			if (handle_custom_fields_post($id, $custom_fields)) {
-				$affectedRows++;
+				// Try update if exists
+				$existing = $this->db->get_where(db_prefix().'item_group_discounts', [
+					'item_id' => $id,
+					'group_id' => $group_id
+				])->row();
+
+				if ($existing) {
+					$this->db->where('id', $existing->id);
+					$this->db->update(db_prefix().'item_group_discounts', ['discount' => $discount]);
+				} else {
+					$this->db->insert(db_prefix().'item_group_discounts', [
+						'item_id' => $id,
+						'group_id' => $group_id,
+						'discount' => $discount
+					]);
+				}
 			}
 		}
 
-		// assigned warehouse to staffs
-		if(is_admin() && isset($assign_to_staffs)){
-			$this->assignWarehouseToStaffs($id, $assign_to_staffs);
+		//get attribute
+		if(count($arr_attributes) > 0){
+			$data['attributes'] = json_encode($arr_attributes);
+		}else{
+			$data['attributes'] = null;
 		}
 
-		if ($affectedRows > 0) {
-			return true;
+		if(count($arr_variation) > 0){
+			$data['parent_attributes'] = json_encode($arr_variation);
+		}else{
+			$data['parent_attributes'] = null;
 		}
+
+
+		/*handle custom fields*/
+
+		if(isset($formdata)){
+			$data_insert_cf = [];
+			handle_custom_fields_post($id, $arr_insert_cf, true);
+		}
+
+		/*handle update item tag*/
+
+		if(new_strlen($data['tags']) > 0){
+
+			$this->db->where('rel_id', $id);
+			$this->db->where('rel_type', 'item_tags');
+			$arr_tag = $this->db->get(db_prefix() . 'taggables')->result_array();
+
+			if(count($arr_tag) > 0){
+	        	//update
+				$arr_tag_insert =  new_explode(',', $data['tags']);
+
+				$total_tag = count($arr_tag);
+				$tag_order_last = $arr_tag[$total_tag-1]['tag_order']+1;
+
+				foreach ($arr_tag_insert as $value) {
+					$this->db->insert(db_prefix() . 'tags', ['name' => $value]);
+					$insert_tag_id = $this->db->insert_id();
+
+					if($insert_tag_id){
+						$this->db->insert(db_prefix() . 'taggables', ['rel_id' => $id, 'rel_type'=>'item_tags', 'tag_id' => $insert_tag_id, 'tag_order' => $tag_order_last]);
+						$this->db->insert_id();
+
+						$tag_order_last++;
+					}
+
+				}
+
+			}else{
+	        	//insert
+				handle_tags_save($data['tags'], $id, 'item_tags');
+
+			}
+		}
+
+		if (isset($data['tags'])) {
+			unset($data['tags']);
+		}
+
+		$data['sku_code'] = strtoupper(new_str_replace(" ", "", $data['sku_code']));
+
+		
+
+
+		// if(get_warehouse_option('barcode_with_sku_code') == 1){
+		// 	$data['commodity_barcode'] = $data['sku_code'];
+		// }
+
+
+		$data['rate'] = $data['rate'];
+		$data['purchase_price'] = $data['purchase_price'];
+
+		//update column unit name use sales/items
+		$unit_type = get_unit_type($data['unit_id']);
+		if(isset($unit_type->unit_name)){
+			$data['unit'] = $unit_type->unit_name;
+		}
+
+		// Prevent group discount values from going into 'items' table
+		unset($data['group_discount_input']);
+		unset($data['group_discount_input_group_id']);
+        unset($data['group_discounts']);
+
+		$this->db->where('id', $id);
+		$this->db->update(db_prefix() . 'items', $data);
+
+		
+
+		//update commodity min
+		$this->db->where('commodity_id', $id);
+		$data_inventory_min=[];
+		$data_inventory_min['commodity_code'] = $data['commodity_code'];
+		$data_inventory_min['commodity_name'] = $data['description'];
+		$this->db->update(db_prefix() . 'inventory_commodity_min', $data_inventory_min);
 
 		return true;
+	}
+	public function update_one_warehouse($data, $id)
+{
+	log_message('info', "Updating warehouse ID: $id");
+
+	$data['display'] = isset($data['display']) && $data['display'] === 'on' ? 1 : 0;
+	$data['hide_warehouse_when_out_of_stock'] = isset($data['hide_warehouse_when_out_of_stock']) && $data['hide_warehouse_when_out_of_stock'] === 'on' ? 1 : 0;
+
+	$custom_fields = $data['custom_fields'] ?? null;
+	unset($data['custom_fields']);
+
+	$assign_to_staffs = $data['assign_to_staffs'] ?? [];
+	unset($data['assign_to_staffs']);
+
+	$rack_shelf_data = isset($data['rack_shelf_data']) ? json_decode($data['rack_shelf_data'], true) : [];
+	unset($data['rack_shelf_data'], $data['rack_name'], $data['shelf_name']);
+
+	$lot_data = isset($data['lots_data']) ? json_decode($data['lots_data'], true) : [];
+    unset($data['lots_data'], $data['lot_name']); // FIXED line
+
+
+	log_message('info', "Decoded rack_shelf_data: " . json_encode($rack_shelf_data));
+	log_message('info', "Decoded lot_data: " . json_encode($lot_data));
+
+	$affectedRows = 0;
+
+	$this->db->where('warehouse_id', $id);
+	$this->db->update(db_prefix() . 'warehouse', $data);
+	if ($this->db->affected_rows() > 0) {
+		$affectedRows++;
+		log_message('info', "Warehouse updated.");
+	}
+
+	if ($custom_fields && handle_custom_fields_post($id, $custom_fields)) {
+		$affectedRows++;
+		log_message('info', "Custom fields updated.");
+	}
+
+	if (is_admin()) {
+		$this->assignWarehouseToStaffs($id, $assign_to_staffs);
+		log_message('info', "Assigned staff updated.");
+	}
+
+	$this->db->where('warehouse_id', $id);
+	$existing_racks = $this->db->get(db_prefix() . 'wr_rack')->result_array();
+
+	foreach ($existing_racks as $rack) {
+		$this->db->where('rack_id', $rack['rack_id']);
+		$this->db->delete(db_prefix() . 'wr_shelf');
+	}
+	$this->db->where('warehouse_id', $id);
+	$this->db->delete(db_prefix() . 'wr_rack');
+
+	log_message('info', "Deleted existing racks and shelves.");
+
+	$this->db->where('warehouse_id', $id);
+	$this->db->delete(db_prefix() . 'wr_lot');
+	log_message('info', "Deleted existing lots.");
+
+	foreach ($rack_shelf_data as $rack) {
+		$this->db->insert(db_prefix() . 'wr_rack', [
+			'warehouse_id' => $id,
+			'rack_name'    => $rack['rack_name']
+		]);
+		$rack_id = $this->db->insert_id();
+
+		if (isset($rack['shelves']) && is_array($rack['shelves'])) {
+			foreach ($rack['shelves'] as $shelf_name) {
+				$this->db->insert(db_prefix() . 'wr_shelf', [
+					'rack_id'    => $rack_id,
+					'shelf_name' => $shelf_name
+				]);
+			}
+		}
+	}
+
+	log_message('info', "Inserted updated rack/shelf data.");
+
+	foreach ($lot_data as $lot_name) {
+		$this->db->insert(db_prefix() . 'wr_lot', [
+			'warehouse_id' => $id,
+			'lot_name'     => $lot_name  
+		]);
+	}
+
+	log_message('info', "Inserted updated lot data.");
+
+	return $affectedRows > 0;
+}
+
+public function get_all_lots() {
+    $this->db->select('lot_id as id, lot_name as label');
+    $this->db->from('tblwr_lot');
+    return $this->db->get()->result_array();
+}
+public function get_all_racks() {
+    $this->db->select('rack_id as id, rack_name as label');
+    $this->db->from('tblwr_rack');
+    return $this->db->get()->result_array();
+}
+public function get_all_shelves() {
+    $this->db->select('shelf_id as id, shelf_name as label');
+    $this->db->from('tblwr_shelf');
+    return $this->db->get()->result_array();
+}
+
+	public function get_group_discounts_for_commodity($commodity_id) {
+		$this->db->where('item_id', $commodity_id); // or 'commodity_id' based on your table
+		return $this->db->get(db_prefix() . 'item_group_discounts')->result_array();
 	}
 
 
@@ -14179,6 +14542,9 @@ public function get_stock_export_pdf_html($goods_delivery_id) {
     						'lot_number' => $value['lot_number'],
     						'expiry_date' => $value['expiry_date'],
     						'inventory_number' => $value['inventory_number'],
+							'rack_id' => $value['rack_id'],         // new
+							'shelf_id' => $value['shelf_id'],       // new
+							'lot_id' => $value['lot_id'],
     					]);   
     				}
 
@@ -14225,6 +14591,8 @@ public function get_stock_export_pdf_html($goods_delivery_id) {
 
 		if(isset($item_add_opening_stock_hs)){
 			$opening_stock_detail = json_decode($item_add_opening_stock_hs);
+			log_message('debug', 'Opening Stock Raw Data: ' . print_r($opening_stock_detail, true));
+
 
 			$row = [];
 			$row['update'] = []; 
@@ -14237,6 +14605,10 @@ public function get_stock_export_pdf_html($goods_delivery_id) {
 			$header[] = 'id';
 			$header[] = 'commodity_id';
 			$header[] = 'warehouse_id';
+			$header[] = 'lot_id';
+			$header[] = 'rack_id';
+			$header[] = 'shelf_id';
+
 			$header[] = 'lot_number';
 			$header[] = 'expiry_date';
 			$header[] = 'inventory_number';
@@ -14266,6 +14638,10 @@ public function get_stock_export_pdf_html($goods_delivery_id) {
 
 					$insert_temp=[];
 					$insert_temp['warehouse_id']= $in_value['warehouse_id'];
+					$insert_temp['lot_id'] = $in_value['lot_id'] ?? null;
+					$insert_temp['rack_id'] = $in_value['rack_id'] ?? null;
+					$insert_temp['shelf_id'] = $in_value['shelf_id'] ?? null;
+
 					$insert_temp['commodity_code']= $in_value['commodity_id'];
 					$insert_temp['quantities']= $in_value['inventory_number'];
 					$insert_temp['date_manufacture']= null;
@@ -14273,6 +14649,7 @@ public function get_stock_export_pdf_html($goods_delivery_id) {
 					$insert_temp['lot_number']= $in_value['lot_number'];
 					$insert_temp['serial_number']= '';
 					$insert_temp['unit_price']= $purchase_price;
+                    log_message('debug', 'Inserting inventory: ' . print_r($insert_temp, true));
 
 					$affected_rows = $this->add_inventory_manage($insert_temp, 1);
 					
@@ -14299,6 +14676,7 @@ public function get_stock_export_pdf_html($goods_delivery_id) {
 						$transaction_data['warehouse_id'] = $in_value['warehouse_id'];
 						$transaction_data['note'] = _l('import_opening_stock');
 						$transaction_data['status'] = 1;
+                        log_message('debug', 'Transaction Log Insert: ' . print_r($transaction_data, true));
 
 						$this->db->insert(db_prefix() . 'goods_transaction_detail', $transaction_data);
 
@@ -14311,6 +14689,7 @@ public function get_stock_export_pdf_html($goods_delivery_id) {
 			if(isset($row['update']) && count($row['update']) != 0){
 
 				foreach ($row['update'] as $in_value) {
+                    log_message('debug', 'Updating inventory ID ' . $inventory_manage_id . ' with data: ' . print_r($in_value, true));
 
 					$this->db->where('id', $in_value['id']);
 					$inventory_manage  = $this->db->get(db_prefix().'inventory_manage')->row();
@@ -14361,7 +14740,10 @@ public function get_stock_export_pdf_html($goods_delivery_id) {
 						$transaction_data['note'] = _l('import_opening_stock');
 						$transaction_data['status'] = $status;
 						$this->db->insert(db_prefix() . 'goods_transaction_detail', $transaction_data);
-
+						
+						$in_value['lot_id'] = isset($in_value['lot_id']) && is_numeric($in_value['lot_id']) ? $in_value['lot_id'] : null;
+						$in_value['rack_id'] = isset($in_value['rack_id']) && is_numeric($in_value['rack_id']) ? $in_value['rack_id'] : null;
+						$in_value['shelf_id'] = isset($in_value['shelf_id']) && is_numeric($in_value['shelf_id']) ? $in_value['shelf_id'] : null;
 
 						$inventory_manage_id = $in_value['id'];
 						unset($in_value['id']);
@@ -14375,6 +14757,7 @@ public function get_stock_export_pdf_html($goods_delivery_id) {
 				}
 
 
+            log_message('debug', 'Total Affected Rows: ' . $affectedRows);
 
 			$affectedRows++;
 
@@ -14388,6 +14771,21 @@ public function get_stock_export_pdf_html($goods_delivery_id) {
 		return false;
 
 	}
+
+	public function get_racks_by_warehouse($warehouse_id)
+{
+    return $this->db->get_where('tblwr_rack', ['warehouse_id' => $warehouse_id])->result_array();
+}
+
+public function get_lots_by_warehouse($warehouse_id)
+{
+    return $this->db->get_where('tblwr_lot', ['warehouse_id' => $warehouse_id])->result_array();
+}
+
+public function get_shelves_by_rack($rack_id)
+{
+    return $this->db->get_where('tblwr_shelf', ['rack_id' => $rack_id])->result_array();
+}
 
 	/**
 	 * wh get activity log
