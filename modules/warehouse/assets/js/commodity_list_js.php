@@ -570,6 +570,19 @@ warehouse_type_value = warehouse_type;
     data.long_descriptions = tinymce.activeEditor.getContent();
     data.formdata = $( form ).serializeArray();
 
+     // Extract group discount fields
+    data.group_discounts = [];
+    $('#commodity_list-add-edit input[name="group_discount_input[]"]').each(function(i) {
+      var groupId = $('#commodity_list-add-edit input[name="group_discount_input_group_id[]"]').eq(i).val();
+      var discount = $(this).val();
+
+      data.group_discounts.push({
+        group_id: groupId,
+        discount: discount
+      });
+    });
+
+
     var without_checking = $('input[id="without_checking_warehouse"]').is(":checked");
     if(without_checking == true ){
       data.without_checking_warehouse = 1;
@@ -895,7 +908,34 @@ warehouse_type_value = warehouse_type;
       $('#commodity_list-add-edit input[id="can_be_inventory"]').prop('checked', true);
     }else{
       $('#commodity_list-add-edit input[id="can_be_inventory"]').prop("checked", false);
+      
     }
+     // Get the group discounts JSON
+    var groupDiscountsRaw = $(invoker).attr('data-group-discounts');
+    var groupDiscounts = [];
+    
+    try {
+        groupDiscounts = JSON.parse(groupDiscountsRaw);
+    } catch (e) {
+        console.error('Invalid group discounts JSON', e);
+    }
+
+    // Loop through each input and update based on group_id
+    $('input[name="group_discount_input[]"]').each(function () {
+        var groupId = $(this).data('group-id'); // from input
+        var match = groupDiscounts.find(function (g) {
+            return g.group_id == groupId;
+        });
+
+        if (match) {
+            $(this).val(match.discount); // set the actual saved discount
+        } else {
+            // optionally clear or set to default
+            $(this).val($(this).data('default') || ''); // or keep as-is
+        }
+    });
+
+
 
     tinyMCE.activeEditor.setContent("");
 
@@ -1050,6 +1090,14 @@ warehouse_type_value = warehouse_type;
     tinyMCE.activeEditor.setContent("");
 
     $('#commodity_list-add-edit').find('input').not('input[type="hidden"]').val('');
+
+     $('#commodity_list-add-edit').find('input').not('input[type="hidden"]').val('');
+    // Reset group discount fields to their default values
+    $('#commodity_list-add-edit input[name="group_discount_input[]"]').each(function() {
+      var defaultVal = $(this).data('default') ?? 0;
+      $(this).val(defaultVal);
+
+    });
 
     $('#commodity_list-add-edit input[name="commodity_code"]').val('');
 

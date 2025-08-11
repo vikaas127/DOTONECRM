@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS `{TENANT_SLUG_PLACEHOLDER}activity_log` (
   `staffid` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `staffid` (`staffid`)
-) ENGINE=InnoDB AUTO_INCREMENT=612 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=714 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ALTER TABLE `{TENANT_SLUG_PLACEHOLDER}activity_log` AUTO_INCREMENT = 1;
 CREATE TABLE IF NOT EXISTS `{TENANT_SLUG_PLACEHOLDER}announcements` (
   `announcementid` int(11) NOT NULL AUTO_INCREMENT,
@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS `{TENANT_SLUG_PLACEHOLDER}clients` (
   KEY `leadid` (`leadid`),
   KEY `company` (`company`),
   KEY `active` (`active`)
-) ENGINE=InnoDB AUTO_INCREMENT=55 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=64 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ALTER TABLE `{TENANT_SLUG_PLACEHOLDER}clients` AUTO_INCREMENT = 1;
 CREATE TABLE IF NOT EXISTS `{TENANT_SLUG_PLACEHOLDER}consents` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -126,14 +126,14 @@ CREATE TABLE IF NOT EXISTS `{TENANT_SLUG_PLACEHOLDER}contacts` (
   KEY `lastname` (`lastname`),
   KEY `email` (`email`),
   KEY `is_primary` (`is_primary`)
-) ENGINE=InnoDB AUTO_INCREMENT=55 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=64 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ALTER TABLE `{TENANT_SLUG_PLACEHOLDER}contacts` AUTO_INCREMENT = 1;
 CREATE TABLE IF NOT EXISTS `{TENANT_SLUG_PLACEHOLDER}contact_permissions` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `permission_id` int(11) NOT NULL,
   `userid` int(11) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=431 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=503 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ALTER TABLE `{TENANT_SLUG_PLACEHOLDER}contact_permissions` AUTO_INCREMENT = 1;
 CREATE TABLE IF NOT EXISTS `{TENANT_SLUG_PLACEHOLDER}contracts` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -298,7 +298,7 @@ CREATE TABLE IF NOT EXISTS `{TENANT_SLUG_PLACEHOLDER}customers_groups` (
   `override_allowed` tinyint(1) DEFAULT 1 COMMENT '1 = allow item-level override, 0 = enforce group defaults only',
   PRIMARY KEY (`id`),
   KEY `name` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ALTER TABLE `{TENANT_SLUG_PLACEHOLDER}customers_groups` AUTO_INCREMENT = 1;
 CREATE TABLE IF NOT EXISTS `{TENANT_SLUG_PLACEHOLDER}customer_admins` (
   `staff_id` int(11) NOT NULL,
@@ -450,13 +450,15 @@ CREATE TABLE IF NOT EXISTS `{TENANT_SLUG_PLACEHOLDER}estimates` (
   `acceptance_ip` varchar(40) DEFAULT NULL,
   `signature` varchar(40) DEFAULT NULL,
   `short_link` varchar(100) DEFAULT NULL,
+  `production_assigned_to` int(11) DEFAULT NULL COMMENT 'Staff ID or user assigned to the production process',
+  `production_type` varchar(100) DEFAULT NULL COMMENT 'Type of production process (e.g. in-house, subcontract, etc)',
   PRIMARY KEY (`id`),
   KEY `clientid` (`clientid`),
   KEY `currency` (`currency`),
   KEY `project_id` (`project_id`),
   KEY `sale_agent` (`sale_agent`),
   KEY `status` (`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ALTER TABLE `{TENANT_SLUG_PLACEHOLDER}estimates` AUTO_INCREMENT = 1;
 CREATE TABLE IF NOT EXISTS `{TENANT_SLUG_PLACEHOLDER}estimate_requests` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -738,7 +740,7 @@ CREATE TABLE IF NOT EXISTS `{TENANT_SLUG_PLACEHOLDER}invoices` (
   KEY `sale_agent` (`sale_agent`),
   KEY `total` (`total`),
   KEY `status` (`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ALTER TABLE `{TENANT_SLUG_PLACEHOLDER}invoices` AUTO_INCREMENT = 1;
 CREATE TABLE IF NOT EXISTS `{TENANT_SLUG_PLACEHOLDER}itemable` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -758,7 +760,7 @@ CREATE TABLE IF NOT EXISTS `{TENANT_SLUG_PLACEHOLDER}itemable` (
   KEY `rel_type` (`rel_type`),
   KEY `qty` (`qty`),
   KEY `rate` (`rate`)
-) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ALTER TABLE `{TENANT_SLUG_PLACEHOLDER}itemable` AUTO_INCREMENT = 1;
 CREATE TABLE IF NOT EXISTS `{TENANT_SLUG_PLACEHOLDER}items` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -840,7 +842,7 @@ CREATE TABLE IF NOT EXISTS `{TENANT_SLUG_PLACEHOLDER}item_tax` (
   PRIMARY KEY (`id`),
   KEY `itemid` (`itemid`),
   KEY `rel_id` (`rel_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ALTER TABLE `{TENANT_SLUG_PLACEHOLDER}item_tax` AUTO_INCREMENT = 1;
 CREATE TABLE IF NOT EXISTS `{TENANT_SLUG_PLACEHOLDER}knowedge_base_article_feedback` (
   `articleanswerid` int(11) NOT NULL AUTO_INCREMENT,
@@ -1100,7 +1102,7 @@ CREATE TABLE IF NOT EXISTS `{TENANT_SLUG_PLACEHOLDER}notifications` (
   `link` longtext DEFAULT NULL,
   `additional_data` mediumtext DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=145 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=151 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ALTER TABLE `{TENANT_SLUG_PLACEHOLDER}notifications` AUTO_INCREMENT = 1;
 CREATE TABLE IF NOT EXISTS `{TENANT_SLUG_PLACEHOLDER}options` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -1356,7 +1358,7 @@ CREATE TABLE IF NOT EXISTS `{TENANT_SLUG_PLACEHOLDER}sales_activity` (
   `full_name` varchar(100) DEFAULT NULL,
   `date` datetime NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=54 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=56 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ALTER TABLE `{TENANT_SLUG_PLACEHOLDER}sales_activity` AUTO_INCREMENT = 1;
 CREATE TABLE IF NOT EXISTS `{TENANT_SLUG_PLACEHOLDER}scheduled_emails` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -1813,7 +1815,7 @@ CREATE TABLE IF NOT EXISTS `{TENANT_SLUG_PLACEHOLDER}user_meta` (
   `meta_value` longtext DEFAULT NULL,
   `candidate_id` bigint(20) unsigned NOT NULL DEFAULT 0,
   PRIMARY KEY (`umeta_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=55 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=64 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ALTER TABLE `{TENANT_SLUG_PLACEHOLDER}user_meta` AUTO_INCREMENT = 1;
 CREATE TABLE IF NOT EXISTS `{TENANT_SLUG_PLACEHOLDER}vault` (
   `id` int(11) NOT NULL AUTO_INCREMENT,

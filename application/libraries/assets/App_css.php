@@ -43,7 +43,11 @@ class App_css extends App_assets
 
         hooks()->do_action('before_compile_css_assets', $group);
 
-        $items = $this->do_items(array_keys($this->registered[$group]), $group);
+        $items = $this->do_items(
+    array_keys(isset($this->registered[$group]) && is_array($this->registered[$group]) ? $this->registered[$group] : []),
+    $group
+);
+
 
         foreach ($items as $id => $data) {
             $attributes = $defaults;

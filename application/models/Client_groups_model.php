@@ -45,17 +45,19 @@ class Client_groups_model extends App_Model
      * @param  string $id
      * @return mixed
      */
-    public function get_groups($id = '')
-    {
-        if (is_numeric($id)) {
-            $this->db->where('id', $id);
+public function get_groups($id = '')
+{
+    $this->db->select('id, name, default_discount, override_allowed');
 
-            return $this->db->get(db_prefix().'customers_groups')->row();
-        }
-        $this->db->order_by('name', 'asc');
-
-        return $this->db->get(db_prefix().'customers_groups')->result_array();
+    if (is_numeric($id)) {
+        $this->db->where('id', $id);
+        return $this->db->get(db_prefix() . 'customers_groups')->row();
     }
+
+    $this->db->order_by('name', 'asc');
+    return $this->db->get(db_prefix() . 'customers_groups')->result_array();
+}
+
 
     /**
      * Edit customer group

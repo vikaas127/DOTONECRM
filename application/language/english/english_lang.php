@@ -1045,6 +1045,7 @@ $lang['estimate_select_customer']                 = 'Customer';
 $lang['estimate_add_edit_number']                 = 'Estimate Number';
 $lang['estimate_add_edit_date']                   = 'Estimate Date';
 $lang['estimate_add_edit_expirydate']             = 'Expiry Date';
+$lang['estimate_add_edit_deliverydate']           = 'Delivery Date';
 $lang['estimate_add_edit_currency']               = 'Currency';
 $lang['estimate_add_edit_client_note']            = 'Client Note';
 $lang['estimate_add_edit_admin_note']             = 'Admin Note';
