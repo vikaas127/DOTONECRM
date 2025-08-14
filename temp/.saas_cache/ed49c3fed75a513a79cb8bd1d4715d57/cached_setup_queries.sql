@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS `{TENANT_SLUG_PLACEHOLDER}activity_log` (
   `staffid` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `staffid` (`staffid`)
-) ENGINE=InnoDB AUTO_INCREMENT=728 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=732 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ALTER TABLE `{TENANT_SLUG_PLACEHOLDER}activity_log` AUTO_INCREMENT = 1;
 CREATE TABLE IF NOT EXISTS `{TENANT_SLUG_PLACEHOLDER}announcements` (
   `announcementid` int(11) NOT NULL AUTO_INCREMENT,
@@ -816,11 +816,12 @@ CREATE TABLE IF NOT EXISTS `{TENANT_SLUG_PLACEHOLDER}items` (
   `parent_attributes` longtext DEFAULT NULL,
   `can_be_inventory` varchar(100) DEFAULT 'can_be_inventory',
   `from_vendor_item` int(11) DEFAULT NULL,
+  `thickness` decimal(10,3) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `tax` (`tax`),
   KEY `tax2` (`tax2`),
   KEY `group_id` (`group_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ALTER TABLE `{TENANT_SLUG_PLACEHOLDER}items` AUTO_INCREMENT = 1;
 CREATE TABLE IF NOT EXISTS `{TENANT_SLUG_PLACEHOLDER}items_groups` (
   `id` int(11) NOT NULL AUTO_INCREMENT,

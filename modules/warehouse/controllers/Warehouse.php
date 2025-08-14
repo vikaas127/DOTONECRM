@@ -602,6 +602,7 @@ class warehouse extends AdminController {
 		$this->load->view('commodity_list', $data);
 	}
 
+
 	/**
 	 * get commodity data ajax
 	 * @param  integer $id

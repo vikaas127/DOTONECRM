@@ -17,6 +17,9 @@
     <th><?php echo _l('_order'); ?></th>
     <th><?php echo _l('size_code'); ?></th>
     <th><?php echo _l('size_name'); ?></th>
+    <th><?php echo _l('length'); ?></th>
+    <th><?php echo _l('width'); ?></th>
+
     <th><?php echo _l('size_symbol'); ?></th>
     <th><?php echo _l('order'); ?></th>
     <th><?php echo _l('display'); ?></th>
@@ -30,6 +33,9 @@
         <td><?php echo _l($size_type['size_type_id']); ?></td>
         <td><?php echo _l($size_type['size_code']); ?></td>
         <td><?php echo _l($size_type['size_name']); ?></td>
+        <td><?php echo _l($size_type['length']); ?></td>
+        <td><?php echo _l($size_type['width']); ?></td>
+
         <td><?php echo _l($size_type['size_symbol']); ?></td>
         <td><?php echo _l($size_type['order']); ?></td>
         <td><?php if($size_type['display'] == 0){ echo _l('not_display'); }else{echo _l('display');} ?></td>

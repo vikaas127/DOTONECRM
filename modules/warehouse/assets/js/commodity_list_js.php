@@ -1,6 +1,8 @@
 <script>
   var hidden_columns = [2,6];
   var sub_group_value ='';
+  var sizesData = <?php echo json_encode($sizes); ?>;
+
 
   (function($) {
     "use strict";
@@ -539,6 +541,8 @@ warehouse_type_value = warehouse_type;
     data.description = $('input[name="description"]').val();
     data.commodity_barcode = $('input[name="commodity_barcode"]').val();
     data.sku_code = $('input[name="sku_code"]').val();
+    data.thickness = $('input[name="thickness"]').val();
+
     data.sku_name = $('input[name="sku_name"]').val();
 
     data.long_description = $('textarea[name="long_description"]').val();
@@ -782,6 +786,7 @@ warehouse_type_value = warehouse_type;
       $('#commodity_list-add-edit input[name="commodity_barcode"]').val($(invoker).data('commodity_barcode'));
       $('#commodity_list-add-edit textarea[name="long_description"]').val($(invoker).data('long_description'));
       $('#commodity_list-add-edit input[name="description"]').val($(invoker).data('description'));
+      $('#commodity_list-add-edit input[name="thickness"]').val($(invoker).data('thickness'));
 
       $('#commodity_list-add-edit input[name="sku_code"]').val($(invoker).data('sku_code'));
       $('#commodity_list-add-edit input[name="sku_name"]').val($(invoker).data('sku_name'));
@@ -1016,7 +1021,6 @@ warehouse_type_value = warehouse_type;
 
   }
 
-
   function formatNumber(n) {
     return n.replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",")
   }
@@ -1105,7 +1109,10 @@ warehouse_type_value = warehouse_type;
 
     $('#commodity_list-add-edit input[name="description"]').val('');
     $('#commodity_list-add-edit input[name="sku_code"]').val('');
+    $('#commodity_list-add-edit input[name="thickness"]').val('');
+
     $('#commodity_list-add-edit input[name="sku_name"]').val('');
+    
     $('#commodity_list-add-edit input[name="purchase_price"]').val('');
     $('#commodity_list-add-edit input[name="description"]').val('');
 
@@ -1141,11 +1148,42 @@ warehouse_type_value = warehouse_type;
     $('#commodity_list-add-edit input[id="can_be_inventory"]').prop('checked', true);
 
     $('#tags_value').find('ul li.tagit-choice').remove();
+    
     /*init tags input*/
     init_tags_inputs();
     init_selectpicker();
 
-  }
+
+    
+
+    
+}
+
+
+$(document).on('change', 'select[name="size_id"]', function () {
+    console.log('Size dropdown changed!'); // ✅ Debug log
+
+    var selectedId = $(this).val();
+    var sizeInfo = sizesData.find(s => s.size_type_id == selectedId);
+
+    if (sizeInfo) {
+        var lengthFt = parseFloat(sizeInfo.length) || 0; // from DB column 'length'
+        var widthFt  = parseFloat(sizeInfo.width) || 0;  // from DB column 'width'
+
+        // Convert ft → m
+        var lengthM = (lengthFt * 0.305).toFixed(3);
+        var widthM  = (widthFt * 0.305).toFixed(3);
+
+        // Populate UI fields
+        $('input[name="length_ft"]').val(lengthFt || '');
+        $('input[name="width_ft"]').val(widthFt || '');
+        $('input[name="length_m"]').val(lengthM || '');
+        $('input[name="width_m"]').val(widthM || '');
+    } else {
+        $('input[name="length_ft"], input[name="width_ft"], input[name="length_m"], input[name="width_m"]').val('');
+    }
+});
+
 
   $("body").on('click', '.tagit-close', function() {
     "use strict";

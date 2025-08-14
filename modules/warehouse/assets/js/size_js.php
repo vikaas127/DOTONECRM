@@ -72,6 +72,16 @@ var size_type_value = {};
                         data: 'size_name',
                         // set desired format pattern and
                       },
+                         {
+                        type: 'text',
+                        data: 'length',
+                        // set desired format pattern and
+                      },   
+                      {
+                        type: 'text',
+                        data: 'width',
+                        // set desired format pattern and
+                      },
                        {
                         type: 'text',
                         data: 'size_symbol',
@@ -99,22 +109,25 @@ var size_type_value = {};
                             "1":"<?php echo _l('size_type_id') ?>",
                             "2":"<?php echo _l('size_code') ?>",
                             "3":"<?php echo _l('size_name') ?>",
-                            "4":"<?php echo _l('size_symbol') ?>",
-                            "5":"<?php echo _l('order') ?>",
-                           "6":"<?php echo _l('display') ?>",
-                           "7":"<?php echo _l('note') ?>",
+                            "4":"<?php echo _l('length') ?>",
+                            "5":"<?php echo _l('width') ?>",
+
+                            "6":"<?php echo _l('size_symbol') ?>",
+                            "7":"<?php echo _l('order') ?>",
+                           "8":"<?php echo _l('display') ?>",
+                           "9":"<?php echo _l('note') ?>",
                           }],
 
           data: [
-          {"size_code":"","size_name":"","size_symbol":"","order":"","display":"yes","note":""},
-          {"size_code":"","size_name":"","size_symbol":"","order":"","display":"yes","note":""},
-          {"size_code":"","size_name":"","size_symbol":"","order":"","display":"yes","note":""},
-          {"size_code":"","size_name":"","size_symbol":"","order":"","display":"yes","note":""},
-          {"size_code":"","size_name":"","size_symbol":"","order":"","display":"yes","note":""},
-          {"size_code":"","size_name":"","size_symbol":"","order":"","display":"yes","note":""},
-          {"size_code":"","size_name":"","size_symbol":"","order":"","display":"yes","note":""},
-          {"size_code":"","size_name":"","size_symbol":"","order":"","display":"yes","note":""},
-          {"size_code":"","size_name":"","size_symbol":"","order":"","display":"yes","note":""},
+          {"size_code":"","size_name":"","length":"","width":"","size_symbol":"","order":"","display":"yes","note":""},
+          {"size_code":"","size_name":"","length":"","width":"","size_symbol":"","order":"","display":"yes","note":""},
+          {"size_code":"","size_name":"","length":"","width":"","size_symbol":"","order":"","display":"yes","note":""},
+          {"size_code":"","size_name":"","length":"","width":"","size_symbol":"","order":"","display":"yes","note":""},
+          {"size_code":"","size_name":"","length":"","width":"","size_symbol":"","order":"","display":"yes","note":""},
+          {"size_code":"","size_name":"","length":"","width":"","size_symbol":"","order":"","display":"yes","note":""},
+          {"size_code":"","size_name":"","length":"","width":"","size_symbol":"","order":"","display":"yes","note":""},
+          {"size_code":"","size_name":"","length":"","width":"","size_symbol":"","order":"","display":"yes","note":""},
+          {"size_code":"","size_name":"","length":"","width":"","size_symbol":"","order":"","display":"yes","note":""},
           ],
 
         });
@@ -130,6 +143,8 @@ var size_type_value = {};
 
     var size_code = $(invoker).data('size_code');
     var size_name = $(invoker).data('size_name');
+    var width = $(invoker).data('width');
+    var length = $(invoker).data('length');
     var size_symbol = $(invoker).data('size_symbol');
 
     var order = $(invoker).data('order');
@@ -206,6 +221,16 @@ var size_type_value = {};
                   data: 'size_name',
                   // set desired format pattern and
                 },
+                   {
+                  type: 'text',
+                  data: 'length',
+                  // set desired format pattern and
+                }, 
+                {
+                  type: 'text',
+                  data: 'width',
+                  // set desired format pattern and
+                },
                  {
                   type: 'text',
                   data: 'size_symbol',
@@ -233,13 +258,15 @@ var size_type_value = {};
                       "1":"<?php echo _l('size_type_id') ?>",
                       "2":"<?php echo _l('size_code') ?>",
                       "3":"<?php echo _l('size_name') ?>",
-                      "4":"<?php echo _l('size_symbol') ?>",
-                      "5":"<?php echo _l('order') ?>",
-                      "6":"<?php echo _l('display') ?>",
-                      "7":"<?php echo _l('note') ?>",
+                       "4":"<?php echo _l('length') ?>",
+                      "5":"<?php echo _l('width') ?>",
+                      "6":"<?php echo _l('size_symbol') ?>",
+                      "7":"<?php echo _l('order') ?>",
+                      "8":"<?php echo _l('display') ?>",
+                      "9":"<?php echo _l('note') ?>",
                     }],
 
-        data: [{"size_type_id":id,"size_code":size_code,"size_name":size_name,"size_symbol":size_symbol,"order":order,"display":display,"note":note}],
+        data: [{"size_type_id":id,"size_code":size_code,"size_name":size_name,"length":length,"width":width,"size_symbol":size_symbol,"order":order,"display":display,"note":note}],
 
       });
        size_type_value = size_type;

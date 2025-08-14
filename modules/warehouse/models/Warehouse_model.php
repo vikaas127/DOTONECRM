@@ -381,6 +381,9 @@ public function delete_warehouse_permission($id)
 			$header[] = 'size_type_id';
 			$header[] = 'size_code';
 			$header[] = 'size_name';
+			$header[] = 'length';
+			$header[] = 'width';
+
 			$header[] = 'size_symbol';
 			$header[] = 'order';
 			$header[] = 'display';
