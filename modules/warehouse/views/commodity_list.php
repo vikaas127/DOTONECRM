@@ -704,7 +704,7 @@ body #wrapper .dataTables_wrapper .table tr th {
 
                         <div class="row">
                             <div class="col-md-4">
-                                 <?php echo render_select('model_id',$models,array('body_type_id','body_name'),'model_id'); ?>
+                                 <?php echo render_select('model_id',$models,array('body_type_id','body_name'),'model_id'); ?>c
                             </div>
                             <div class="col-md-4">
                                  <?php echo render_select('size_id',$sizes,array('size_type_id','size_name'),'sizes'); ?>

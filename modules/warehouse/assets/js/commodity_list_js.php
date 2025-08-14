@@ -1524,6 +1524,37 @@ $(document).ready(function() {
 }
 
 
+//item name/description 
+function updateCommodityDescription() {
+  let profile_type_id = $('select[name="profile_type_id"] option:selected').text().trim();
+  let thickness = $('input[name="thickness"]').val().trim();
+  let Length = $('input[name="Length"]').val().trim();
+
+  let color = $('select[name="color"] option:selected').text().trim();
+  let finish_type_id = $('select[name="finish_type_id"] option:selected').text().trim();
+  let size_id = $('select[name="size_id"] option:selected').text().trim();
+  let finish_side = $('select[name="finish_side"] option:selected').text().trim();
+
+  // Remove placeholders like 'Select', '-- Select --', 'Select...'
+  const cleanValue = (val) => {
+    return /select/i.test(val) ? '' : val;
+  };
+
+  material_type_id = cleanValue(material_type_id);
+ 
+
+  const description = [material_type_id, profile_type_id, color, finish_type_id,  size_id,  Length,Thickness]
+    .filter(Boolean)
+    .join(' | ');
+
+  $('input[name="description"]').val(description);
+}
+
+// Event binding
+$('select[name="material_type_id"], select[name="profile_type_id"], select[name="color"], select[name="finish_type_id"], select[name="finish_side"], select[name="size_id"], input[name="Thickness"], input[name="Length"]')
+  .on('change keyup', updateCommodityDescription);
+
+
 //variation
 var addMoreVendorsInputKey;
 (function($) {
