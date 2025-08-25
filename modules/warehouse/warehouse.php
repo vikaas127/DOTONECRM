@@ -31,7 +31,7 @@ define('WAREHOUSE_REPORT', 'modules/warehouse/uploads/reports/');
 
 define('REVISION', 139);
 //true display: brand, model, series in settings menu
-define('ACTIVE_BRAND_MODEL_SERIES', false);
+define('ACTIVE_BRAND_MODEL_SERIES', true);
 define('ACTIVE_PROPOSAL', true);
 define('ACTIVE_PROPOSAL_OLD_CUSTOMER', false);
 define('WAREHOUSE_PATH_LIBRARIES', 'modules/warehouse/libraries');

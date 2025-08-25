@@ -2548,6 +2548,8 @@ class warehouse extends AdminController {
 							_l('style_id')          =>'string',
 							_l('model_id')          =>'string',
 							_l('size_id')          =>'string',
+						    _l('thickness')          =>'string',
+
 							_l('_color')          =>'string',
 							_l('guarantee_month')          =>'string',
 							_l('minimum_inventory')          =>'string',
@@ -2561,7 +2563,7 @@ class warehouse extends AdminController {
 
                         $writer = new XLSXWriter();
 
-                        $col_style1 =[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22];
+                        $col_style1 =[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23];
                         $style1 = ['widths'=> $widths_arr, 'fill' => '#ff9800',  'font-style'=>'bold', 'color' => '#0a0a0a', 'border'=>'left,right,top,bottom', 'border-color' => '#0a0a0a', 'font-size' => 13 ];
 
                         $writer->writeSheetHeader_v2('Sheet1', $writer_header,  $col_options = ['widths'=> $widths_arr, 'fill' => '#f44336',  'font-style'=>'bold', 'color' => '#0a0a0a', 'border'=>'left,right,top,bottom', 'border-color' => '#0a0a0a', 'font-size' => 13 ], $col_style1, $style1);
@@ -2602,6 +2604,7 @@ class warehouse extends AdminController {
 								$flag_id_style_id;
 								$flag_id_model_id;
 								$flag_id_size_id;
+
 								$flag_id_color_id;
 
 
@@ -2626,9 +2629,11 @@ class warehouse extends AdminController {
 								$value_cell_style_id = isset($data[$row][17]) ? $data[$row][17] : '';
 								$value_cell_model_id = isset($data[$row][18]) ? $data[$row][18] : '';
 								$value_cell_size_id = isset($data[$row][19]) ? $data[$row][19] : '';
-								$value_cell_color_id = isset($data[$row][20]) ? (int)$data[$row][20] : '';
-								$value_cell_warranty = isset($data[$row][21]) ? $data[$row][21] : null;
-								$value_cell_minimum_inventory = isset($data[$row][22]) ? $data[$row][22] : '';
+								$value_cell_thickness = isset($data[$row][20]) ? $data[$row][20] : '';
+
+								$value_cell_color_id = isset($data[$row][21]) ? (int)$data[$row][21] : '';
+								$value_cell_warranty = isset($data[$row][22]) ? $data[$row][22] : null;
+								$value_cell_minimum_inventory = isset($data[$row][23]) ? $data[$row][23] : '';
 
 								$pattern = '#^[a-z][a-z0-9\._]{2,31}@[a-z0-9\-]{3,}(\.[a-z]{2,4}){1,2}$#';
 
@@ -3033,7 +3038,7 @@ class warehouse extends AdminController {
 									$rd['commodity_barcode'] = isset($data[$row][2]) ? $data[$row][2] : '';
 									$rd['sku_code'] = isset($data[$row][3]) ? $data[$row][3] : '';
 									$rd['sku_name'] = isset($data[$row][4]) ? $data[$row][4] : '';
-									$rd['description'] = isset($data[$row][1]) ? $data[$row][1] : '';
+									// $rd['description'] = isset($data[$row][1]) ? $data[$row][1] : '';
 									$rd['tags'] = isset($data[$row][5]) ? $data[$row][5] : '';
 									$rd['long_description'] = isset($data[$row][6]) ? $data[$row][6] : '';
 
@@ -3041,7 +3046,7 @@ class warehouse extends AdminController {
 									$rd['unit_id'] = isset($flag_id_unit_id) ? $flag_id_unit_id : '';
 									$rd['group_id'] = isset($flag_id_commodity_group) ? $flag_id_commodity_group : '';
 									$rd['sub_group'] = isset($flag_id_sub_group) ? $flag_id_sub_group : '';
-									$rd['guarantee'] = isset($data[$row][21]) ? $data[$row][21] : '';
+									$rd['guarantee'] = isset($data[$row][22]) ? $data[$row][22] : '';
 									$rd['tax'] = isset($flag_id_tax) ? $flag_id_tax : '';
 									$rd['tax2'] = isset($flag_id_tax2) ? $flag_id_tax2 : null;
 
@@ -3050,6 +3055,8 @@ class warehouse extends AdminController {
 									$rd['style_id'] = isset($flag_id_style_id) ? $flag_id_style_id : '';
 									$rd['model_id'] = isset($flag_id_model_id) ? $flag_id_model_id : '';
 									$rd['size_id'] = isset($flag_id_size_id) ? $flag_id_size_id : '';
+									$rd['thickness'] = isset($data[$row][20]) ? $data[$row][20] : '';
+
 									$rd['color'] = isset($flag_id_color_id) ? $flag_id_color_id : 0;
 									$rd['warehouse_id'] = 0;
 
@@ -3060,7 +3067,68 @@ class warehouse extends AdminController {
 									$rd['minimum_inventory'] = isset($value_cell_minimum_inventory) ? $value_cell_minimum_inventory : 0;
 									$rd['without_checking_warehouse'] =  0;
 
-								}
+
+									// Inside your foreach loop for each row before INSERT
+// 1. Excel-provided description
+$excel_description = isset($data[$row][1]) ? trim($data[$row][1]) : '';
+
+// 2. Thickness in mm (as integer)
+$thickness_mm = isset($data[$row][20]) ? round($data[$row][20]) : 0;
+
+$model_name = '';
+				if (!empty($value_cell_model_id)) {
+										$this->db->select('body_name');
+										$this->db->where('body_type_id', $value_cell_model_id);
+										$model = $this->db->get(db_prefix() . 'ware_body_type')->row();
+
+										if (!$model) {
+											$this->db->select('body_name');
+											$this->db->where('body_code', $value_cell_model_id);
+											$model = $this->db->get(db_prefix() . 'ware_body_type')->row();
+										}
+
+										$model_name = $model ? $model->body_name : '';
+									}
+
+
+
+$length_in = '';
+$width_in  = '';
+
+if (!empty($value_cell_size_id)) {
+    // First try with size_type_id
+    $this->db->select('length, width');
+    $this->db->where('size_type_id', $value_cell_size_id);
+    $sizeRes = $this->db->get(db_prefix() . 'ware_size_type')->row();
+
+    // If not found, try with size_code
+    if (!$sizeRes) {
+        $this->db->select('length, width');
+        $this->db->where('size_code', $value_cell_size_id);
+        $sizeRes = $this->db->get(db_prefix() . 'ware_size_type')->row();
+    }
+
+    if ($sizeRes) {
+        $length_in = round($sizeRes->length); // no decimal
+        $width_in  = round($sizeRes->width);  // no decimal
+    }
+}
+
+
+// 5. Convert inches to meters (keep 3 decimals)
+$length_m = '';
+$width_m  = '';
+if ($length_in !== '' && $width_in !== '') {
+    $length_m = round($length_in * 0.0254, 4);
+    $width_m  = round($width_in * 0.0254, 4);
+}
+
+// 6. Build final description
+
+$rd['description'] = trim("{$thickness_mm}mm | {$excel_description} | {$model_name} | {$length_m}X{$width_m}({$length_in}X{$width_in})", " | ");
+
+
+				}
 
 								$flag_insert = false;
 
@@ -3105,6 +3173,8 @@ class warehouse extends AdminController {
 										$value_cell_style_id,
 										$value_cell_model_id,
 										$value_cell_size_id,
+								        $value_cell_thickness,
+
 										$value_cell_color_id,
 										$value_cell_warranty,
 										$value_cell_minimum_inventory,

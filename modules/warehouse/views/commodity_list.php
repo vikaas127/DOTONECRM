@@ -384,6 +384,8 @@ body #wrapper .dataTables_wrapper .table tr th {
                                             _l('unit_name'),
                                             _l('rate'),
                                             _l('purchase_price'),
+                                           _l('thickness'),
+
                                             _l('tax_1'),
                                             _l('tax_2'),
                                             _l('status'),                         
@@ -545,14 +547,43 @@ body #wrapper .dataTables_wrapper .table tr th {
                           </div>
 
                             <div class="row">
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <?php echo render_input('commodity_code', 'commodity_code'); ?>
                                 </div>
-                                <div class="col-md-6">
-                                  <?php echo render_input('description', 'commodity_name'); ?>
+                                <div class="col-md-4">
+                                  <?php echo render_input('short_description', 'short_commodity_name'); ?>
+                                </div>
+                                <div class="col-md-4">
+                                  <?php echo render_input('description', 'commodity_name', '', 'text', ['readonly' => true]); ?>
                                 </div>
                                 
                             </div>
+                             <div class="row">
+                            <div class="col-md-4">
+                                 <?php echo render_select('model_id',$models,array('body_type_id','body_name'),'model_id'); ?>
+                            </div>
+                            <div class="col-md-4">
+                                 <?php echo render_select('size_id',$sizes,array('size_type_id','size_name'),'sizes'); ?>
+                            </div>
+                            <div class="col-md-4">
+                                    <?php echo render_input('thickness', 'thickness'); ?>
+                                </div>
+                          <div class="col-md-3">
+                              <?php echo render_input('length_in', 'Length (in)', '', 'number', ['readonly' => true]); ?>
+                          </div>
+                          <div class="col-md-3">
+                              <?php echo render_input('width_in', 'Width (in)', '', 'number', ['readonly' => true]); ?>
+                          </div>
+
+                          <!-- Meters -->
+                          <div class="col-md-3">
+                              <?php echo render_input('length_m', 'Length (m)', '', 'number', ['readonly' => true]); ?>
+                          </div>
+                          <div class="col-md-3">
+                              <?php echo render_input('width_m', 'Width (m)', '', 'number', ['readonly' => true]); ?>
+                          </div>
+                         
+                        </div>
 
                             <div class="row">
                                <div class="col-md-6">
@@ -702,33 +733,7 @@ body #wrapper .dataTables_wrapper .table tr th {
                             </div>
                         </div>
 
-                        <div class="row">
-                            <div class="col-md-4">
-                                 <?php echo render_select('model_id',$models,array('body_type_id','body_name'),'model_id'); ?>c
-                            </div>
-                            <div class="col-md-4">
-                                 <?php echo render_select('size_id',$sizes,array('size_type_id','size_name'),'sizes'); ?>
-                            </div>
-                            <div class="col-md-4">
-                                    <?php echo render_input('thickness', 'thickness'); ?>
-                                </div>
-
-        <div class="col-md-3">
-            <?php echo render_input('length_ft', 'Length (ft)', '', 'number', ['readonly' => true]); ?>
-        </div>
-        <div class="col-md-3">
-            <?php echo render_input('width_ft', 'Width (ft)', '', 'number', ['readonly' => true]); ?>
-        </div>
-
-        <!-- Meters -->
-        <div class="col-md-3">
-            <?php echo render_input('length_m', 'Length (m)', '', 'number', ['readonly' => true]); ?>
-        </div>
-        <div class="col-md-3">
-            <?php echo render_input('width_m', 'Width (m)', '', 'number', ['readonly' => true]); ?>
-        </div>
-                         
-                        </div>
+                       
                         
                         
 

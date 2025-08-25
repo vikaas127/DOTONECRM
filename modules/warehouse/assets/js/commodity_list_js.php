@@ -769,7 +769,7 @@ warehouse_type_value = warehouse_type;
       }
     }
 
-    function edit_commodity_item(invoker){
+  function edit_commodity_item(invoker){
       "use strict";
       $('#commodity_list-add-edit').modal('show');
       
@@ -791,6 +791,18 @@ warehouse_type_value = warehouse_type;
       $('#commodity_list-add-edit input[name="sku_code"]').val($(invoker).data('sku_code'));
       $('#commodity_list-add-edit input[name="sku_name"]').val($(invoker).data('sku_name'));
       $('#commodity_list-add-edit input[name="purchase_price"]').val($(invoker).data('purchase_price'));
+
+      var descVal = $(invoker).data('description') || '';
+      var shortDesc = '';
+
+      if (descVal.includes('|')) {
+          var parts = descVal.split('|').map(p => p.trim()); // trim each part
+          if (parts.length >= 3) {
+              shortDesc = parts[1].trim(); // ✅ ensure no extra spaces
+          }
+      }
+
+      $('#commodity_list-add-edit input[name="short_description"]').val(shortDesc);
 
 
       if($(invoker).data('tax') != 0){
@@ -1052,7 +1064,8 @@ warehouse_type_value = warehouse_type;
 
 
 
-  function new_commodity_item(){
+function new_commodity_item()
+{
     
     "use strict";
 
@@ -1160,6 +1173,44 @@ warehouse_type_value = warehouse_type;
 }
 
 
+function updateDescriptionField() {
+    var thicknessVal = $('input[name="thickness"]').val().trim();
+    var thickness = '';
+
+    if (thicknessVal !== '') {
+        // Convert to number and remove decimals if whole number
+        var num = parseFloat(thicknessVal);
+        thickness = Number.isNaN(num) ? '' : (Number.isInteger(num) ? num : num.toString());
+    }
+
+    var shortDesc = $('input[name="short_description"]').val().trim(); // UI-only
+    var grade     = $('select[name="model_id"] option:selected').text().trim();
+
+    var lengthM   = $('input[name="length_m"]').val();
+    var widthM    = $('input[name="width_m"]').val();
+    var lengthFt  = $('input[name="length_in"]').val();
+    var widthFt   = $('input[name="width_in"]').val();
+
+    var parts = [];
+
+    if (thickness) parts.push(thickness + 'mm');
+    if (shortDesc) parts.push(shortDesc);
+    if (grade)     parts.push(grade);
+
+    if (lengthM && widthM) {
+        parts.push(`${lengthM}X${widthM} (${lengthFt}X${widthFt})`);
+    }
+
+    $('input[name="description"]').val(parts.join(' | '));
+}
+
+$(document).on('change keyup', 
+    'input[name="thickness"], input[name="short_description"], select[name="model_id"], select[name="size_id"]', 
+    updateDescriptionField
+);
+
+
+
 $(document).on('change', 'select[name="size_id"]', function () {
     console.log('Size dropdown changed!'); // ✅ Debug log
 
@@ -1171,18 +1222,22 @@ $(document).on('change', 'select[name="size_id"]', function () {
         var widthFt  = parseFloat(sizeInfo.width) || 0;  // from DB column 'width'
 
         // Convert ft → m
-        var lengthM = (lengthFt * 0.305).toFixed(3);
-        var widthM  = (widthFt * 0.305).toFixed(3);
+        var lengthM = (lengthFt * 0.0254).toFixed(4);
+        var widthM  = (widthFt * 0.0254).toFixed(4);
 
         // Populate UI fields
-        $('input[name="length_ft"]').val(lengthFt || '');
-        $('input[name="width_ft"]').val(widthFt || '');
+        $('input[name="length_in"]').val(lengthFt || '');
+        $('input[name="width_in"]').val(widthFt || '');
         $('input[name="length_m"]').val(lengthM || '');
         $('input[name="width_m"]').val(widthM || '');
     } else {
-        $('input[name="length_ft"], input[name="width_ft"], input[name="length_m"], input[name="width_m"]').val('');
+        $('input[name="length_in"], input[name="width_in"], input[name="length_m"], input[name="width_m"]').val('');
     }
+
+    // ✅ Force description refresh immediately
+    updateDescriptionField();
 });
+
 
 
   $("body").on('click', '.tagit-close', function() {
@@ -1525,34 +1580,7 @@ $(document).ready(function() {
 
 
 //item name/description 
-function updateCommodityDescription() {
-  let profile_type_id = $('select[name="profile_type_id"] option:selected').text().trim();
-  let thickness = $('input[name="thickness"]').val().trim();
-  let Length = $('input[name="Length"]').val().trim();
 
-  let color = $('select[name="color"] option:selected').text().trim();
-  let finish_type_id = $('select[name="finish_type_id"] option:selected').text().trim();
-  let size_id = $('select[name="size_id"] option:selected').text().trim();
-  let finish_side = $('select[name="finish_side"] option:selected').text().trim();
-
-  // Remove placeholders like 'Select', '-- Select --', 'Select...'
-  const cleanValue = (val) => {
-    return /select/i.test(val) ? '' : val;
-  };
-
-  material_type_id = cleanValue(material_type_id);
- 
-
-  const description = [material_type_id, profile_type_id, color, finish_type_id,  size_id,  Length,Thickness]
-    .filter(Boolean)
-    .join(' | ');
-
-  $('input[name="description"]').val(description);
-}
-
-// Event binding
-$('select[name="material_type_id"], select[name="profile_type_id"], select[name="color"], select[name="finish_type_id"], select[name="finish_side"], select[name="size_id"], input[name="Thickness"], input[name="Length"]')
-  .on('change keyup', updateCommodityDescription);
 
 
 //variation
