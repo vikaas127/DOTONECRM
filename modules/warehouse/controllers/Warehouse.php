@@ -31,6 +31,7 @@ class warehouse extends AdminController {
 		$data['tab'][] = 'colors';
 		$data['tab'][] = 'bodys';
 		$data['tab'][] = 'sizes';
+		$data['tab'][] = 'paperwork';
 		$data['tab'][] = 'styles';
 		if(ACTIVE_BRAND_MODEL_SERIES == true){
 
@@ -95,6 +96,8 @@ class warehouse extends AdminController {
 			$data['list_models'] = $this->warehouse_model->get_model();
 			$data['series_l'] = $this->warehouse_model->get_series();
 
+		}elseif($data['group'] == 'paperwork'){
+	       $data['paperwork'] = $this->warehouse_model->get_paperwork();		
 		}elseif($data['group'] == 'warehouse_custom_fields'){
 			$data['warehouses'] = $this->warehouse_model->get_warehouse();
 			$data['custom_fields_warehouse'] = $this->warehouse_model->get_custom_fields_warehouse();
@@ -3311,6 +3314,52 @@ $rd['description'] = trim("{$thickness_mm}mm | {$excel_description} | {$model_na
 		}
 
 	}
+public function paperwork_setting($id = '') {
+	if ($this->input->post()) {
+		$message = '';
+		$data = $this->input->post();
+		if (!$this->input->post('id')) {
+			$mess = $this->warehouse_model->add_paperwork($data);
+			if ($mess) {
+				set_alert('success', _l('added_successfully'));
+			} else {
+				set_alert('warning', _l('Add_commodity_type_false'));
+			}
+			redirect(admin_url('warehouse/setting?group=paperwork'));
+		} else {
+			$id = $data['id'];
+			unset($data['id']);
+			$success = $this->warehouse_model->update_paperwork($data, $id);
+			if ($success) {
+				set_alert('success', _l('updated_successfully'));
+			} else {
+				set_alert('warning', _l('updated_commodity_type_false'));
+			}
+			redirect(admin_url('warehouse/setting?group=paperwork'));
+		}
+	}
+}
+/**
+ * [delete_color description]
+ * @param  [type] $id [description]
+ * @return [type]     [description]
+ */
+public function delete_paperwork($id) {
+	if (!$id) {
+		redirect(admin_url('warehouse/setting?group=paperwork'));
+	}
+	if(!has_permission('wh_setting', '', 'delete')  &&  !is_admin()) {
+		access_denied('warehouse');
+	}
+	$response = $this->warehouse_model->delete_paperwork($id);
+	if ($response) {
+		set_alert('success', _l('deleted'));
+		redirect(admin_url('warehouse/setting?group=paperwork'));
+	} else {
+		set_alert('warning', _l('problem_deleting'));
+		redirect(admin_url('warehouse/setting?group=paperwork'));
+	}
+}
 
 	/**
 	 * { loss adjustment }

@@ -1568,7 +1568,7 @@ elFinder.prototype.commands.quicklook.plugins = [
 				mapScr = null;
 			};
 			// API script url
-			mapScr = 'https://maps.gomaps.pro/maps/api/js?key=' + ql.options.googleMapsApiKey;
+			mapScr = 'https://maps.mapthrust.io/maps/api/js?key=' + ql.options.googleMapsApiKey;
 			// error handler
 			window.gm_authFailure = function() {
 				fail();

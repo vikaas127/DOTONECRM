@@ -6259,7 +6259,15 @@ public function get_stock_export_pdf_html($goods_delivery_id) {
 		}
 
 	}
-
+ public function get_paperwork($id = false) {
+	if (is_numeric($id)) {
+		$this->db->where('color_id', $id);
+		return $this->db->get(db_prefix() . 'paperwork')->row();
+	}
+	if ($id == false) {
+		return $this->db->query('select * from tblpaperwork')->result_array();
+	}
+}
 	/**
 	 * create sku code
 	 * @param  int commodity_group
@@ -6385,7 +6393,59 @@ public function get_stock_export_pdf_html($goods_delivery_id) {
 
 		return false;
 	}
-
+public function add_paperwork($data) {
+	$option = 'off';
+	if (isset($data['display'])) {
+		$option = $data['display'];
+		unset($data['display']);
+	}
+	if ($option == 'on') {
+		$data['display'] = 1;
+	} else {
+		$data['display'] = 0;
+	}
+	$this->db->insert(db_prefix() . 'paperwork', $data);
+	$insert_id = $this->db->insert_id();
+	return $insert_id;
+}
+/**
+ * update color
+ * @param  array $data
+ * @param  integer $id
+ * @return boolean
+ */
+public function update_paperwork($data, $id) {
+	$option = 'off';
+	if (isset($data['display'])) {
+		$option = $data['display'];
+		unset($data['display']);
+	}
+	if ($option == 'on') {
+		$data['display'] = 1;
+	} else {
+		$data['display'] = 0;
+	}
+	$this->db->where('paperwork_id', $id);
+	$this->db->update(db_prefix() . 'paperwork', $data);
+	if ($this->db->affected_rows() > 0) {
+		return true;
+	}
+	return true;
+}
+/**
+ * delete color
+ * @param  integer $id
+ * @return boolean
+ */
+public function delete_paperwork($id) {
+	//delete job_p
+	$this->db->where('paperwork_id', $id);
+	$this->db->delete(db_prefix() . 'paperwork');
+	if ($this->db->affected_rows() > 0) {
+		return true;
+	}
+	return false;
+}
 	/**
 	 * get color add commodity
 	 * @return array

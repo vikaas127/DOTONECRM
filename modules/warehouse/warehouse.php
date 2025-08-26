@@ -362,6 +362,9 @@ function warehouse_load_js(){
     if (!(strpos($viewuri, '/admin/warehouse/setting?group=colors') === false)) {
          echo '<script src="' . module_dir_url(WAREHOUSE_MODULE_NAME, 'assets/js/color.js').'?v=' . REVISION.'"></script>';
     }
+    if (!(strpos($viewuri, '/admin/warehouse/setting?group=paperwork') === false)) {
+         echo '<script src="' . module_dir_url(WAREHOUSE_MODULE_NAME, 'assets/js/paperwork.js').'?v=' . REVISION.'"></script>';
+    }
 
 
     if (!(strpos($viewuri, '/admin/warehouse/goods_delivery') === false) || !(strpos($viewuri, '/admin/warehouse/manage_goods_receipt') === false)) {
