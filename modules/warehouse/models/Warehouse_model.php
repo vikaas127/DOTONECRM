@@ -6261,13 +6261,15 @@ public function get_stock_export_pdf_html($goods_delivery_id) {
 	}
  public function get_paperwork($id = false) {
 	if (is_numeric($id)) {
-		$this->db->where('color_id', $id);
+		$this->db->where('paper_id', $id);
 		return $this->db->get(db_prefix() . 'paperwork')->row();
 	}
 	if ($id == false) {
 		return $this->db->query('select * from tblpaperwork')->result_array();
 	}
 }
+
+
 	/**
 	 * create sku code
 	 * @param  int commodity_group
@@ -6393,45 +6395,89 @@ public function get_stock_export_pdf_html($goods_delivery_id) {
 
 		return false;
 	}
-public function add_paperwork($data) {
-	$option = 'off';
-	if (isset($data['display'])) {
-		$option = $data['display'];
-		unset($data['display']);
-	}
-	if ($option == 'on') {
-		$data['display'] = 1;
-	} else {
-		$data['display'] = 0;
-	}
-	$this->db->insert(db_prefix() . 'paperwork', $data);
-	$insert_id = $this->db->insert_id();
-	return $insert_id;
+public function add_paperwork($data, $id = false) {
+    $affectedRows = 0;
+
+    if (isset($data['hot_paperwork'])) {
+        $hot_paperwork = $data['hot_paperwork'];
+        unset($data['hot_paperwork']);
+    }
+
+    if (isset($hot_paperwork)) {
+        $type_detail = json_decode($hot_paperwork);
+
+        $es_detail = [];
+        $row = [];
+        $header = [];
+
+        // Define table columns
+        $header[] = 'paperwork_id';
+        $header[] = 'paperwork_code';
+        $header[] = 'paperwork_name';
+        $header[] = 'order';
+        $header[] = 'display';
+        $header[] = 'note';
+
+        foreach ($type_detail as $key => $value) {
+            // only add rows if paperwork_code is not empty
+            if ($value[1] != '') {
+                $es_detail[] = array_combine($header, $value);
+            }
+        }
+    }
+
+    $row = [];
+    $row['update'] = [];
+    $row['insert'] = [];
+
+    if (!empty($es_detail)) {
+        foreach ($es_detail as $key => $value) {
+            // convert yes/no to 1/0
+            if ($value['display'] == 'yes') {
+                $value['display'] = 1;
+            } else {
+                $value['display'] = 0;
+            }
+
+            if (!empty($value['paperwork_id'])) {
+                $row['update'][] = $value;
+            } else {
+                unset($value['paperwork_id']);
+                $row['insert'][] = $value;
+            }
+        }
+    }
+
+    // Insert new rows
+    if (count($row['insert']) > 0) {
+        $affected_rows = $this->db->insert_batch(db_prefix().'paperwork', $row['insert']);
+        if ($affected_rows > 0) {
+            $affectedRows++;
+        }
+    }
+
+    // Update existing rows
+    if (count($row['update']) > 0) {
+        $affected_rows = $this->db->update_batch(db_prefix().'paperwork', $row['update'], 'paperwork_id');
+        if ($affected_rows > 0) {
+            $affectedRows++;
+        }
+    }
+
+    if ($affectedRows > 0) {
+        return true;
+    }
+
+    return false;
 }
+
 /**
  * update color
  * @param  array $data
  * @param  integer $id
  * @return boolean
  */
-public function update_paperwork($data, $id) {
-	$option = 'off';
-	if (isset($data['display'])) {
-		$option = $data['display'];
-		unset($data['display']);
-	}
-	if ($option == 'on') {
-		$data['display'] = 1;
-	} else {
-		$data['display'] = 0;
-	}
-	$this->db->where('paperwork_id', $id);
-	$this->db->update(db_prefix() . 'paperwork', $data);
-	if ($this->db->affected_rows() > 0) {
-		return true;
-	}
-	return true;
-}
+
 /**
  * delete color
  * @param  integer $id
@@ -6446,6 +6492,7 @@ public function delete_paperwork($id) {
 	}
 	return false;
 }
+
 	/**
 	 * get color add commodity
 	 * @return array

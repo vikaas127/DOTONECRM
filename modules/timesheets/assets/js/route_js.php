@@ -6,9 +6,15 @@
   }
 
   (function(){
+        console.log("Script started");
+
     var hot;
+    
     var setHeader = <?php echo json_encode($header); ?>;
     var dataObject = <?php echo json_encode($data_object); ?>;
+    console.log("Hot element:", document.querySelector('#example'));
+    console.log("Headers:", setHeader);
+    console.log("Data object:", dataObject);
 
     var staff = $('select[name="staff[]"]').val();
     var columns = [];

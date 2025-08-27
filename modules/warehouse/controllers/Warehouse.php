@@ -97,7 +97,7 @@ class warehouse extends AdminController {
 			$data['series_l'] = $this->warehouse_model->get_series();
 
 		}elseif($data['group'] == 'paperwork'){
-	       $data['paperwork'] = $this->warehouse_model->get_paperwork();		
+	       $data['paperworks'] = $this->warehouse_model->get_paperwork();		
 		}elseif($data['group'] == 'warehouse_custom_fields'){
 			$data['warehouses'] = $this->warehouse_model->get_warehouse();
 			$data['custom_fields_warehouse'] = $this->warehouse_model->get_custom_fields_warehouse();
@@ -3314,31 +3314,37 @@ $rd['description'] = trim("{$thickness_mm}mm | {$excel_description} | {$model_na
 		}
 
 	}
-public function paperwork_setting($id = '') {
-	if ($this->input->post()) {
-		$message = '';
-		$data = $this->input->post();
-		if (!$this->input->post('id')) {
-			$mess = $this->warehouse_model->add_paperwork($data);
-			if ($mess) {
-				set_alert('success', _l('added_successfully'));
-			} else {
-				set_alert('warning', _l('Add_commodity_type_false'));
-			}
-			redirect(admin_url('warehouse/setting?group=paperwork'));
-		} else {
-			$id = $data['id'];
-			unset($data['id']);
-			$success = $this->warehouse_model->update_paperwork($data, $id);
-			if ($success) {
-				set_alert('success', _l('updated_successfully'));
-			} else {
-				set_alert('warning', _l('updated_commodity_type_false'));
-			}
-			redirect(admin_url('warehouse/setting?group=paperwork'));
-		}
-	}
+
+
+public function paperwork($id = '') {
+    if ($this->input->post()) {
+        $data = $this->input->post();
+
+        if (!$this->input->post('id')) {
+            // Add new paperwork
+            $mess = $this->warehouse_model->add_paperwork($data);
+            if ($mess) {
+                set_alert('success', _l('added_successfully') . ' ' . _l('paperwork'));
+            } else {
+                set_alert('warning', _l('add_paperwork_false'));
+            }
+            redirect(admin_url('warehouse/setting?group=paperwork'));
+
+        } else {
+            // Update paperwork
+            $id = $data['id'];
+            unset($data['id']);
+            $success = $this->warehouse_model->add_paperwork($data, $id);
+            if ($success) {
+                set_alert('success', _l('updated_successfully') . ' ' . _l('paperwork'));
+            } else {
+                set_alert('warning', _l('updated_paperwork_false'));
+            }
+            redirect(admin_url('warehouse/setting?group=paperwork'));
+        }
+    }
 }
+
 /**
  * [delete_color description]
  * @param  [type] $id [description]

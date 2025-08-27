@@ -4526,7 +4526,15 @@ public function check_in_ts() {
 					$type_check = _l('checked_out_at');
 					$alert_type = 'alert-warning';
 				}
-				$html_list .= '<div class="row"><div class="col-md-12"><div class="alert ' . $alert_type . '">' . $type_check . ': ' . _dt($value['date']) . '</div></div></div>';
+				// $html_list .= '<div class="row"><div class="col-md-12"><div class="alert ' . $alert_type . '">' . $type_check . ': ' . _dt($value['date']) . '</div></div></div>';
+				$html_list .= '<div class="row">
+                     <div class="col-md-12">
+                       <div class="alert ' . $alert_type . '">
+                         <strong>' . $type_check . '</strong>: ' . _dt($value['date']) . '<br>
+                         <strong>Address</strong>: ' . (!empty($value['address']) ? $value['address'] : 'N/A') . '
+                       </div>
+                     </div>
+                   </div>';
 			}
 			echo json_encode([
 				'html_list' => $html_list,
@@ -5177,6 +5185,9 @@ public function check_in_ts() {
 		$this->load->view('route_management/manage', $data);
 	}
 
+ 
+
+
 	public function get_route_map_data($staffid = '', $current_date = '') {
 		if ($staffid == '') {
 			$staffid = get_staff_user_id();
@@ -5821,7 +5832,7 @@ public function check_in_ts() {
 					'type_check',
 					'id',
 					'workplace_id',
-					'route_point_id',
+					'route_point_id','address',
 				];
 
 				$query = '';
@@ -5902,7 +5913,7 @@ public function check_in_ts() {
 					'date',
 					'type_check',
 					'workplace_id',
-					'route_point_id',
+					'route_point_id','address',
 				]);
 
 				$output = $result['output'];
@@ -5948,7 +5959,7 @@ public function check_in_ts() {
 					}
 // End workplace
 					$row[] = $workplace_name;
-
+ $row[] = !empty($aRow['address']) ? html_escape($aRow['address']) : '-';
 // Route
 					$route_name = '';
 					if ($aRow['route_point_id'] && $aRow['route_point_id'] != '' && $aRow['route_point_id'] != 0) {
@@ -6972,6 +6983,7 @@ public function check_in_ts() {
 							$alert_type = 'alert-warning';
 						}
 						$html_list .= '<div class="row"><div class="col-md-12"><div class="alert ' . $alert_type . '">' . $type_check_st . ': ' . _dt($value['date']) . '</div></div></div>';
+				
 					}
 					if ($type_check == 1) {
 						$message = _l('check_in_successfull');

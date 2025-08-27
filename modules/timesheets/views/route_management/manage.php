@@ -32,6 +32,7 @@
 						</div>
 						<br>
 						<?php $this->load->view($tab); ?>
+						
 					</div>
 				</div>
 			</div>
