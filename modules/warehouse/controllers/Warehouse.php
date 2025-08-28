@@ -39,7 +39,7 @@ class warehouse extends AdminController {
 			$data['tab'][] = 'model';
 			$data['tab'][] = 'series';
 		}
-
+		$data['tab'][] = 'item_name_setting';
 		$data['tab'][] = 'warehouse_custom_fields';
 		$data['tab'][] = 'inventory';
 		$data['tab'][] = 'inventory_setting';
@@ -76,6 +76,21 @@ class warehouse extends AdminController {
 		} elseif ($data['group'] == 'approval_setting') {
 			$data['staffs'] = $this->staff_model->get();
 			$data['approval_setting'] = $this->warehouse_model->get_approval_setting();
+
+		}elseif($data['group'] == 'item_name_setting') { 
+			 $data['item_groups'] = $this->db->get('tblitems_groups')->result_array();
+			   $data['sub_groups'] = $this->db->get('tblwh_sub_group')->result_array();    
+			   $data['attributes'] = $this->warehouse_model->get_item_attributes();
+
+
+			   $prefs = $this->db->get('tblnaming_attr_pref')->result_array(); 
+			    foreach($prefs as &$p){ 
+					$p['attributes'] = $this->warehouse_model->get_pref_attributes($p['id']);
+				 } 
+				$data['naming_rules'] = $prefs; } elseif ($data['group'] == 'sub_group') { 
+				$data['sub_groups'] = $this->warehouse_model->get_sub_group(); $data['item_group'] = $this->warehouse_model->get_item_group();
+
+             $data['used_group_subgroups'] = $this->warehouse_model->get_used_group_subgroups();
 
 		} elseif ($data['group'] == 'sub_group') {
 
@@ -120,6 +135,98 @@ class warehouse extends AdminController {
 
 		$this->load->view('manage_setting', $data);
 	}
+
+
+public function save_pref($id = null) {
+    $post = $this->input->post();
+    
+    // Use hidden input pref_id if present
+    $pref_id = !empty($post['pref_id']) ? $post['pref_id'] : $id;
+
+    $group_ids = isset($post['group_ids']) ? json_encode($post['group_ids']) : json_encode([]);
+    $subgroup_ids = isset($post['subgroup_ids']) ? json_encode($post['subgroup_ids']) : json_encode([]);
+
+    // Save or update pref
+    $pref_id = $this->warehouse_model->save_pref([
+        'group_ids' => $group_ids,
+        'subgroup_ids' => $subgroup_ids
+    ], $pref_id);
+
+    // Clear old attributes if editing
+    $this->warehouse_model->clear_pref_attrs($pref_id);
+
+    // Save attributes
+    if(isset($post['attr'])){
+        foreach($post['attr'] as $attrName => $attrData){
+            $this->warehouse_model->save_pref_attr($pref_id, [
+                'name' => $attrName,
+                'display_order' => $attrData['order'] ?? 0,
+                'separator' => $attrData['separator'] ?? ' - ',
+                'use_attr' => isset($attrData['include']) ? 1 : 0
+            ]);
+        }
+    }
+
+    set_alert('success','Preference Saved Successfully');
+    redirect(admin_url('warehouse/setting?group=item_name_setting'));
+}
+
+
+public function delete_pref($id){
+    $this->warehouse_model->delete_pref($id);
+    set_alert('success','Preference Deleted');
+    redirect(admin_url('warehouse/setting?group=item_name_setting'));
+}
+
+public function get_pref($id) {
+    $pref = $this->db->where('id', $id)->get('tblnaming_attr_pref')->row_array();
+    if ($pref) {
+        $pref['group_ids'] = json_decode($pref['group_ids'], true);
+        $pref['subgroup_ids'] = json_decode($pref['subgroup_ids'], true);
+        $pref['attributes'] = $this->warehouse_model->get_pref_attributes($id);
+
+        $pref['subgroups'] = [];
+        if (!empty($pref['group_ids'])) {
+            // Get all subgroups for selected groups
+            $this->db->where_in('group_id', $pref['group_ids']);
+            $allSubgroups = $this->db->get('tblwh_sub_group')->result_array();
+
+            // Get subgroups already assigned to other preferences
+            $this->db->select('subgroup_ids');
+            $this->db->where('id !=', $id); // exclude current pref
+            $assignedPrefs = $this->db->get('tblnaming_attr_pref')->result_array();
+
+            $assignedSubgroups = [];
+            foreach ($assignedPrefs as $ap) {
+                $subIds = json_decode($ap['subgroup_ids'], true);
+                if (is_array($subIds)) {
+                    $assignedSubgroups = array_merge($assignedSubgroups, $subIds);
+                }
+            }
+
+            // Mark subgroups already assigned
+            foreach ($allSubgroups as $sg) {
+                $sg['disabled'] = in_array($sg['id'], $assignedSubgroups) ? true : false;
+                $pref['subgroups'][] = $sg;
+            }
+        }
+    }
+    echo json_encode($pref);
+}
+
+
+public function get_subgroups_by_groups() {
+    $group_ids = $this->input->post('group_ids');
+    $result = [];
+
+    if (!empty($group_ids)) {
+        $this->db->where_in('group_id', $group_ids);
+        $result = $this->db->get('tblwh_sub_group')->result_array();
+    }
+
+    echo json_encode($result);
+}
+
 
 	/**
 	 * commodity type
@@ -600,6 +707,16 @@ class warehouse extends AdminController {
             $data['items']     = [];
             $data['ajaxItems'] = true;
         }
+
+		$pref_data = $this->db->get('tblnaming_attr_pref')->result_array();
+
+		// Get all store attributes
+		$store_data = $this->db->get('tblnaming_attr_store')->result_array();
+
+		// Pass to view
+		$data['pref_data'] = $pref_data;
+		$data['store_data'] = $store_data;
+
 
 		$data['proposal_id'] = $id;
 		$this->load->view('commodity_list', $data);
@@ -2287,6 +2404,17 @@ class warehouse extends AdminController {
 		}
 
 	}
+
+public function get_item_description()
+{
+    $group_id = $this->input->post('group_id');
+    $sub_group_id = $this->input->post('sub_group_id');
+    $item_id = $this->input->post('item_id');
+
+    $description = $this->warehouse_model->build_item_description($item_id, $group_id, $sub_group_id);
+
+    echo json_encode(['description' => $description]);
+}
 
 	/**
 	 * get commodity file url

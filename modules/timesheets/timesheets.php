@@ -329,6 +329,7 @@ function timesheets_load_js() {
 		echo '<script src="' . base_url('modules/timesheets/assets/js/check_in_out_ts.js') . '?v=' . TIMESHEETS_REVISION . '"></script>';
 		require "modules/timesheets/views/includes/modals/check_in_out.php";
 	}
+	
 	if (!(strpos($viewuri, '/admin/timesheets/route_management?tab=route_point') === false)) {
 		echo '<script src="' . module_dir_url(TIMESHEETS_MODULE_NAME, 'assets/js/route_point.js') . '?v=' . TIMESHEETS_REVISION . '"></script>';
 	}

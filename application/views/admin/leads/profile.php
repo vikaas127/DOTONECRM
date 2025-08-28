@@ -238,11 +238,57 @@
                         <?php echo(isset($lead) && $lead->default_language != '' ? (ucfirst($lead->default_language)) : _l('system_default_string')) ?>
                     </dd>
                     <?php } ?>
-                    <dt class="lead-field-heading tw-font-medium tw-text-neutral-500">
+
+                  <!--  <dt class="lead-field-heading tw-font-medium tw-text-neutral-500">
                         <?php echo _l('lead_add_edit_assigned'); ?></dt>
                     <dd class="tw-text-neutral-900 tw-mt-1 mbot15">
                         <?php echo(isset($lead) && $lead->assigned != 0 ? (get_staff_full_name($lead->assigned)) : '-') ?>
-                    </dd>
+                    </dd > 
+                    -->
+<dt class="lead-field-heading tw-font-medium tw-text-neutral-500">
+    <?php echo _l('lead_add_edit_assigned'); ?>
+</dt>
+<dd class="tw-text-neutral-900 tw-mt-1 mbot15">
+    <div class="d-flex align-items-center gap-2">
+        <span>
+            <?php echo (isset($lead) && $lead->assigned != 0 ? get_staff_full_name($lead->assigned) : '-') ?>
+        </span>
+
+        <?php if (isset($lead) && !empty($lead->id)) : ?>
+            <?php if ($lead->assigned == get_staff_user_id() || is_admin()) : ?>
+                <button type="button"
+                        class="btn btn-sm btn-primary checkin-btn"
+                        data-type="checkin"
+                        data-lead-id="<?php echo $lead->id; ?>">
+                    Check-In
+                </button>
+
+                <button type="button"
+                        class="btn btn-sm btn-outline-primary checkout-btn"
+                        data-type="checkout"
+                        data-lead-id="<?php echo $lead->id; ?>">
+                    Check-Out
+                </button>
+            <?php endif; ?>
+        <?php endif; ?>
+    </div>
+</dd>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                     <dt class="lead-field-heading tw-font-medium tw-text-neutral-500"><?php echo _l('tags'); ?></dt>
                     <dd class="tw-text-neutral-900 tw-mt-1 mbot10">
                         <?php
@@ -521,5 +567,9 @@ $(function() {
         }
     });
 });
+
+
+
+
 </script>
 <?php } ?>

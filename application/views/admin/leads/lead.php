@@ -119,6 +119,11 @@ if (isset($lead)) {
                                     <?php echo _l('lead_add_edit_activity'); ?>
                                 </a>
                             </li>
+                            <li role="presentation" class="active">
+    <a href="#tab_lead_checkin" aria-controls="tab_lead_profile" role="tab"
+        data-toggle="tab">
+        <?php echo _l('lead_checkinhistory'); ?>
+    </a>
                             <?php if (is_gdpr() && (get_option('gdpr_enable_lead_public_form') == '1' || get_option('gdpr_enable_consent_for_leads') == '1')) { ?>
                             <li role="presentation">
                                 <a href="#gdpr" aria-controls="gdpr" role="tab" data-toggle="tab">

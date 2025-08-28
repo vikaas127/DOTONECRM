@@ -551,7 +551,7 @@ body #wrapper .dataTables_wrapper .table tr th {
                                     <?php echo render_input('commodity_code', 'commodity_code'); ?>
                                 </div>
                                 <div class="col-md-4">
-                                  <?php echo render_input('short_description', 'short_commodity_name'); ?>
+                                  <?php echo render_input('short_name', 'short_commodity_name'); ?>
                                 </div>
                                 <div class="col-md-4">
                                   <?php echo render_input('description', 'commodity_name', '', 'text', ['readonly' => true]); ?>

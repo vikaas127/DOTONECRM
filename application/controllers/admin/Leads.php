@@ -334,6 +334,63 @@ class Leads extends AdminController
             'id'       => $id,
         ]);
     }
+public function save_checkin()
+{
+    if (!is_staff_logged_in()) {
+        show_error('Forbidden', 403);
+    }
+
+    $lead_id    = $this->input->post('leadid', true);
+    $type       = $this->input->post('type', true); // 'checkin' or 'checkout'
+    $latitude   = $this->input->post('latitude', true);
+    $longitude  = $this->input->post('longitude', true);
+    $accuracy_m = $this->input->post('accuracy_m', true);
+    $address    = $this->input->post('address', true);
+
+    if (!$lead_id || !in_array($type, ['checkin','checkout'])) {
+        return $this->output->set_status_header(422)->set_output('Invalid input');
+    }
+
+    $staff_id   = get_staff_user_id();
+    $ip_address = $this->input->ip_address();
+    $user_agent = $this->input->user_agent();
+
+    $data = [
+        'lead_id'    => (int)$lead_id,
+        'staff_id'   => (int)$staff_id,
+        'type'       => $type,
+        'latitude'   => $latitude !== null && $latitude !== '' ? $latitude : null,
+        'longitude'  => $longitude !== null && $longitude !== '' ? $longitude : null,
+        'accuracy_m' => $accuracy_m !== null && $accuracy_m !== '' ? $accuracy_m : null,
+        'address'    => $address,
+        'ip_address' => $ip_address,
+        'user_agent' => $user_agent,
+        'created_at' => date('Y-m-d H:i:s'),
+    ];
+
+    $this->db->insert(db_prefix().'lead_checkins', $data);
+
+    // Log in Perfex activity timeline (optional but handy)
+    $activity_text = ucfirst($type) . ' by ' . get_staff_full_name() .
+        ($latitude && $longitude ? " @ ($latitude, $longitude)" : '') .
+        ($address ? " - $address" : '') .
+        " | IP: $ip_address";
+
+    // You probably already have add_activity method; if not, insert to lead activity table directly.
+    if (method_exists($this, 'add_activity')) {
+        $this->add_activity($lead_id, $activity_text);
+    } else {
+        // Example fallback:
+        $this->db->insert(db_prefix().'lead_activity_log', [
+            'leadid'     => (int)$lead_id,
+            'date'       => date('Y-m-d H:i:s'),
+            'description'=> $activity_text,
+            'staffid'    => (int)$staff_id
+        ]);
+    }
+
+    return $this->output->set_content_type('application/json')->set_output(json_encode(['success' => true]));
+}
 
     public function add_activity()
     {

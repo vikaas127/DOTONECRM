@@ -1,3 +1,7 @@
+let locationTrackerId = null;
+let lastTrackTime = 0;
+let lastTrackLat = null;
+let lastTrackLng = null;
 (function () {
   "use strict";
   $(document).on("click", ".btn-edit-datetime", function () {
@@ -44,9 +48,10 @@ function setDate(hour, minute, second) {
  */
 function open_check_in_out() {
   "use strict";
-  if ($('input[name="enable_get_location"]').val() == true) {
+  if ($('input[name="enable_get_location"]').val() === "1") {
     getLocation();
   }
+
   $("#clock_attendance_modal .curr_date .form-group").slideUp(1);
   $('#clock_attendance_modal').modal('show');
   appValidateForm($('#timesheets-form-check-in'), {
@@ -172,31 +177,125 @@ function get_route_point() {
     });
   }
 }
-function get_data() {
-  "use strict";
-  var route_point = $('#route_point').val();
-  $('input[name="point_id"]').val(route_point);
-  $('#timesheets-form-check-in .check_in').attr('disabled', 'disabled');
-  $('#timesheets-form-check-out .check_out').attr('disabled', 'disabled');
+function get_data(form) {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            const latitude = position.coords.latitude;
+            const longitude = position.coords.longitude;
+            // Set hidden input value inside the correct form
+            $(form).find('input[name="location_user"]').val(latitude + ',' + longitude);
+            console.log('Submitting with location:', latitude + ',' + longitude);
+            form.submit();
+        }, function() {
+            alert('Unable to retrieve your location');
+        });
+    } else {
+        alert('Geolocation is not supported');
+    }
+    return false; // prevent default submission until location is set
 }
 
-function getLocation() {
+// function get_data() {
+//   "use strict";
+//   var route_point = $('#route_point').val();
+//   $('input[name="point_id"]').val(route_point);
+//   $('#timesheets-form-check-in .check_in').attr('disabled', 'disabled');
+//   $('#timesheets-form-check-out .check_out').attr('disabled', 'disabled');
+//   var type_check = $('input[name="type_check"]').val();
+
+//   if (type_check == "1") {
+//     startLocationTracking(); 
+//   } else if (type_check == "2") {
+//     stopLocationTracking();
+//   }
+// }
+
+// function getLocation() {
+//   "use strict";
+//   function success(position) {
+//     const latitude = position.coords.latitude;
+//     const longitude = position.coords.longitude;
+//     console.log('Location to send:', $('#clock_attendance_modal input[name="location_user"]').val());
+
+//     $('#clock_attendance_modal input[name="location_user"]').val(latitude + ',' + longitude);
+//     get_route_point();
+//   }
+
+//   function error() {
+//     alert('Unable to retrieve your location');
+//   }
+
+//   if (!navigator.geolocation) {
+//     alert('Geolocation is not supported by your browser');
+//   } else {
+//     navigator.geolocation.getCurrentPosition(success, error);
+//   }
+// }
+
+function getLocation(callback) {
   "use strict";
-  function success(position) {
-    const latitude = position.coords.latitude;
-    const longitude = position.coords.longitude;
-    $('#clock_attendance_modal input[name="location_user"]').val(latitude + ',' + longitude);
-    get_route_point();
-  }
-
-  function error() {
-    alert('Unable to retrieve your location');
-  }
-
   if (!navigator.geolocation) {
     alert('Geolocation is not supported by your browser');
-  } else {
-    navigator.geolocation.getCurrentPosition(success, error);
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    function success(position) {
+      const latitude = position.coords.latitude;
+      const longitude = position.coords.longitude;
+      $('#clock_attendance_modal input[name="location_user"]').val(latitude + ',' + longitude);
+      get_route_point();
+      if (callback) callback(); // call next action after location is ready
+    },
+    function error() {
+      alert('Unable to retrieve your location');
+    }
+  );
+}
+
+function startLocationTracking() {
+  if (locationTrackerId !== null) return;
+
+  locationTrackerId = navigator.geolocation.watchPosition(function (pos) {
+    const lat = pos.coords.latitude;
+    const lng = pos.coords.longitude;
+    const accuracy = pos.coords.accuracy;
+    const now = Date.now();
+
+    const moved = lastTrackLat === null ||
+                  Math.abs(lat - lastTrackLat) > 0.0003 ||
+                  Math.abs(lng - lastTrackLng) > 0.0003 ||
+                  (now - lastTrackTime > 300000); // 5 mins
+
+    if (moved) {
+      $.post(admin_url + 'timesheets/save_location', {
+        lat: lat,
+        lng: lng,
+        accuracy: accuracy
+      }, function (res) {
+        console.log('✅ Location tracked:', res);
+      });
+
+      lastTrackLat = lat;
+      lastTrackLng = lng;
+      lastTrackTime = now;
+    }
+  }, function (err) {
+    console.warn('⛔ GPS error:', err);
+  }, {
+    enableHighAccuracy: true,
+    timeout: 10000,
+    maximumAge: 0
+  });
+
+  console.log('📍 Tracking started');
+}
+
+function stopLocationTracking() {
+  if (locationTrackerId !== null) {
+    navigator.geolocation.clearWatch(locationTrackerId);
+    locationTrackerId = null;
+    console.log('🛑 Tracking stopped');
   }
 }
 

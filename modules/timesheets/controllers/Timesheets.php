@@ -883,6 +883,27 @@ class timesheets extends AdminController {
 		$data['list_approve_status'] = $this->timesheets_model->get_list_approval_details($id, $rel_type);
 		$this->load->view('timesheets/requisition_detail', $data);
 	}
+public function location_history($staff_id = null)
+{
+    // Only staff or admin can view
+    if (!is_staff_logged_in()) {
+        show_error('Forbidden', 403);
+    }
+
+    $this->load->model('timesheets_model');
+
+    // If no staff_id passed, use logged-in staff
+    if (!$staff_id) {
+        $staff_id = get_staff_user_id();
+    }
+
+    // Get location history (latest 100)
+    $locations = $this->timesheets_model->get_location_history($staff_id, 100);
+
+    $data['locations'] = $locations;
+    $data['staff_id'] = $staff_id;
+    $this->load->view('timekeeping/location_detailed_history', $data);
+}
 
 /**
  * delete requisition
@@ -3975,8 +3996,10 @@ public function check_in_ts() {
 			if ($re == true) {
 				if ($type == 1) {
 					set_alert('success', _l('check_in_successfull'));
+					$this->session->set_flashdata('start_location_tracking', true);
 				} else {
 					set_alert('success', _l('check_out_successfull'));
+					 $this->session->set_flashdata('stop_location_tracking', true);
 				}
 			} else {
 				if ($type == 1) {
@@ -3989,6 +4012,33 @@ public function check_in_ts() {
 		redirect(admin_url('timesheets/timekeeping?group=timesheets'));
 	}
 }
+public function save_location()
+{
+    if (!is_staff_logged_in()) {
+        show_error('Forbidden', 403);
+    }
+
+    $lat = $this->input->post('lat');
+    $lng = $this->input->post('lng');
+    $accuracy = $this->input->post('accuracy');
+
+    if (!$lat || !$lng) {
+        echo json_encode(['error' => 'Invalid location']);
+        return;
+    }
+
+    $this->db->insert(db_prefix() . 'checkout_history', [
+        'staff_id'     => get_staff_user_id(),
+        'latitude'     => $lat,
+        'longitude'    => $lng,
+        'accuracy_m'   => $accuracy,
+        'recorded_at'  => date('Y-m-d H:i:s'),
+        'created_by'   => get_staff_user_id()
+    ]);
+
+    echo json_encode(['success' => true]);
+}
+
 /**
  * get leave setting
  * @return json

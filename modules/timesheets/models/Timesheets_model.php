@@ -2559,6 +2559,8 @@ class timesheets_model extends app_model
 	 */
 	public function check_in($data)
 	{
+		log_message('debug', 'Check-in data: ' . json_encode($data));
+
 		// Check valid IP 
 		$enable_check_valid_ip = get_timesheets_option('timekeeping_enable_valid_ip');
 		if ($enable_check_valid_ip && $enable_check_valid_ip == 1) {
@@ -2629,6 +2631,8 @@ class timesheets_model extends app_model
 			}
 			$point_id = '';
 			$workplace_id = '';
+			log_message('debug', 'Check-in step: $check_more=' . $check_more . ', latitude=' . ($latitude ?? '') . ', longitude=' . ($longitude ?? '') . ', point_id=' . ($point_id ?? ''));
+
 			if ($check_more != '') {
 				if (isset($data['location_user'])) {
 					$data_location = explode(',', $data['location_user']);
@@ -2650,6 +2654,8 @@ class timesheets_model extends app_model
 						}
 						switch ($check_more) {
 							case 'check_route':
+							
+
 								// Attendance by route point
 								// Get geolocation of this route point and caculation distance to location of you
 								// If valid will return route id to insert in check_in_out table
@@ -2676,6 +2682,8 @@ class timesheets_model extends app_model
 										$route_point_longitude = $data_route_point->longitude;
 										$max_distance = $data_route_point->distance;
 									}
+									log_message('debug', 'Route point data: route_lat=' . $route_point_latitude . ', route_lng=' . $route_point_longitude . ', max_distance=' . $max_distance);
+
 									if ($latitude != '' && $longitude != '' && $route_point_latitude != '' && $route_point_longitude != '' && $max_distance != '') {
 										$cal_distance = $this->compute_distance($route_point_latitude, $route_point_longitude, $latitude, $longitude);
 										if ((float) $cal_distance > (float) $max_distance) {
@@ -6090,6 +6098,12 @@ class timesheets_model extends app_model
 		// No time attendance according to location
 		return $obj;
 	}
+public function get_location_history($staff_id, $limit = 100)
+{
+    return $this->db->order_by('recorded_at', 'DESC')
+                    ->get_where(db_prefix() . 'checkout_history', ['staff_id' => $staff_id], $limit)
+                    ->result_array();
+}
 
 	/**
 	 * get ts by date and staff leave

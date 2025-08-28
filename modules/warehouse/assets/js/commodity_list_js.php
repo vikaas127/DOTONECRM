@@ -2,9 +2,13 @@
   var hidden_columns = [2,6];
   var sub_group_value ='';
   var sizesData = <?php echo json_encode($sizes); ?>;
+var tblNamingAttrPref = <?php echo json_encode($pref_data); ?>;
+var tblNamingAttrStore = <?php echo json_encode($store_data); ?>;
 
 
-  (function($) {
+
+
+(function($) {
     "use strict";
 
     $('input[name="description"]' ).change(function() {
@@ -173,7 +177,7 @@
 
 
 
-   })(jQuery); 
+})(jQuery); 
 
 
 
@@ -769,7 +773,8 @@ warehouse_type_value = warehouse_type;
       }
     }
 
-  function edit_commodity_item(invoker){
+function edit_commodity_item(invoker)
+{
       "use strict";
       $('#commodity_list-add-edit').modal('show');
       
@@ -792,17 +797,8 @@ warehouse_type_value = warehouse_type;
       $('#commodity_list-add-edit input[name="sku_name"]').val($(invoker).data('sku_name'));
       $('#commodity_list-add-edit input[name="purchase_price"]').val($(invoker).data('purchase_price'));
 
-      var descVal = $(invoker).data('description') || '';
-      var shortDesc = '';
-
-      if (descVal.includes('|')) {
-          var parts = descVal.split('|').map(p => p.trim()); // trim each part
-          if (parts.length >= 3) {
-              shortDesc = parts[1].trim(); // ✅ ensure no extra spaces
-          }
-      }
-
-      $('#commodity_list-add-edit input[name="short_description"]').val(shortDesc);
+      
+      $('#commodity_list-add-edit input[name="short_name"]').val($(invoker).data('short_name'));
 
 
       if($(invoker).data('tax') != 0){
@@ -1031,7 +1027,7 @@ warehouse_type_value = warehouse_type;
     $('#commodity_list-add-edit').find('select').selectpicker('refresh');
 
 
-  }
+}
 
   function formatNumber(n) {
     return n.replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",")
@@ -1061,11 +1057,57 @@ warehouse_type_value = warehouse_type;
     input[0].setSelectionRange(caret_pos, caret_pos);
   }
 
+// function updateLiveDescription() {
+//     var group_id = parseInt($('#commodity_list-add-edit select[name="group_id"]').val());
+//     var sub_group_id = parseInt($('#commodity_list-add-edit select[name="sub_group"]').val());
+
+//     if(!group_id || !sub_group_id) {
+//         $('#commodity_list-add-edit input[name="description"]').val('');
+//         $('#commodity_list-add-edit input[name="sku_name"]').val('');
+//         return;
+//     }
+
+//     // Find the matching pref
+//     var pref = tblNamingAttrPref.find(p => 
+//         p.group_ids.includes(group_id) && p.subgroup_ids.includes(sub_group_id)
+//     );
+
+//     if(!pref) {
+//         $('#commodity_list-add-edit input[name="description"]').val('');
+//         $('#commodity_list-add-edit input[name="sku_name"]').val('');
+//         return;
+//     }
+
+//     // Get store attributes for this pref, only where use_attr=true, ordered by display_order
+//     var storeAttrs = tblNamingAttrStore
+//         .filter(attr => attr.pref_id === pref.id && attr.use_attr)
+//         .sort((a,b) => a.display_order - b.display_order);
+
+//     var description = '';
+
+//     storeAttrs.forEach((attr, index) => {
+//         var inputEl = $('#commodity_list-add-edit [name="' + attr.name + '"]');
+//         if(inputEl.length) {
+//             var val = inputEl.val().trim();
+//             if(val) {
+//                 if(description !== '') description += attr.separator; // use this attribute's separator
+//                 description += val;
+//             }
+//         }
+//     });
+
+//     // Update inputs
+//     $('#commodity_list-add-edit input[name="description"]').val(description);
+//     $('#commodity_list-add-edit input[name="sku_name"]').val(description);
+// }
+
+// Attach live listeners
+// $('#commodity_list-add-edit').on('input change', 'input, select, textarea', updateLiveDescription);
 
 
 
-function new_commodity_item()
-{
+
+function new_commodity_item(){
     
     "use strict";
 
@@ -1092,6 +1134,8 @@ function new_commodity_item()
         $(".selectpicker").selectpicker('refresh');
 
         init_ajax_search('items','#parent_id.ajax-search',undefined,admin_url+'warehouse/wh_parent_item_search');
+        // updateLiveDescription();
+
     });
 
     $('#commodity_list-add-edit').modal('show');
@@ -1121,6 +1165,8 @@ function new_commodity_item()
     $('#commodity_list-add-edit textarea[name="long_description"]').val('');
 
     $('#commodity_list-add-edit input[name="description"]').val('');
+    $('#commodity_list-add-edit input[name="short_name"]').val('');
+
     $('#commodity_list-add-edit input[name="sku_code"]').val('');
     $('#commodity_list-add-edit input[name="thickness"]').val('');
 
@@ -1167,47 +1213,50 @@ function new_commodity_item()
     init_selectpicker();
 
 
-    
+    // setTimeout(updateLiveDescription, 100); // small delay ensures inputs exist
+
 
     
 }
 
 
-function updateDescriptionField() {
-    var thicknessVal = $('input[name="thickness"]').val().trim();
-    var thickness = '';
 
-    if (thicknessVal !== '') {
-        // Convert to number and remove decimals if whole number
-        var num = parseFloat(thicknessVal);
-        thickness = Number.isNaN(num) ? '' : (Number.isInteger(num) ? num : num.toString());
-    }
 
-    var shortDesc = $('input[name="short_description"]').val().trim(); // UI-only
-    var grade     = $('select[name="model_id"] option:selected').text().trim();
+// function updateDescriptionField() {
+//     var thicknessVal = $('input[name="thickness"]').val().trim();
+//     var thickness = '';
 
-    var lengthM   = $('input[name="length_m"]').val();
-    var widthM    = $('input[name="width_m"]').val();
-    var lengthFt  = $('input[name="length_in"]').val();
-    var widthFt   = $('input[name="width_in"]').val();
+//     if (thicknessVal !== '') {
+//         // Convert to number and remove decimals if whole number
+//         var num = parseFloat(thicknessVal);
+//         thickness = Number.isNaN(num) ? '' : (Number.isInteger(num) ? num : num.toString());
+//     }
 
-    var parts = [];
+//     var shortDesc = $('input[name="short_description"]').val().trim(); // UI-only
+//     var grade     = $('select[name="model_id"] option:selected').text().trim();
 
-    if (thickness) parts.push(thickness + 'mm');
-    if (shortDesc) parts.push(shortDesc);
-    if (grade)     parts.push(grade);
+//     var lengthM   = $('input[name="length_m"]').val();
+//     var widthM    = $('input[name="width_m"]').val();
+//     var lengthFt  = $('input[name="length_in"]').val();
+//     var widthFt   = $('input[name="width_in"]').val();
 
-    if (lengthM && widthM) {
-        parts.push(`${lengthM}X${widthM} (${lengthFt}X${widthFt})`);
-    }
+//     var parts = [];
 
-    $('input[name="description"]').val(parts.join(' | '));
-}
+//     if (thickness) parts.push(thickness + 'mm');
+//     if (shortDesc) parts.push(shortDesc);
+//     if (grade)     parts.push(grade);
 
-$(document).on('change keyup', 
-    'input[name="thickness"], input[name="short_description"], select[name="model_id"], select[name="size_id"]', 
-    updateDescriptionField
-);
+//     if (lengthM && widthM) {
+//         parts.push(`${lengthM}X${widthM} (${lengthFt}X${widthFt})`);
+//     }
+
+//     $('input[name="description"]').val(parts.join(' | '));
+// }
+
+// $(document).on('change keyup', 
+//     'input[name="thickness"], input[name="short_description"], select[name="model_id"], select[name="size_id"]', 
+//     updateDescriptionField
+// );
 
 
 
@@ -1234,8 +1283,7 @@ $(document).on('change', 'select[name="size_id"]', function () {
         $('input[name="length_in"], input[name="width_in"], input[name="length_m"], input[name="width_m"]').val('');
     }
 
-    // ✅ Force description refresh immediately
-    updateDescriptionField();
+   
 });
 
 
