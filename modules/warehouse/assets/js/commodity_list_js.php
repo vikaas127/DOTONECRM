@@ -798,7 +798,7 @@ function edit_commodity_item(invoker)
       $('#commodity_list-add-edit input[name="purchase_price"]').val($(invoker).data('purchase_price'));
 
       
-      $('#commodity_list-add-edit input[name="short_name"]').val($(invoker).data('short_name'));
+      $('#commodity_list-add-edit input[name="sort_name"]').val($(invoker).data('sort_name'));
 
 
       if($(invoker).data('tax') != 0){
@@ -1165,7 +1165,7 @@ function new_commodity_item(){
     $('#commodity_list-add-edit textarea[name="long_description"]').val('');
 
     $('#commodity_list-add-edit input[name="description"]').val('');
-    $('#commodity_list-add-edit input[name="short_name"]').val('');
+    $('#commodity_list-add-edit input[name="sort_name"]').val('');
 
     $('#commodity_list-add-edit input[name="sku_code"]').val('');
     $('#commodity_list-add-edit input[name="thickness"]').val('');

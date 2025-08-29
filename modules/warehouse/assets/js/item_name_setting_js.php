@@ -14,6 +14,7 @@ $(function () {
     $('#groupSelect').on('change', function () {
         let gid = $(this).val();
         if (!gid) return;
+
         $.post(admin_url + 'warehouse/get_subgroups_by_groups', { group_ids: [gid] }, function (res) {
             let subgroups = JSON.parse(res);
             $('#subgroupSelect').empty().append('<option value="">Select Subgroup</option>');
@@ -27,22 +28,26 @@ $(function () {
     $('#addPairBtn').on('click', function () {
         let groupId = $('#groupSelect').val();
         let subgroupId = $('#subgroupSelect').val();
+        let groupName = $('#groupSelect option:selected').text();
+        let subgroupName = $('#subgroupSelect option:selected').text();
 
         if (!groupId || !subgroupId) {
             alert("Please select both group and subgroup");
             return;
         }
-        addPairToUI(groupId, subgroupId);
+
+        addPairToUI(groupId, subgroupId, groupName, subgroupName);
     });
 
     // Add pair to UI
-    function addPairToUI(groupId, subgroupId) {
+    function addPairToUI(groupId, subgroupId, groupName, subgroupName) {
         let pairKey = groupId + "-" + subgroupId;
+
         if ($('#pairsContainer').find('[data-pair="' + pairKey + '"]').length > 0) return;
 
         let badge = $('<span>', {
             class: 'badge badge-info m-1',
-            text: "Group " + groupId + " - Subgroup " + subgroupId,
+            html: "Group: " + groupName + " - Subgroup: " + subgroupName,
             'data-pair': pairKey
         });
 
@@ -58,7 +63,12 @@ $(function () {
         let hidden = $('<input>', {
             type: 'hidden',
             name: 'pairs[]',
-            value: JSON.stringify({ group_id: groupId, subgroup_id: subgroupId }),
+            value: JSON.stringify({
+                group_id: groupId,
+                subgroup_id: subgroupId,
+                group_name: groupName,
+                subgroup_name: subgroupName
+            }),
             'data-pair': pairKey
         });
 
@@ -86,7 +96,12 @@ $(function () {
 
             if (data.group_subgroup_pairs) {
                 data.group_subgroup_pairs.forEach(function (pair) {
-                    addPairToUI(pair.group_id, pair.subgroup_id);
+                    addPairToUI(
+                        pair.group_id,
+                        pair.subgroup_id,
+                        pair.group_name ?? pair.group_id,
+                        pair.subgroup_name ?? pair.subgroup_id
+                    );
                 });
             }
 
@@ -105,6 +120,6 @@ $(function () {
             $('#prefModal').modal('show');
         });
     });
-});
 
+});
 </script>

@@ -155,9 +155,9 @@ public function delete_pref($id){
     redirect(admin_url('warehouse/setting?group=item_name_setting'));
 }
 
-public function save_pref($id = null) {
+public function save_pref($id = null)
+{
     $post = $this->input->post();
-    
     $pref_id = !empty($post['pref_id']) ? $post['pref_id'] : $id;
 
     // Build pairs JSON
@@ -169,26 +169,45 @@ public function save_pref($id = null) {
         }
     }
 
-    // Save or update pref
-    $pref_id = $this->warehouse_model->save_pref([
-        'group_subgroup_pairs' => json_encode($pairs)
-    ], $pref_id);
+    // fallback: user selected dropdowns but didn’t click "Add Pair"
+    if (empty($pairs) && !empty($post['group_id']) && !empty($post['subgroup_id'])) {
+        $pairs[] = [
+            'group_id'    => $post['group_id'],
+            'subgroup_id' => $post['subgroup_id']
+        ];
+    }
 
-    // Clear old attributes if editing
+  
+    if (empty($pref_id)) {
+        // New record
+        $this->db->insert('tblnaming_attr_pref', [
+            'group_subgroup_pairs' => json_encode($pairs),
+        ]);
+        $pref_id = $this->db->insert_id(); // get new pref id
+    } else {
+        // Update existing record
+        $this->db->where('id', $pref_id);
+        $this->db->update('tblnaming_attr_pref', [
+            'group_subgroup_pairs' => json_encode($pairs),
+        ]);
+    }
+
+   
     $this->warehouse_model->clear_pref_attrs($pref_id);
 
-    // Save attributes
+   
     if (isset($post['attr'])) {
         foreach ($post['attr'] as $attrName => $attrData) {
             $this->warehouse_model->save_pref_attr($pref_id, [
-                'name' => $attrName,
+                'name'          => $attrName,
                 'display_order' => $attrData['order'] ?? 0,
-                'separator' => $attrData['separator'] ?? ' - ',
-                'use_attr' => isset($attrData['include']) ? 1 : 0
+                'separator'     => $attrData['separator'] ?? ' - ',
+                'use_attr'      => isset($attrData['include']) ? 1 : 0
             ]);
         }
     }
 
+ 
     set_alert('success','Preference Saved Successfully');
     redirect(admin_url('warehouse/setting?group=item_name_setting'));
 }
@@ -6231,7 +6250,7 @@ public function get_shelf_by_rack()
     							}
     							if ($db_field == 'country' || $db_field == 'shipping_country' || $db_field == 'billing_country') {
     								$this->db->where('iso2', $lead_custom_field_value);
-    								$this->db->or_where('short_name', $lead_custom_field_value);
+    								$this->db->or_where('sort_name', $lead_custom_field_value);
     								$this->db->or_like('long_name', $lead_custom_field_value);
     								$country = $this->db->get(db_prefix() . 'countries')->row();
     								if ($country) {
