@@ -1902,6 +1902,15 @@ function add_opening_stock_modal(id) {
     const groupId = parseInt($('#commodity_list-add-edit select[name="group_id"]').val());
     const subGroupId = parseInt($('#commodity_list-add-edit select[name="sub_group"]').val());
 
+
+$('#commodity_list-add-edit').on('change input', 'select, input, textarea', function () {
+    updateLiveItemName();
+});
+function updateLiveItemName() {
+    const groupId = parseInt($('#commodity_list-add-edit select[name="group_id"]').val());
+    const subGroupId = parseInt($('#commodity_list-add-edit select[name="sub_group"]').val());
+
+
     if (!groupId || !subGroupId) {
         $('#commodity_list-add-edit input[name="description"]').val('');
         $('#commodity_list-add-edit input[name="sku_name"]').val('');

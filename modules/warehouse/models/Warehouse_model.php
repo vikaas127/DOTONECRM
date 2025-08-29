@@ -6386,6 +6386,23 @@ public function get_stock_export_pdf_html($goods_delivery_id) {
         }
         return $pref;
     }
+public function get_group_name($id)
+{
+    $row = $this->db->select('group_name')
+        ->where('id', $id)
+        ->get('tblitems_groups')
+        ->row();
+    return $row ? $row->group_name : '';
+}
+
+public function get_subgroup_name($id)
+{
+    $row = $this->db->select('sub_group_name')
+        ->where('id', $id)
+        ->get('tblwh_sub_group')
+        ->row();
+    return $row ? $row->sub_group_name : '';
+}
 
 
 	/**

@@ -2846,11 +2846,9 @@ if (empty($data['location_user'])) {
 	// Defaults
 	$date = isset($data['date']) ? $data['date'] : date('Y-m-d');
 	$data['date'] = $date;
-
 	if (!isset($data['staff_id'])) {
 		$data['staff_id'] = get_staff_user_id();
 	}
-
 	if (!empty($data['edit_date'])) {
 		$temp = $this->format_date_time($data['edit_date']);
 		$split_date = explode(' ', $temp);
@@ -2952,6 +2950,15 @@ if (empty($data['location_user'])) {
      $data['address']= $address;
 	$this->db->insert(db_prefix() . 'check_in_out', $data);
 	$insert_id = $this->db->insert_id();
+	$this->db->insert(db_prefix() .'checkout_history', [
+    'staff_id'    => $data['staff_id'],
+    'latitude'    => $latitude,
+    'longitude'   => $longitude,
+    'address'     => $address,
+    'accuracy_m'  => isset($data['accuracy_m']) ? $data['accuracy_m'] : null,
+    'recorded_at' => $data['date'],
+    'created_by'  => get_staff_user_id()
+]);
 	if ($insert_id) {
 		log_message('info', "[CHECK_IN] Attendance inserted successfully. ID: $insert_id");
 		$this->add_check_in_out_value_to_timesheet($data['staff_id'], $date);

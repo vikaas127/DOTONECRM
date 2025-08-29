@@ -74,6 +74,9 @@
                 <?php echo form_open(admin_url('warehouse/save_pref'), ['id' => 'prefForm']); ?>
                 <input type="hidden" name="pref_id" id="pref_id">
 
+                <!-- hidden field to store pairs -->
+                <input type="hidden" name="group_subgroup_pairs" id="groupSubgroupPairs">
+
                 <!-- Group & Subgroup Pair Builder -->
                 <div class="form-group">
                     <label>Add Group & Subgroup Pair</label>
@@ -149,4 +152,5 @@
 
 <script>
 window.assignedGroupSubgroups = <?= json_encode($used_group_subgroups); ?>;
+
 </script>
