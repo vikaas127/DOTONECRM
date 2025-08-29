@@ -11,6 +11,16 @@ class warehouse extends AdminController {
 		$this->load->model('warehouse_model');
 		hooks()->do_action('warehouse_init');
 	}
+public function get_naming_pref_ajax()
+{
+    $group_id = $this->input->post('group_id');
+    $sub_group_id = $this->input->post('sub_group_id');
+
+    $this->load->model('warehouse_model');
+    $data = $this->warehouse_model->get_naming_pref_with_attrs($group_id, $sub_group_id);
+
+    echo json_encode($data);
+}
 
 	/**
 	 * setting

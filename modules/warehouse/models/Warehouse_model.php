@@ -9,6 +9,42 @@ class Warehouse_model extends App_Model {
 	public function __construct() {
 		parent::__construct();
 	}
+	public function get_naming_pref_with_attrs($group_id, $sub_group_id)
+{
+    // Step 1: Get all pref rules
+    $prefs = $this->db->get(db_prefix().'naming_attr_pref')->result_array();
+
+    $matched_pref = null;
+
+    // Step 2: Find the matching rule using group_id & sub_group_id
+    foreach ($prefs as $pref) {
+        $pairs = json_decode($pref['group_subgroup_pairs'], true);
+        if (!is_array($pairs)) continue;
+
+        foreach ($pairs as $pair) {
+            if ($pair['group_id'] == $group_id && $pair['sub_group_id'] == $sub_group_id) {
+                $matched_pref = $pref;
+                break 2;
+            }
+        }
+    }
+
+    if (!$matched_pref) {
+        return false;
+    }
+
+    // Step 3: Fetch all active attributes from tblnaming_attr_store
+    $this->db->where('pref_id', $matched_pref['id']);
+    $this->db->where('use_attr', 1);
+    $this->db->order_by('display_order', 'ASC');
+    $attrs = $this->db->get(db_prefix().'naming_attr_store')->result_array();
+
+    return [
+        'pref' => $matched_pref,
+        'attrs' => $attrs,
+    ];
+}
+
 public function delete_warehouse_permission($id)
 	{
 		$str_permissions ='';
