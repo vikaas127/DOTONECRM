@@ -8,7 +8,7 @@ class Auto_update extends AdminController
     {
         $purchase_key = trim($this->input->post('purchase_key', false));
         $latest_version = $this->input->post('latest_version');
-
+ //comment
         $url = UPDATE_URL . '?purchase_key=' . $purchase_key;
 
         hooks()->do_action('before_perform_update', $latest_version);
