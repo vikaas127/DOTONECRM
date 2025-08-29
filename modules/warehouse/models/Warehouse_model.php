@@ -6313,7 +6313,7 @@ public function get_stock_export_pdf_html($goods_delivery_id) {
     public function get_item_attributes()
     {
         $columns = [
-            'short_name', 'thickness', 'long_description', 'group_id', 'sub_group',
+            'sort_name', 'thickness', 'long_description', 'group_id', 'sub_group',
             'volume', 'color', 'style_id', 'model_id', 'size_id', 'unit_id',
             'sku_code', 'sku_name', 'paperwork', 'length', 'width'
         ];

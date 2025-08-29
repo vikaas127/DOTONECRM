@@ -60,7 +60,7 @@
     </div>
 </div>
 
-<!-- Add/Edit Modal -->
+<<!-- Add/Edit Modal -->
 <div class="modal fade" id="prefModal" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
@@ -77,21 +77,27 @@
                 <!-- Group & Subgroup Pair Builder -->
                 <div class="form-group">
                     <label>Add Group & Subgroup Pair</label>
-                    <div class="d-flex">
-                        <select id="groupSelect" class="form-control mr-2">
-                            <option value="">Select Group</option>
-                            <?php foreach ($item_groups as $g): ?>
-                                <option value="<?= $g['id']; ?>"><?= $g['name']; ?></option>
-                            <?php endforeach; ?>
-                        </select>
-
-                        <select id="subgroupSelect" class="form-control mr-2">
-                            <option value="">Select Subgroup</option>
-                        </select>
-
-                        <button type="button" id="addPairBtn" class="btn btn-sm btn-primary">Add Pair</button>
+                    <div class="form-row align-items-center">
+                        <div class="col">
+                            <select id="groupSelect" name="group_id" class="form-control">
+                                <option value="">Select Group</option>
+                                <?php foreach ($item_groups as $g): ?>
+                                    <option value="<?= $g['id']; ?>"><?= $g['name']; ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col">
+                            <select id="subgroupSelect" name="subgroup_id" class="form-control">
+                                <option value="">Select Subgroup</option>
+                            </select>
+                        </div>
+                        <div class="col-auto">
+                            <button type="button" id="addPairBtn" class="btn btn-primary btn-sm">
+                                + Add Pair
+                            </button>
+                        </div>
                     </div>
-                    <div id="pairsContainer" class="mt-2"></div>
+                    <div id="pairsContainer" class="mt-2 d-flex flex-wrap"></div>
                 </div>
 
                 <!-- Attributes -->
