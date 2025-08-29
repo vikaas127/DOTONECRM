@@ -1898,7 +1898,7 @@ function add_opening_stock_modal(id) {
   init_ajax_search('items','#commodity_filter.ajax-search',undefined,admin_url+'warehouse/wh_commodity_code_search_all');
 
   init_ajax_search('items','#item_select_print_barcode.ajax-search',undefined,admin_url+'warehouse/wh_commodity_code_search_all');
-function updateLiveItemName() {
+/*function updateLiveItemName() {
     const groupId = parseInt($('#commodity_list-add-edit select[name="group_id"]').val());
     const subGroupId = parseInt($('#commodity_list-add-edit select[name="sub_group"]').val());
 
@@ -1982,6 +1982,39 @@ $('#commodity_list-add-edit').on('change input', 'select, input', function () {
         fetchNamingRulesAndGenerateName(groupId, subGroupId);
     }
 });
+*/
+function fetchNamingRulesAndGenerateName(groupId, subGroupId) {
+    $.post(admin_url + 'warehouse/get_naming_pref_ajax', {
+        group_id: groupId,
+        sub_group_id: subGroupId
+    }).done(function (response) {
+        let data = JSON.parse(response);
+        if (!data || !data.pref || !data.attrs) return;
 
+        let separator = data.pref.separator || ' - ';
+        let nameParts = [];
+
+        data.attrs.forEach(attr => {
+            let inputEl = $('#commodity_list-add-edit [name="' + attr.name + '"]');
+            if (inputEl.length) {
+                let val = inputEl.val()?.trim();
+                if (val) nameParts.push(val);
+            }
+        });
+
+        let finalName = nameParts.join(separator);
+        $('#commodity_list-add-edit input[name="description"]').val(finalName);
+        $('#commodity_list-add-edit input[name="sku_name"]').val(finalName);
+    });
+}
+
+$('#commodity_list-add-edit').on('change input', 'select, input', function () {
+    let groupId = $('select[name="group_id"]').val();
+    let subGroupId = $('select[name="sub_group"]').val();
+
+    if (groupId && subGroupId) {
+        fetchNamingRulesAndGenerateName(groupId, subGroupId);
+    }
+});
 
 </script>
