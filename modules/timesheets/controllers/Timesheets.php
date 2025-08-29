@@ -3969,6 +3969,24 @@ public function location_history($staff_id = null)
 /**
  * check in timesheet
  */
+public function track_location() {
+    $json = json_decode(file_get_contents('php://input'), true);
+
+    if (isset($json['latitude']) && isset($json['longitude'])) {
+        $this->db->insert('tblcheckout_history', [
+            'staff_id'    => get_staff_user_id(),
+            'latitude'    => $json['latitude'],
+            'longitude'   => $json['longitude'],
+            'accuracy_m'  => isset($json['accuracy_m']) ? $json['accuracy_m'] : null,
+            'address'     => isset($json['address']) ? $json['address'] : null,
+            'recorded_at' => date('Y-m-d H:i:s'),
+            'created_by'  => get_staff_user_id()
+        ]);
+    }
+
+    echo json_encode(['status' => 'ok']);
+}
+
 public function check_in_ts() {
 	if ($this->input->post()) {
 		$data = $this->input->post();

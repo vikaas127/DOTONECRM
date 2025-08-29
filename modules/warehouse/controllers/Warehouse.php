@@ -145,52 +145,71 @@ public function delete_pref($id){
     redirect(admin_url('warehouse/setting?group=item_name_setting'));
 }
 
-public function save_pref($id = null) {
+public function save_pref($id = null)
+{
     $post = $this->input->post();
-    
     $pref_id = !empty($post['pref_id']) ? $post['pref_id'] : $id;
 
-    // Build pairs JSON
+    // --- Build pairs JSON ---
     $pairs = [];
-    if (!empty($post['pairs'])) {
+    if (!empty($post['pairs']) && is_array($post['pairs'])) {
         foreach ($post['pairs'] as $p) {
-            $decoded = json_decode($p, true);
-            if ($decoded) $pairs[] = $decoded;
+            if (!empty($p['group_id']) && !empty($p['subgroup_id'])) {
+                $pairs[] = [
+                    'group_id'    => (int) $p['group_id'],
+                    'subgroup_id' => (int) $p['subgroup_id']
+                ];
+            }
         }
     }
 
-    // Save or update pref
+    // --- Save or update pref ---
     $pref_id = $this->warehouse_model->save_pref([
         'group_subgroup_pairs' => json_encode($pairs)
     ], $pref_id);
 
-    // Clear old attributes if editing
+    // --- Clear old attributes if editing ---
     $this->warehouse_model->clear_pref_attrs($pref_id);
 
-    // Save attributes
-    if (isset($post['attr'])) {
+    // --- Save attributes ---
+    if (isset($post['attr']) && is_array($post['attr'])) {
         foreach ($post['attr'] as $attrName => $attrData) {
             $this->warehouse_model->save_pref_attr($pref_id, [
-                'name' => $attrName,
-                'display_order' => $attrData['order'] ?? 0,
-                'separator' => $attrData['separator'] ?? ' - ',
-                'use_attr' => isset($attrData['include']) ? 1 : 0
+                'name'          => $attrName,
+                'display_order' => isset($attrData['order']) ? (int) $attrData['order'] : 0,
+                'separator'     => !empty($attrData['separator']) ? $attrData['separator'] : ' - ',
+                'use_attr'      => isset($attrData['include']) ? 1 : 0
             ]);
         }
     }
 
-    set_alert('success','Preference Saved Successfully');
+    set_alert('success', 'Preference Saved Successfully');
     redirect(admin_url('warehouse/setting?group=item_name_setting'));
 }
 
-public function get_pref($id) {
+
+public function get_pref($id)
+{
     $pref = $this->db->where('id', $id)->get('tblnaming_attr_pref')->row_array();
     if ($pref) {
-        $pref['group_subgroup_pairs'] = json_decode($pref['group_subgroup_pairs'], true) ?: [];
+        // Decode pairs
+        $pairs = json_decode($pref['group_subgroup_pairs'], true) ?: [];
+
+        // Enrich with names
+        foreach ($pairs as &$pair) {
+            $pair['group_name'] = $this->warehouse_model->get_group_name($pair['group_id']);
+            $pair['subgroup_name'] = $this->warehouse_model->get_subgroup_name($pair['subgroup_id']);
+        }
+
+        $pref['group_subgroup_pairs'] = $pairs;
+
+        // Get attributes
         $pref['attributes'] = $this->warehouse_model->get_pref_attributes($id);
     }
+
     echo json_encode($pref);
 }
+
 
 
 
