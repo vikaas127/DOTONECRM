@@ -22,7 +22,7 @@ class Warehouse_model extends App_Model {
         if (!is_array($pairs)) continue;
 
         foreach ($pairs as $pair) {
-            if ($pair['group_id'] == $group_id && $pair['sub_group_id'] == $sub_group_id) {
+            if ($pair['group_id'] == $group_id && $pair['subgroup_id'] == $sub_group_id) {
                 $matched_pref = $pref;
                 break 2;
             }

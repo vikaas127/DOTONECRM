@@ -126,12 +126,23 @@
                                 </td>
                                 <td>
                                     <select name="attr[<?= $attr; ?>][separator]" class="form-control">
-                                        <option value=" ">Space</option>
-                                        <option value=",">Comma</option>
-                                        <option value=".">Dot</option>
-                                        <option value="|">Pipe</option>
-                                        <option value="_">Underscore</option>
-                                        <option value="-">Hyphen</option>
+                                        <option value=" ">Space()</option>
+                                        <option value=",">Comma(,)</option>
+                                        <option value=".">Dot(.)</option>
+                                        <option value="|">Pipe(|)</option>
+                                        <option value="_">Underscore(_)</option>
+                                        <option value="-">Hyphen(-)</option>
+                                        <option value="(">(Left Bracket</option>
+                                        <option value=")">)Right Bracket</option>
+                                        <option value="[">[Left Square Bracket]</option>
+                                        <option value="]">]Right Square Bracket</option>
+                                        <option value="{">{Left Curly Brace</option>
+                                        <option value="}">}Right Curly Brace</option>
+                                        <option value="X">X (Letter)</option>
+                                        <option value="/">Forward Slash (/)</option>
+                                        <option value="\\">Backward Slash (\)</option>
+                                        <option value=":">Colon(:)</option>
+                                        <option value=";">Semicolon(;) </option>
                                     </select>
                                 </td>
                             </tr>
