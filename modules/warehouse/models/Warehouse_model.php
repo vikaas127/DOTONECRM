@@ -6269,70 +6269,87 @@ public function get_stock_export_pdf_html($goods_delivery_id) {
 	}
 }
 
-public function save_pref($data, $id = null){
-    if ($id) {
-        $this->db->where('id', $id)->update('tblnaming_attr_pref', $data);
-        return $id;
-    } else {
-        $this->db->insert('tblnaming_attr_pref', $data);
-        return $this->db->insert_id();
-    }
-}
-
-public function clear_pref_attrs($pref_id){
-    $this->db->where('pref_id', $pref_id)->delete('tblnaming_attr_store');
-}
-
-public function save_pref_attr($pref_id, $data){
-    $data['pref_id'] = $pref_id;
-    $this->db->insert('tblnaming_attr_store', $data);
-}
-
-public function get_pref_attributes($pref_id){
-    return $this->db->where('pref_id', $pref_id)->get('tblnaming_attr_store')->result_array();
-}
-
-public function delete_pref($id){
-    $this->db->where('id',$id)->delete('tblnaming_attr_pref');
-    // Cascade should remove from tblnaming_attr_store
-}
-
-
-public function get_item_attributes() {
-    // List of required columns
-    $columns = [
-        'short_name','thickness' ,'long_description', 'group_id',  'sub_group', 
-        'volume', 'color', 'style_id', 'model_id', 'size_id', 'unit_id', 
-        'sku_code', 'sku_name', 'paperwork', 'length', 'width'
-    ];
-
-    // Optionally, check which of these columns exist in the table
-    $all_fields = $this->db->list_fields('tblitems');
-    $existing_columns = array_intersect($columns, $all_fields);
-
-    return $existing_columns;
-}
-
-
-public function get_used_group_subgroups($exclude_pref_id = null) {
-    $this->db->select('group_ids, subgroup_ids');
-    if($exclude_pref_id){
-        $this->db->where('id !=', $exclude_pref_id);
-    }
-    $prefs = $this->db->get('tblnaming_attr_pref')->result_array();
-    $used = [];
-    foreach($prefs as $p){
-        $groups = json_decode($p['group_ids'], true) ?: [];
-        $subgroups = json_decode($p['subgroup_ids'], true) ?: [];
-        foreach($groups as $g){
-            foreach($subgroups as $s){
-                $used[] = $g.'-'.$s; // key = groupID-subgroupID
-            }
+// Save or update preference
+    public function save_pref($data, $id = null)
+    {
+        if ($id) {
+            $this->db->where('id', $id)->update('tblnaming_attr_pref', $data);
+            return $id;
+        } else {
+            $this->db->insert('tblnaming_attr_pref', $data);
+            return $this->db->insert_id();
         }
     }
-    return $used;
-}
 
+    // Clear attributes for a pref
+    public function clear_pref_attrs($pref_id)
+    {
+        $this->db->where('pref_id', $pref_id)->delete('tblnaming_attr_store');
+    }
+
+    // Save one attribute
+    public function save_pref_attr($pref_id, $data)
+    {
+        $data['pref_id'] = $pref_id;
+        $this->db->insert('tblnaming_attr_store', $data);
+    }
+
+    // Get attributes of a pref
+    public function get_pref_attributes($pref_id)
+    {
+        return $this->db->where('pref_id', $pref_id)
+            ->order_by('display_order', 'ASC')
+            ->get('tblnaming_attr_store')
+            ->result_array();
+    }
+
+    // Delete preference (cascade deletes attributes)
+    public function delete_pref($id)
+    {
+        $this->db->where('id', $id)->delete('tblnaming_attr_pref');
+    }
+
+    // Get available attributes from tblitems
+    public function get_item_attributes()
+    {
+        $columns = [
+            'short_name', 'thickness', 'long_description', 'group_id', 'sub_group',
+            'volume', 'color', 'style_id', 'model_id', 'size_id', 'unit_id',
+            'sku_code', 'sku_name', 'paperwork', 'length', 'width'
+        ];
+        $all_fields = $this->db->list_fields('tblitems');
+        return array_intersect($columns, $all_fields);
+    }
+
+    // Return all group-subgroup pairs already used (to avoid duplicates)
+    public function get_used_group_subgroups($exclude_pref_id = null)
+    {
+        $this->db->select('id, group_subgroup_pairs');
+        if ($exclude_pref_id) {
+            $this->db->where('id !=', $exclude_pref_id);
+        }
+        $prefs = $this->db->get('tblnaming_attr_pref')->result_array();
+
+        $used = [];
+        foreach ($prefs as $p) {
+            $pairs = json_decode($p['group_subgroup_pairs'], true) ?: [];
+            foreach ($pairs as $pair) {
+                $used[] = $pair['group_id'] . '-' . $pair['subgroup_id'];
+            }
+        }
+        return $used;
+    }
+
+    // Get a single pref with its attributes
+    public function get_pref($id)
+    {
+        $pref = $this->db->where('id', $id)->get('tblnaming_attr_pref')->row_array();
+        if ($pref) {
+            $pref['attributes'] = $this->get_pref_attributes($id);
+            $pref['group_subgroup_pairs'] = json_decode($pref['group_subgroup_pairs'], true) ?: [];
+        }
+        return $pref;
+    }
 
 
 	/**

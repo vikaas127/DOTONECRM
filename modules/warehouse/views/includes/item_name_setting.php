@@ -11,36 +11,35 @@
         <table class="table table-striped table-bordered">
             <thead>
                 <tr>
-                    <th>Group(s)</th>
-                    <th>Subgroup(s)</th>
+                    <th>Group(s) & Subgroup(s)</th>
                     <th>Attributes</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody id="prefList">
-                <?php if(!empty($naming_rules)){ ?>
-                    <?php foreach($naming_rules as $pref){ ?>
+                <?php if (!empty($naming_rules)) { ?>
+                    <?php foreach ($naming_rules as $pref) { ?>
                         <tr>
                             <td>
                                 <?php
-                                $groups = json_decode($pref['group_ids'], true);
-                                echo $groups ? implode(', ', $groups) : 'All Groups';
+                                $pairs = json_decode($pref['group_subgroup_pairs'], true);
+                                if ($pairs) {
+                                    foreach ($pairs as $p) {
+                                        echo '<span class="label label-info mright5">Group ' . $p['group_id'] . ' - Subgroup ' . $p['subgroup_id'] . '</span>';
+                                    }
+                                } else {
+                                    echo 'All Groups/Subgroups';
+                                }
                                 ?>
                             </td>
                             <td>
                                 <?php
-                                $subgroups = json_decode($pref['subgroup_ids'], true);
-                                echo $subgroups ? implode(', ', $subgroups) : 'All Subgroups';
-                                ?>
-                            </td>
-                            <td>
-                                <?php 
-                                if(isset($pref['attributes'])){
-                                    foreach($pref['attributes'] as $attr){
-                                        if($attr['use_attr']){
+                                if (isset($pref['attributes'])) {
+                                    foreach ($pref['attributes'] as $attr) {
+                                        if ($attr['use_attr']) {
                                             echo '<span class="label label-default mright5">'
-                                                 .ucfirst(str_replace('_',' ',$attr['name']))
-                                                 .' (Order: '.$attr['display_order'].', Sep: '.$attr['separator'].')</span><br>';
+                                                . ucfirst(str_replace('_', ' ', $attr['name']))
+                                                . ' (Order: ' . $attr['display_order'] . ', Sep: ' . $attr['separator'] . ')</span><br>';
                                         }
                                     }
                                 }
@@ -48,13 +47,13 @@
                             </td>
                             <td>
                                 <button class="btn btn-sm btn-warning edit-rule" data-id="<?= $pref['id']; ?>">Edit</button>
-                                <a href="<?= admin_url('warehouse/delete_pref/'.$pref['id']); ?>" 
+                                <a href="<?= admin_url('warehouse/delete_pref/' . $pref['id']); ?>"
                                    class="btn btn-sm btn-danger _delete">Delete</a>
                             </td>
                         </tr>
                     <?php } ?>
                 <?php } else { ?>
-                    <tr><td colspan="4" class="text-center">No preferences found.</td></tr>
+                    <tr><td colspan="3" class="text-center">No preferences found.</td></tr>
                 <?php } ?>
             </tbody>
         </table>
@@ -73,62 +72,63 @@
 
             <div class="modal-body">
                 <?php echo form_open(admin_url('warehouse/save_pref'), ['id' => 'prefForm']); ?>
-                                    <input type="hidden" name="pref_id" id="pref_id">
+                <input type="hidden" name="pref_id" id="pref_id">
 
-                    <!-- Groups -->
-                    <div class="form-group">
-                        <label>Group(s)</label>
-                        <?= render_select('group_ids[]', $item_groups, ['id','name'], 'Select Group(s)', [], ['multiple'=>true]); ?>
+                <!-- Group & Subgroup Pair Builder -->
+                <div class="form-group">
+                    <label>Add Group & Subgroup Pair</label>
+                    <div class="d-flex">
+                        <select id="groupSelect" class="form-control mr-2">
+                            <option value="">Select Group</option>
+                            <?php foreach ($item_groups as $g): ?>
+                                <option value="<?= $g['id']; ?>"><?= $g['name']; ?></option>
+                            <?php endforeach; ?>
+                        </select>
+
+                        <select id="subgroupSelect" class="form-control mr-2">
+                            <option value="">Select Subgroup</option>
+                        </select>
+
+                        <button type="button" id="addPairBtn" class="btn btn-sm btn-primary">Add Pair</button>
                     </div>
+                    <div id="pairsContainer" class="mt-2"></div>
+                </div>
 
-                    <!-- Subgroups -->
-                    <div class="form-group">
-                        <label>Subgroup(s)</label>
-                        <?= render_select('subgroup_ids[]', $sub_groups, ['id','sub_group_name'], 'Select Subgroup(s)', [], ['multiple'=>true]); ?>
-                    </div>
-
-                    <!-- Attributes -->
-                    <h5>Attributes</h5>
-                    <table class="table table-bordered">
-                        <thead>
+                <!-- Attributes -->
+                <h5>Attributes</h5>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Attribute</th>
+                            <th>Include?</th>
+                            <th>Order</th>
+                            <th>Separator</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($attributes as $attr) { ?>
                             <tr>
-                                <th>Attribute</th>
-                                <th>Include?</th>
-                                <th>Order</th>
-                                <th>Separator</th>
+                                <td><?= ucfirst(str_replace('_', ' ', $attr)); ?></td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="attr[<?= $attr; ?>][include]">
+                                </td>
+                                <td>
+                                    <input type="number" name="attr[<?= $attr; ?>][order]" value="0" class="form-control">
+                                </td>
+                                <td>
+                                    <select name="attr[<?= $attr; ?>][separator]" class="form-control">
+                                        <option value=" ">Space</option>
+                                        <option value=",">Comma</option>
+                                        <option value=".">Dot</option>
+                                        <option value="|">Pipe</option>
+                                        <option value="_">Underscore</option>
+                                        <option value="-">Hyphen</option>
+                                    </select>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-    <?php 
-    // Use attributes from controller
-    // $attributes = $data['attributes'] is already passed to view
-    $separators = [
-        ' '=>'Space', 
-        ','=>'Comma (,)', 
-        '.'=>'Dot (.)', 
-        '|' => 'Pipe (|)', 
-        '_' => 'Underscore (_)', 
-        '-' => 'Hyphen (-)'
-    ];
-
-    foreach($attributes as $attr){ ?>
-        <tr>
-            <td><?= ucfirst(str_replace('_',' ',$attr)); ?></td>
-            <td class="text-center"><input type="checkbox" name="attr[<?= $attr; ?>][include]"></td>
-            <td><input type="number" name="attr[<?= $attr; ?>][order]" value="0" class="form-control"></td>
-            <td>
-                <select class="form-control" name="attr[<?= $attr; ?>][separator]">
-                    <?php foreach($separators as $val=>$label){ ?>
-                        <option value="<?= $val; ?>"><?= $label; ?></option>
-                    <?php } ?>
-                </select>
-            </td>
-        </tr>
-    <?php } ?>
-</tbody>
-
-                        
-                    </table>
+                        <?php } ?>
+                    </tbody>
+                </table>
 
                 <?php echo form_close(); ?>
             </div>
@@ -137,7 +137,6 @@
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                 <button type="submit" form="prefForm" class="btn btn-success">Save Preference</button>
             </div>
-
         </div>
     </div>
 </div>
@@ -145,5 +144,3 @@
 <script>
 window.assignedGroupSubgroups = <?= json_encode($used_group_subgroups); ?>;
 </script>
-
-

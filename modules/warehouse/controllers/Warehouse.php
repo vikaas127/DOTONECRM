@@ -137,27 +137,39 @@ class warehouse extends AdminController {
 	}
 
 
+
+
+public function delete_pref($id){
+    $this->warehouse_model->delete_pref($id);
+    set_alert('success','Preference Deleted');
+    redirect(admin_url('warehouse/setting?group=item_name_setting'));
+}
+
 public function save_pref($id = null) {
     $post = $this->input->post();
     
-    // Use hidden input pref_id if present
     $pref_id = !empty($post['pref_id']) ? $post['pref_id'] : $id;
 
-    $group_ids = isset($post['group_ids']) ? json_encode($post['group_ids']) : json_encode([]);
-    $subgroup_ids = isset($post['subgroup_ids']) ? json_encode($post['subgroup_ids']) : json_encode([]);
+    // Build pairs JSON
+    $pairs = [];
+    if (!empty($post['pairs'])) {
+        foreach ($post['pairs'] as $p) {
+            $decoded = json_decode($p, true);
+            if ($decoded) $pairs[] = $decoded;
+        }
+    }
 
     // Save or update pref
     $pref_id = $this->warehouse_model->save_pref([
-        'group_ids' => $group_ids,
-        'subgroup_ids' => $subgroup_ids
+        'group_subgroup_pairs' => json_encode($pairs)
     ], $pref_id);
 
     // Clear old attributes if editing
     $this->warehouse_model->clear_pref_attrs($pref_id);
 
     // Save attributes
-    if(isset($post['attr'])){
-        foreach($post['attr'] as $attrName => $attrData){
+    if (isset($post['attr'])) {
+        foreach ($post['attr'] as $attrName => $attrData) {
             $this->warehouse_model->save_pref_attr($pref_id, [
                 'name' => $attrName,
                 'display_order' => $attrData['order'] ?? 0,
@@ -171,48 +183,15 @@ public function save_pref($id = null) {
     redirect(admin_url('warehouse/setting?group=item_name_setting'));
 }
 
-
-public function delete_pref($id){
-    $this->warehouse_model->delete_pref($id);
-    set_alert('success','Preference Deleted');
-    redirect(admin_url('warehouse/setting?group=item_name_setting'));
-}
-
 public function get_pref($id) {
     $pref = $this->db->where('id', $id)->get('tblnaming_attr_pref')->row_array();
     if ($pref) {
-        $pref['group_ids'] = json_decode($pref['group_ids'], true);
-        $pref['subgroup_ids'] = json_decode($pref['subgroup_ids'], true);
+        $pref['group_subgroup_pairs'] = json_decode($pref['group_subgroup_pairs'], true) ?: [];
         $pref['attributes'] = $this->warehouse_model->get_pref_attributes($id);
-
-        $pref['subgroups'] = [];
-        if (!empty($pref['group_ids'])) {
-            // Get all subgroups for selected groups
-            $this->db->where_in('group_id', $pref['group_ids']);
-            $allSubgroups = $this->db->get('tblwh_sub_group')->result_array();
-
-            // Get subgroups already assigned to other preferences
-            $this->db->select('subgroup_ids');
-            $this->db->where('id !=', $id); // exclude current pref
-            $assignedPrefs = $this->db->get('tblnaming_attr_pref')->result_array();
-
-            $assignedSubgroups = [];
-            foreach ($assignedPrefs as $ap) {
-                $subIds = json_decode($ap['subgroup_ids'], true);
-                if (is_array($subIds)) {
-                    $assignedSubgroups = array_merge($assignedSubgroups, $subIds);
-                }
-            }
-
-            // Mark subgroups already assigned
-            foreach ($allSubgroups as $sg) {
-                $sg['disabled'] = in_array($sg['id'], $assignedSubgroups) ? true : false;
-                $pref['subgroups'][] = $sg;
-            }
-        }
     }
     echo json_encode($pref);
 }
+
 
 
 public function get_subgroups_by_groups() {
@@ -2787,103 +2766,47 @@ public function get_item_description()
 									$flag = 1;
 								}
 
-								//check commodity_type exist  (input: id or name contract)
-								if (is_null($value_cell_commodity_type) != true && $value_cell_commodity_type != '0' && $value_cell_commodity_type != '') {
-									/*case input  id*/
-									if (is_numeric($value_cell_commodity_type)) {
+								// check commodity_type exists
+								if (!is_null($value_cell_commodity_type) && $value_cell_commodity_type != '0' && $value_cell_commodity_type != '') {
+									$this->db->like(db_prefix() . 'ware_commodity_type.commondity_code', $value_cell_commodity_type);
+									$commodity_type_value = $this->db->get(db_prefix() . 'ware_commodity_type')->result_array();
 
-										$this->db->where('commodity_type_id', $value_cell_commodity_type);
-										$commodity_type_value = $this->db->count_all_results(db_prefix() . 'ware_commodity_type');
-
-										if ($commodity_type_value == 0) {
-											$string_error .= _l('commodity_type') . _l('does_not_exist');
-											$flag2 = 1;
-										} else {
-											/*get id commodity_type*/
-											$flag_id_commodity_type = $value_cell_commodity_type;
-										}
-
+									if (count($commodity_type_value) == 0) {
+										$string_error .= _l('commodity_type') . _l('does_not_exist');
+										$flag2 = 1;
 									} else {
-										/*case input name*/
-										$this->db->like(db_prefix() . 'ware_commodity_type.commondity_code', $value_cell_commodity_type);
-
-										$commodity_type_value = $this->db->get(db_prefix() . 'ware_commodity_type')->result_array();
-										if (count($commodity_type_value) == 0) {
-											$string_error .= _l('commodity_type') . _l('does_not_exist');
-											$flag2 = 1;
-										} else {
-											/*get id commodity_type*/
-
-											$flag_id_commodity_type = $commodity_type_value[0]['commodity_type_id'];
-										}
+										$flag_id_commodity_type = $commodity_type_value[0]['commodity_type_id'];
 									}
-
 								}
+
 
 								//check unit_code exist  (input: id or name contract)
-								if (is_null($value_cell_unit_id) != true && ( $value_cell_unit_id != '0')  && $value_cell_unit_id != '') {
-									/*case input id*/
-									if (is_numeric($value_cell_unit_id)) {
+								if (!is_null($value_cell_unit_id) && $value_cell_unit_id != '0' && $value_cell_unit_id != '') {
+									$this->db->like(db_prefix() . 'ware_unit_type.unit_code', $value_cell_unit_id);
+									$unit_id_value = $this->db->get(db_prefix() . 'ware_unit_type')->result_array();
 
-										$this->db->where('unit_type_id', $value_cell_unit_id);
-										$unit_id_value = $this->db->count_all_results(db_prefix() . 'ware_unit_type');
-
-										if ($unit_id_value == 0) {
-											$string_error .= _l('unit_id') . _l('does_not_exist');
-											$flag2 = 1;
-										} else {
-											/*get id unit_id*/
-											$flag_id_unit_id = $value_cell_unit_id;
-										}
-
+									if (count($unit_id_value) == 0) {
+										$string_error .= _l('unit_id') . _l('does_not_exist');
+										$flag2 = 1;
 									} else {
-										/*case input name*/
-										$this->db->like(db_prefix() . 'ware_unit_type.unit_code', $value_cell_unit_id);
-
-										$unit_id_value = $this->db->get(db_prefix() . 'ware_unit_type')->result_array();
-										if (count($unit_id_value) == 0) {
-											$string_error .= _l('unit_id') . _l('does_not_exist');
-											$flag2 = 1;
-										} else {
-											/*get unit_id*/
-											$flag_id_unit_id = $unit_id_value[0]['unit_type_id'];
-										}
+										$flag_id_unit_id = $unit_id_value[0]['unit_type_id'];
 									}
-
 								}
 
-								//check commodity_group exist  (input: id or name contract)
-								if (is_null($value_cell_commodity_group) != true && ($value_cell_commodity_group != '0') && $value_cell_commodity_group != '') {
-									/*case input id*/
-									if (is_numeric($value_cell_commodity_group)) {
 
-										$this->db->where('id', $value_cell_commodity_group);
-										$commodity_group_value = $this->db->count_all_results(db_prefix() . 'items_groups');
+								// check commodity_group exists
+								if (!is_null($value_cell_commodity_group) && $value_cell_commodity_group != '0' && $value_cell_commodity_group != '') {
+									$this->db->like(db_prefix() . 'items_groups.commodity_group_code', $value_cell_commodity_group);
+									$commodity_group_value = $this->db->get(db_prefix() . 'items_groups')->result_array();
 
-										if ($commodity_group_value == 0) {
-											$string_error .= _l('commodity_group') . _l('does_not_exist');
-											$flag2 = 1;
-										} else {
-											/*get id commodity_group*/
-											$flag_id_commodity_group = $value_cell_commodity_group;
-										}
-
+									if (count($commodity_group_value) == 0) {
+										$string_error .= _l('commodity_group') . _l('does_not_exist');
+										$flag2 = 1;
 									} else {
-										/*case input name*/
-										$this->db->like(db_prefix() . 'items_groups.commodity_group_code', $value_cell_commodity_group);
-
-										$commodity_group_value = $this->db->get(db_prefix() . 'items_groups')->result_array();
-										if (count($commodity_group_value) == 0) {
-											$string_error .= _l('commodity_group') . _l('does_not_exist');
-											$flag2 = 1;
-										} else {
-											/*get id commodity_group*/
-
-											$flag_id_commodity_group = $commodity_group_value[0]['id'];
-										}
+										$flag_id_commodity_group = $commodity_group_value[0]['id'];
 									}
-
 								}
+
 
 								//check commodity_group exist  (input: id or name contract)
 								if (is_null($value_cell_warranty) != true) {
@@ -2898,70 +2821,32 @@ public function get_item_description()
 								}
 
 
-								//check taxes exist  (input: id or name contract)
-								if (is_null($value_cell_tax) != true && ($value_cell_tax!= '0')  && $value_cell_tax != '') {
-									/*case input id*/
-									if (is_numeric($value_cell_tax)) {
+								// check tax_1 exists
+								if (!is_null($value_cell_tax) && $value_cell_tax != '0' && $value_cell_tax != '') {
+									$this->db->like(db_prefix() . 'taxes.name', $value_cell_tax);
+									$cell_tax_value = $this->db->get(db_prefix() . 'taxes')->result_array();
 
-										$this->db->where('id', $value_cell_tax);
-										$cell_tax_value = $this->db->count_all_results(db_prefix() . 'taxes');
-
-										if ($cell_tax_value == 0) {
-											$string_error .= _l('tax_1') . _l('does_not_exist');
-											$flag2 = 1;
-										} else {
-											/*get id cell_tax*/
-											$flag_id_tax = $value_cell_tax;
-										}
-
+								if (count($cell_tax_value) == 0) {
+										$string_error .= _l('tax_1') . _l('does_not_exist');
+										$flag2 = 1;
 									} else {
-										/*case input name*/
-										$this->db->like(db_prefix() . 'taxes.name', $value_cell_tax);
-
-										$cell_tax_value = $this->db->get(db_prefix() . 'taxes')->result_array();
-										if (count($cell_tax_value) == 0) {
-											$string_error .= _l('tax_1') . _l('does_not_exist');
-											$flag2 = 1;
-										} else {
-											/*get id warehouse_id*/
-
-											$flag_id_tax = $cell_tax_value[0]['id'];
-										}
+										$flag_id_tax = $cell_tax_value[0]['id'];
 									}
-
 								}
 
-								if (is_null($value_cell_tax2) != true && ($value_cell_tax2!= '0')  && $value_cell_tax2 != '') {
-									/*case input id*/
-									if (is_numeric($value_cell_tax2)) {
+								// check tax_2 exists
+								if (!is_null($value_cell_tax2) && $value_cell_tax2 != '0' && $value_cell_tax2 != '') {
+									$this->db->like(db_prefix() . 'taxes.name', $value_cell_tax2);
+									$cell_tax_value = $this->db->get(db_prefix() . 'taxes')->result_array();
 
-										$this->db->where('id', $value_cell_tax2);
-										$cell_tax_value = $this->db->count_all_results(db_prefix() . 'taxes');
-
-										if ($cell_tax_value == 0) {
-											$string_error .= _l('tax_2') . _l('does_not_exist');
-											$flag2 = 1;
-										} else {
-											/*get id cell_tax*/
-											$flag_id_tax2 = $value_cell_tax2;
-										}
-
+									if (count($cell_tax_value) == 0) {
+										$string_error .= _l('tax_2') . _l('does_not_exist');
+										$flag2 = 1;
 									} else {
-										/*case input name*/
-										$this->db->like(db_prefix() . 'taxes.name', $value_cell_tax2);
-
-										$cell_tax_value = $this->db->get(db_prefix() . 'taxes')->result_array();
-										if (count($cell_tax_value) == 0) {
-											$string_error .= _l('tax_2') . _l('does_not_exist');
-											$flag2 = 1;
-										} else {
-											/*get id warehouse_id*/
-
-											$flag_id_tax2 = $cell_tax_value[0]['id'];
-										}
+										$flag_id_tax2 = $cell_tax_value[0]['id'];
 									}
-
 								}
+
 
 								//check commodity_group exist  (input: id or name contract)
 								if (is_null($value_cell_sub_group) != true && $value_cell_sub_group != '') {
@@ -2997,135 +2882,60 @@ public function get_item_description()
 								}
 
 								//check commodity_group exist  (input: id or name contract)
-								if (is_null($value_cell_style_id) != true && ($value_cell_style_id != '0')  && $value_cell_style_id != '' ) {
-									/*case input id*/
-									if (is_numeric($value_cell_style_id)) {
+								if (!is_null($value_cell_style_id) && $value_cell_style_id != '0' && $value_cell_style_id != '') {
+									// Case: always match by style_code
+									$this->db->like(db_prefix() . 'ware_style_type.style_code', $value_cell_style_id);
+									$style_id_value = $this->db->get(db_prefix() . 'ware_style_type')->result_array();
 
-										$this->db->where('style_type_id', $value_cell_style_id);
-										$style_id_value = $this->db->count_all_results(db_prefix() . 'ware_style_type');
-
-										if ($style_id_value == 0) {
-											$string_error .= _l('style_id') . _l('does_not_exist');
-											$flag2 = 1;
-										} else {
-											/*get id style_id*/
-											$flag_id_style_id = $value_cell_style_id;
-										}
-
+									if (count($style_id_value) == 0) {
+										$string_error .= _l('style_id') . _l('does_not_exist');
+										$flag2 = 1;
 									} else {
-										/*case input  name*/
-										$this->db->like(db_prefix() . 'ware_style_type.style_code', $value_cell_style_id);
-
-										$style_id_value = $this->db->get(db_prefix() . 'ware_style_type')->result_array();
-										if (count($style_id_value) == 0) {
-											$string_error .= _l('style_id') . _l('does_not_exist');
-											$flag2 = 1;
-										} else {
-											/*get id style_id*/
-
-											$flag_id_style_id = $style_id_value[0]['style_type_id'];
-										}
+										// Get style_type_id from matched record
+										$flag_id_style_id = $style_id_value[0]['style_type_id'];
 									}
-
 								}
 
-								//check body_code exist  (input: id or name contract)
-								if (is_null($value_cell_model_id) != true && ($value_cell_model_id != '0') && $value_cell_model_id != '' ) {
-									/*case input id*/
-									if (is_numeric($value_cell_model_id)) {
 
-										$this->db->where('body_type_id', $value_cell_model_id);
-										$model_id_value = $this->db->count_all_results(db_prefix() . 'ware_body_type');
+								// check model_code exists
+								if (!is_null($value_cell_model_id) && $value_cell_model_id != '0' && $value_cell_model_id != '') {
+									$this->db->like(db_prefix() . 'ware_body_type.body_code', $value_cell_model_id);
+									$model_id_value = $this->db->get(db_prefix() . 'ware_body_type')->result_array();
 
-										if ($model_id_value == 0) {
-											$string_error .= _l('model_id') . _l('does_not_exist');
-											$flag2 = 1;
-										} else {
-											/*get id model_id*/
-											$flag_id_model_id = $value_cell_model_id;
-										}
-
+									if (count($model_id_value) == 0) {
+										$string_error .= _l('model_id') . _l('does_not_exist');
+										$flag2 = 1;
 									} else {
-										/*case input name*/
-										$this->db->like(db_prefix() . 'ware_body_type.body_code', $value_cell_model_id);
-
-										$model_id_value = $this->db->get(db_prefix() . 'ware_body_type')->result_array();
-										if (count($model_id_value) == 0) {
-											$string_error .= _l('model_id') . _l('does_not_exist');
-											$flag2 = 1;
-										} else {
-											/*get id model_id*/
-
-											$flag_id_model_id = $model_id_value[0]['body_type_id'];
-										}
+										$flag_id_model_id = $model_id_value[0]['body_type_id'];
 									}
-
 								}
 
-								//check size_code exist  (input: id or name contract)
-								if (is_null($value_cell_size_id) != true && ($value_cell_size_id != '0') && $value_cell_size_id != '') {
-									/*case input id*/
-									if (is_numeric($value_cell_size_id)) {
+								// check size_code exists
+								if (!is_null($value_cell_size_id) && $value_cell_size_id != '0' && $value_cell_size_id != '') {
+									$this->db->like(db_prefix() . 'ware_size_type.size_code', $value_cell_size_id);
+									$size_id_value = $this->db->get(db_prefix() . 'ware_size_type')->result_array();
 
-										$this->db->where('size_type_id', $value_cell_size_id);
-										$size_id_value = $this->db->count_all_results(db_prefix() . 'ware_size_type');
-
-										if ($size_id_value == 0) {
-											$string_error .= _l('size_id') . _l('does_not_exist');
-											$flag2 = 1;
-										} else {
-											/*get id size_id*/
-											$flag_id_size_id = $value_cell_size_id;
-										}
-
+									if (count($size_id_value) == 0) {
+										$string_error .= _l('size_id') . _l('does_not_exist');
+										$flag2 = 1;
 									} else {
-										/*case input name*/
-										$this->db->like(db_prefix() . 'ware_size_type.size_code', $value_cell_size_id);
-
-										$size_id_value = $this->db->get(db_prefix() . 'ware_size_type')->result_array();
-										if (count($size_id_value) == 0) {
-											$string_error .= _l('size_id') . _l('does_not_exist');
-											$flag2 = 1;
-										} else {
-											/*get id size_id*/
-
-											$flag_id_size_id = $size_id_value[0]['size_type_id'];
-										}
+										$flag_id_size_id = $size_id_value[0]['size_type_id'];
 									}
-
 								}
 
-								if (is_null($value_cell_color_id) != true && ($value_cell_color_id != '0') && $value_cell_color_id != '') {
-									/*case input id*/
-									if (is_numeric($value_cell_color_id)) {
+								// check color_code exists
+								if (!is_null($value_cell_color_id) && $value_cell_color_id != '0' && $value_cell_color_id != '') {
+									$this->db->like(db_prefix() . 'ware_color.color_code', $value_cell_color_id);
+									$color_id_value = $this->db->get(db_prefix() . 'ware_color')->result_array();
 
-										$this->db->where('color_id', $value_cell_color_id);
-										$color_id_value = $this->db->count_all_results(db_prefix() . 'ware_color');
-
-										if ($color_id_value == 0) {
-											$string_error .= _l('color_id') . _l('does_not_exist');
-											$flag2 = 1;
-										} else {
-											/*get id color_id*/
-											$flag_id_color_id = $value_cell_color_id;
-										}
-
+									if (count($color_id_value) == 0) {
+										$string_error .= _l('color_id') . _l('does_not_exist');
+										$flag2 = 1;
 									} else {
-										/*case input name*/
-										$this->db->like(db_prefix() . 'ware_color.color_code', $value_cell_color_id);
-
-										$color_id_value = $this->db->get(db_prefix() . 'ware_color')->result_array();
-										if (count($color_id_value) == 0) {
-											$string_error .= _l('color_id') . _l('does_not_exist');
-											$flag2 = 1;
-										} else {
-											/*get id color_id*/
-
-											$flag_id_color_id = $color_id_value[0]['color_id'];
-										}
+										$flag_id_color_id = $color_id_value[0]['color_id'];
 									}
-
 								}
+
 
 								//check value_cell_rate input
 								if (is_null($value_cell_rate) != true && $value_cell_rate != '') {
@@ -3204,7 +3014,7 @@ public function get_item_description()
 $excel_description = isset($data[$row][1]) ? trim($data[$row][1]) : '';
 
 // 2. Thickness in mm (as integer)
-$thickness_mm = isset($data[$row][20]) ? round($data[$row][20]) : 0;
+$thickness_mm = isset($data[$row][20]) ? round($data[$row][20],2) : 0;
 
 $model_name = '';
 				if (!empty($value_cell_model_id)) {

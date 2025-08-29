@@ -51,6 +51,7 @@ class Leads extends AdminController
         $this->load->view('admin/leads/manage_leads', $data);
     }
 
+  
     public function table()
     {
         if (!is_staff_member()) {
@@ -157,6 +158,7 @@ class Leads extends AdminController
             $data['mail_activity'] = $this->leads_model->get_mail_activity($id);
             $data['notes']         = $this->misc_model->get_notes($id, 'lead');
             $data['activity_log']  = $this->leads_model->get_lead_activity_log($id);
+            $data['checkins'] = $this->leads_model->get_checkin_history($id);
 
             if (is_gdpr() && get_option('gdpr_enable_consent_for_leads') == '1') {
                 $this->load->model('gdpr_model');
@@ -349,6 +351,11 @@ public function save_checkin()
 
     if (!$lead_id || !in_array($type, ['checkin','checkout'])) {
         return $this->output->set_status_header(422)->set_output('Invalid input');
+    }
+
+    if (empty($address) && $latitude && $longitude) {
+        $this->load->model('timesheets/timesheets_model');
+        $address = $this->timesheets_model->getAddressFromLatLong($latitude, $longitude);
     }
 
     $staff_id   = get_staff_user_id();

@@ -5882,7 +5882,8 @@ public function save_location()
 					'type_check',
 					'id',
 					'workplace_id',
-					'route_point_id','address',
+					'route_point_id','address','ip','device_type','device_fingerprint',
+
 				];
 
 				$query = '';
@@ -5963,7 +5964,8 @@ public function save_location()
 					'date',
 					'type_check',
 					'workplace_id',
-					'route_point_id','address',
+					'route_point_id','address','ip','device_type','device_fingerprint',
+
 				]);
 
 				$output = $result['output'];
@@ -6010,6 +6012,10 @@ public function save_location()
 // End workplace
 					$row[] = $workplace_name;
  $row[] = !empty($aRow['address']) ? html_escape($aRow['address']) : '-';
+
+  $row[] = !empty($aRow['ip']) ? html_escape($aRow['ip']) : '-';
+ $row[] = !empty($aRow['device_type']) ? html_escape($aRow['device_type']) : '-';
+ $row[] = !empty($aRow['device_fingerprint']) ? html_escape($aRow['device_fingerprint']) : '-';
 // Route
 					$route_name = '';
 					if ($aRow['route_point_id'] && $aRow['route_point_id'] != '' && $aRow['route_point_id'] != 0) {
@@ -6018,6 +6024,7 @@ public function save_location()
 							$route_name = $route_data->name;
 						}
 					}
+
 // End route
 					$row[] = $route_name;
 					if ($allow_add == true) {
