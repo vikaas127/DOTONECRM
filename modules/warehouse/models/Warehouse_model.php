@@ -45,6 +45,83 @@ class Warehouse_model extends App_Model {
     ];
 }
 
+public function generate_description_from_rule($group_id, $sub_group_id, $item_data) {
+    $rule_data = $this->get_naming_pref_with_attrs($group_id, $sub_group_id);
+    if (!$rule_data) return '';
+
+    $attrs = $rule_data['attrs'];
+    $name_parts = [];
+
+    foreach ($attrs as $index => $attr) {
+        $col_name = $attr['name'];
+        $val = '';
+
+        // Map codes/IDs to names if needed
+        switch ($col_name) {
+            case 'model_id':
+                if (!empty($item_data['model_id'])) {
+                    $res = $this->db->select('body_name')->where('body_type_id', $item_data['model_id'])
+                                    ->get(db_prefix().'ware_body_type')->row();
+                    $val = $res ? $res->body_name : '';
+                }
+                break;
+
+            case 'style_id':
+                if (!empty($item_data['style_id'])) {
+                    $res = $this->db->select('style_name')->where('style_type_id', $item_data['style_id'])
+                                    ->get(db_prefix().'ware_style_type')->row();
+                    $val = $res ? $res->style_name : '';
+                }
+                break;
+			case 'sub_group':
+                if (!empty($item_data['sub_group'])) {
+                    $res = $this->db->select('sub_group_name')->where('id', $item_data['sub_group'])
+                                    ->get(db_prefix().'wh_sub_group')->row();
+                    $val = $res ? $res->sub_group_name : '';
+                }
+                break;
+			case 'group_id':
+                if (!empty($item_data['group_id'])) {
+                    $res = $this->db->select('name')->where('id', $item_data['group_id'])
+                                    ->get(db_prefix().'items_groups')->row();
+                    $val = $res ? $res->name : '';
+                }
+                break;
+
+            case 'size_id':
+                if (!empty($item_data['size_id'])) {
+                    $res = $this->db->select('size_name')->where('size_type_id', $item_data['size_id'])
+                                    ->get(db_prefix().'ware_size_type')->row();
+                    $val = $res ? $res->size_name : '';
+                }
+                break;
+
+            case 'color':
+                if (!empty($item_data['color'])) {
+                    $res = $this->db->select('color_name')->where('color_id', $item_data['color'])
+                                    ->get(db_prefix().'ware_color')->row();
+                    $val = $res ? $res->color_name : '';
+                }
+                break;
+
+            default:
+                // For other columns like thickness, use as is
+                $val = isset($item_data[$col_name]) ? $item_data[$col_name] : '';
+        }
+
+        if ($val !== '') {
+            $name_parts[] = $val;
+            // append separator if defined
+            if (!empty($attr['separator']) && $index < count($attrs) - 1) {
+                $name_parts[] = $attr['separator'];
+            }
+        }
+    }
+
+    return implode('', $name_parts);
+}
+
+
 public function delete_warehouse_permission($id)
 	{
 		$str_permissions ='';
@@ -6351,7 +6428,7 @@ public function get_stock_export_pdf_html($goods_delivery_id) {
         $columns = [
             'sort_name', 'thickness', 'long_description', 'group_id', 'sub_group',
             'volume', 'color', 'style_id', 'model_id', 'size_id', 'unit_id',
-            'sku_code', 'sku_name', 'paperwork', 'length', 'width'
+            'sku_code',  'paperwork', 'length', 'width'
         ];
         $all_fields = $this->db->list_fields('tblitems');
         return array_intersect($columns, $all_fields);
