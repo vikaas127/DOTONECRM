@@ -77,7 +77,7 @@ class Line_discounts_items_table extends App_items_table
              * Maybe item has added unit?
              */
             if ($item['unit']) {
-                $itemHTML .= ' ' . e($item['unit']);
+                $itemHTML .= ' ' . ($item['unit']);
             }
 
             $itemHTML .= '</td>';
