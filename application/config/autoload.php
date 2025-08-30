@@ -138,7 +138,7 @@ $autoload['helper'] = [
         'menu',
         'template',
         'email_templates',
-        'invoices',
+        'invoices','database',
         'subscriptions',
         'estimates',
         'contracts',

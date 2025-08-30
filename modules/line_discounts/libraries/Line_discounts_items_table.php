@@ -71,7 +71,7 @@ class Line_discounts_items_table extends App_items_table
             /**
              * Item quantity
              */
-            $itemHTML .= '<td align="right" width="' . $regularItemWidth . '%">' . e(floatVal($item['qty']));
+            $itemHTML .= '<td align="right" width="' . $regularItemWidth . '%">' . (floatVal($item['qty']));
 
             /**
              * Maybe item has added unit?
@@ -92,7 +92,7 @@ class Line_discounts_items_table extends App_items_table
                 ['item' => $item, 'transaction' => $this->transaction]
             );
 
-            $itemHTML .= '<td align="right" width="' . $regularItemWidth . '%">' . e($rate) . '</td>';
+            $itemHTML .= '<td align="right" width="' . $regularItemWidth . '%">' . ($rate) . '</td>';
 
 
             /**
@@ -106,7 +106,7 @@ class Line_discounts_items_table extends App_items_table
                 $discount_amount_format = "%".$item['line_discount_rate']." (".app_format_money( $discount_amount , $this->transaction->currency_name, $this->exclude_currency()).")";
             }
 
-            $itemHTML .= '<td align="right" width="' . $regularItemWidth . '%">' . e($discount_amount_format) . '</td>';
+            $itemHTML .= '<td align="right" width="' . $regularItemWidth . '%">' . ($discount_amount_format) . '</td>';
 
 
 
@@ -128,7 +128,7 @@ class Line_discounts_items_table extends App_items_table
                 $this->exclude_currency()
             );
 
-            $itemHTML .= '<td class="amount" align="right" width="' . $regularItemWidth . '%">' . e($item_amount_with_quantity) . '</td>';
+            $itemHTML .= '<td class="amount" align="right" width="' . $regularItemWidth . '%">' . ($item_amount_with_quantity) . '</td>';
 
             // Close table row
             $itemHTML .= '</tr>';

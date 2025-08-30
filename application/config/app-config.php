@@ -38,7 +38,7 @@ define('APP_ENC_KEY', 'e18ebcfbf2b5c839089b1f63ea3bf9b0');
  * Database Credentials
  * The hostname of your database server
  */
-define('APP_DB_HOSTNAME_DEFAULT', '127.0.0.1');
+define('APP_DB_HOSTNAME_DEFAULT', 'localhost');
 
 /**
  * The username used to connect to the database
