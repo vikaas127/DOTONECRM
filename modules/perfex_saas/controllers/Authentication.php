@@ -97,7 +97,7 @@ class Authentication extends ClientsController
      */
     public function client_magic_auth()
     {
-die();
+
         try {
             // Check if the user is a tenant or if the client bridge is not enabled
             if (perfex_saas_is_tenant() || get_option('perfex_saas_enable_client_bridge') !== "1") {
