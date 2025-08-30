@@ -302,6 +302,8 @@ if (has_permission('table_shiftwork_management', '', 'view_own')
   </div>
   <?php echo form_close(); ?>
 </div>
+
+
 <?php init_tail(); ?>
 </body>
 </html>

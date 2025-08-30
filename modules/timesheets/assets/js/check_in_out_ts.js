@@ -39,6 +39,16 @@ function setDate(hour, minute, second) {
   var hourDeg = ((hour / 12) * 360);
   $("#clock_attendance_modal #hourHand").css('transform', 'rotate(' + hourDeg + 'deg)');
 }
+$(function() {
+  FingerprintJS.load().then(fp => {
+    fp.get().then(result => {
+      const visitorId = result.visitorId;
+      console.log("Device ID:", visitorId);
+      $('input[name="device_fingerprint"]').val(visitorId);
+    });
+  });
+});
+
 /**
  * open check in out
  */
@@ -174,11 +184,1304 @@ function get_route_point() {
 }
 function get_data() {
   "use strict";
+
+  // Set route_point into form input
   var route_point = $('#route_point').val();
   $('input[name="point_id"]').val(route_point);
+
+  // Disable the buttons to prevent double submission
   $('#timesheets-form-check-in .check_in').attr('disabled', 'disabled');
   $('#timesheets-form-check-out .check_out').attr('disabled', 'disabled');
+
+  // Get type_check value (1 = check-in, 2 = check-out)
+  const typeCheckInput = document.querySelector('input[name="type_check"]');
+  const isCheckIn = typeCheckInput && typeCheckInput.value === '1';
+  const isCheckOut = typeCheckInput && typeCheckInput.value === '2';
+
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function (position) {
+      // Fill form inputs
+      $('#latitude').val(position.coords.latitude);
+      $('#longitude').val(position.coords.longitude);
+      $('#accuracy_m').val(position.coords.accuracy);
+
+      // Store lat/long in location_user format (for backend compatibility)
+      const loc = position.coords.latitude + ',' + position.coords.longitude;
+      $('input[name="location_user"]').val(loc);
+
+      // Reverse geocoding (optional, to populate address input if needed)
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}`)
+        .then(response => response.json())
+        .then(data => {
+          $('#address').val(data.display_name || '');
+
+          // Submit form after address is set
+          if (isCheckIn) {
+            localStorage.setItem("track_enabled", "1");
+            document.getElementById("timesheets-form-check-in").submit();
+          } else if (isCheckOut) {
+            localStorage.removeItem("track_enabled");
+            stopTracking(); // optional: ends any running interval
+            document.getElementById("timesheets-form-check-out").submit();
+          }
+        })
+        .catch(() => {
+          // Fallback: submit without address if geocoding fails
+          if (isCheckIn) {
+            localStorage.setItem("track_enabled", "1");
+            document.getElementById("timesheets-form-check-in").submit();
+          } else if (isCheckOut) {
+            localStorage.removeItem("track_enabled");
+            stopTracking();
+            document.getElementById("timesheets-form-check-out").submit();
+          }
+        });
+
+    }, function (error) {
+      alert("Geolocation error: " + error.message);
+    });
+  } else {
+    alert("Geolocation is not supported by this browser.");
+  }
+
+  return false; // prevent default form action
 }
+
+function get_data() {
+  "use strict";
+
+  // Set route_point into form input
+  var route_point = $('#route_point').val();
+  $('input[name="point_id"]').val(route_point);
+
+  // Disable the buttons to prevent double submission
+  $('#timesheets-form-check-in .check_in').attr('disabled', 'disabled');
+  $('#timesheets-form-check-out .check_out').attr('disabled', 'disabled');
+
+  // Get type_check value (1 = check-in, 2 = check-out)
+  const typeCheckInput = document.querySelector('input[name="type_check"]');
+  const isCheckIn = typeCheckInput && typeCheckInput.value === '1';
+  const isCheckOut = typeCheckInput && typeCheckInput.value === '2';
+
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function (position) {
+      // Fill form inputs
+      $('#latitude').val(position.coords.latitude);
+      $('#longitude').val(position.coords.longitude);
+      $('#accuracy_m').val(position.coords.accuracy);
+
+      // Store lat/long in location_user format (for backend compatibility)
+      const loc = position.coords.latitude + ',' + position.coords.longitude;
+      $('input[name="location_user"]').val(loc);
+
+      // Reverse geocoding (optional, to populate address input if needed)
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}`)
+        .then(response => response.json())
+        .then(data => {
+          $('#address').val(data.display_name || '');
+
+          // Submit form after address is set
+          if (isCheckIn) {
+            localStorage.setItem("track_enabled", "1");
+            document.getElementById("timesheets-form-check-in").submit();
+          } else if (isCheckOut) {
+            localStorage.removeItem("track_enabled");
+            stopTracking(); // optional: ends any running interval
+            document.getElementById("timesheets-form-check-out").submit();
+          }
+        })
+        .catch(() => {
+          // Fallback: submit without address if geocoding fails
+          if (isCheckIn) {
+            localStorage.setItem("track_enabled", "1");
+            document.getElementById("timesheets-form-check-in").submit();
+          } else if (isCheckOut) {
+            localStorage.removeItem("track_enabled");
+            stopTracking();
+            document.getElementById("timesheets-form-check-out").submit();
+          }
+        });
+
+    }, function (error) {
+      alert("Geolocation error: " + error.message);
+    });
+  } else {
+    alert("Geolocation is not supported by this browser.");
+  }
+
+  return false; // prevent default form action
+}
+
+function get_data() {
+  "use strict";
+
+  // Set route_point into form input
+  var route_point = $('#route_point').val();
+  $('input[name="point_id"]').val(route_point);
+
+  // Disable the buttons to prevent double submission
+  $('#timesheets-form-check-in .check_in').attr('disabled', 'disabled');
+  $('#timesheets-form-check-out .check_out').attr('disabled', 'disabled');
+
+  // Get type_check value (1 = check-in, 2 = check-out)
+  const typeCheckInput = document.querySelector('input[name="type_check"]');
+  const isCheckIn = typeCheckInput && typeCheckInput.value === '1';
+  const isCheckOut = typeCheckInput && typeCheckInput.value === '2';
+
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function (position) {
+      // Fill form inputs
+      $('#latitude').val(position.coords.latitude);
+      $('#longitude').val(position.coords.longitude);
+      $('#accuracy_m').val(position.coords.accuracy);
+
+      // Store lat/long in location_user format (for backend compatibility)
+      const loc = position.coords.latitude + ',' + position.coords.longitude;
+      $('input[name="location_user"]').val(loc);
+
+      // Reverse geocoding (optional, to populate address input if needed)
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}`)
+        .then(response => response.json())
+        .then(data => {
+          $('#address').val(data.display_name || '');
+
+          // Submit form after address is set
+          if (isCheckIn) {
+            localStorage.setItem("track_enabled", "1");
+            document.getElementById("timesheets-form-check-in").submit();
+          } else if (isCheckOut) {
+            localStorage.removeItem("track_enabled");
+            stopTracking(); // optional: ends any running interval
+            document.getElementById("timesheets-form-check-out").submit();
+          }
+        })
+        .catch(() => {
+          // Fallback: submit without address if geocoding fails
+          if (isCheckIn) {
+            localStorage.setItem("track_enabled", "1");
+            document.getElementById("timesheets-form-check-in").submit();
+          } else if (isCheckOut) {
+            localStorage.removeItem("track_enabled");
+            stopTracking();
+            document.getElementById("timesheets-form-check-out").submit();
+          }
+        });
+
+    }, function (error) {
+      alert("Geolocation error: " + error.message);
+    });
+  } else {
+    alert("Geolocation is not supported by this browser.");
+  }
+
+  return false; // prevent default form action
+}
+
+function get_data() {
+  "use strict";
+
+  // Set route_point into form input
+  var route_point = $('#route_point').val();
+  $('input[name="point_id"]').val(route_point);
+
+  // Disable the buttons to prevent double submission
+  $('#timesheets-form-check-in .check_in').attr('disabled', 'disabled');
+  $('#timesheets-form-check-out .check_out').attr('disabled', 'disabled');
+
+  // Get type_check value (1 = check-in, 2 = check-out)
+  const typeCheckInput = document.querySelector('input[name="type_check"]');
+  const isCheckIn = typeCheckInput && typeCheckInput.value === '1';
+  const isCheckOut = typeCheckInput && typeCheckInput.value === '2';
+
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function (position) {
+      // Fill form inputs
+      $('#latitude').val(position.coords.latitude);
+      $('#longitude').val(position.coords.longitude);
+      $('#accuracy_m').val(position.coords.accuracy);
+
+      // Store lat/long in location_user format (for backend compatibility)
+      const loc = position.coords.latitude + ',' + position.coords.longitude;
+      $('input[name="location_user"]').val(loc);
+
+      // Reverse geocoding (optional, to populate address input if needed)
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}`)
+        .then(response => response.json())
+        .then(data => {
+          $('#address').val(data.display_name || '');
+
+          // Submit form after address is set
+          if (isCheckIn) {
+            localStorage.setItem("track_enabled", "1");
+            document.getElementById("timesheets-form-check-in").submit();
+          } else if (isCheckOut) {
+            localStorage.removeItem("track_enabled");
+            stopTracking(); // optional: ends any running interval
+            document.getElementById("timesheets-form-check-out").submit();
+          }
+        })
+        .catch(() => {
+          // Fallback: submit without address if geocoding fails
+          if (isCheckIn) {
+            localStorage.setItem("track_enabled", "1");
+            document.getElementById("timesheets-form-check-in").submit();
+          } else if (isCheckOut) {
+            localStorage.removeItem("track_enabled");
+            stopTracking();
+            document.getElementById("timesheets-form-check-out").submit();
+          }
+        });
+
+    }, function (error) {
+      alert("Geolocation error: " + error.message);
+    });
+  } else {
+    alert("Geolocation is not supported by this browser.");
+  }
+
+  return false; // prevent default form action
+}
+
+function get_data() {
+  "use strict";
+
+  // Set route_point into form input
+  var route_point = $('#route_point').val();
+  $('input[name="point_id"]').val(route_point);
+
+  // Disable the buttons to prevent double submission
+  $('#timesheets-form-check-in .check_in').attr('disabled', 'disabled');
+  $('#timesheets-form-check-out .check_out').attr('disabled', 'disabled');
+
+  // Get type_check value (1 = check-in, 2 = check-out)
+  const typeCheckInput = document.querySelector('input[name="type_check"]');
+  const isCheckIn = typeCheckInput && typeCheckInput.value === '1';
+  const isCheckOut = typeCheckInput && typeCheckInput.value === '2';
+
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function (position) {
+      // Fill form inputs
+      $('#latitude').val(position.coords.latitude);
+      $('#longitude').val(position.coords.longitude);
+      $('#accuracy_m').val(position.coords.accuracy);
+
+      // Store lat/long in location_user format (for backend compatibility)
+      const loc = position.coords.latitude + ',' + position.coords.longitude;
+      $('input[name="location_user"]').val(loc);
+
+      // Reverse geocoding (optional, to populate address input if needed)
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}`)
+        .then(response => response.json())
+        .then(data => {
+          $('#address').val(data.display_name || '');
+
+          // Submit form after address is set
+          if (isCheckIn) {
+            localStorage.setItem("track_enabled", "1");
+            document.getElementById("timesheets-form-check-in").submit();
+          } else if (isCheckOut) {
+            localStorage.removeItem("track_enabled");
+            stopTracking(); // optional: ends any running interval
+            document.getElementById("timesheets-form-check-out").submit();
+          }
+        })
+        .catch(() => {
+          // Fallback: submit without address if geocoding fails
+          if (isCheckIn) {
+            localStorage.setItem("track_enabled", "1");
+            document.getElementById("timesheets-form-check-in").submit();
+          } else if (isCheckOut) {
+            localStorage.removeItem("track_enabled");
+            stopTracking();
+            document.getElementById("timesheets-form-check-out").submit();
+          }
+        });
+
+    }, function (error) {
+      alert("Geolocation error: " + error.message);
+    });
+  } else {
+    alert("Geolocation is not supported by this browser.");
+  }
+
+  return false; // prevent default form action
+}
+
+function get_data() {
+  "use strict";
+
+  // Set route_point into form input
+  var route_point = $('#route_point').val();
+  $('input[name="point_id"]').val(route_point);
+
+  // Disable the buttons to prevent double submission
+  $('#timesheets-form-check-in .check_in').attr('disabled', 'disabled');
+  $('#timesheets-form-check-out .check_out').attr('disabled', 'disabled');
+
+  // Get type_check value (1 = check-in, 2 = check-out)
+  const typeCheckInput = document.querySelector('input[name="type_check"]');
+  const isCheckIn = typeCheckInput && typeCheckInput.value === '1';
+  const isCheckOut = typeCheckInput && typeCheckInput.value === '2';
+
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function (position) {
+      // Fill form inputs
+      $('#latitude').val(position.coords.latitude);
+      $('#longitude').val(position.coords.longitude);
+      $('#accuracy_m').val(position.coords.accuracy);
+
+      // Store lat/long in location_user format (for backend compatibility)
+      const loc = position.coords.latitude + ',' + position.coords.longitude;
+      $('input[name="location_user"]').val(loc);
+
+      // Reverse geocoding (optional, to populate address input if needed)
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}`)
+        .then(response => response.json())
+        .then(data => {
+          $('#address').val(data.display_name || '');
+
+          // Submit form after address is set
+          if (isCheckIn) {
+            localStorage.setItem("track_enabled", "1");
+            document.getElementById("timesheets-form-check-in").submit();
+          } else if (isCheckOut) {
+            localStorage.removeItem("track_enabled");
+            stopTracking(); // optional: ends any running interval
+            document.getElementById("timesheets-form-check-out").submit();
+          }
+        })
+        .catch(() => {
+          // Fallback: submit without address if geocoding fails
+          if (isCheckIn) {
+            localStorage.setItem("track_enabled", "1");
+            document.getElementById("timesheets-form-check-in").submit();
+          } else if (isCheckOut) {
+            localStorage.removeItem("track_enabled");
+            stopTracking();
+            document.getElementById("timesheets-form-check-out").submit();
+          }
+        });
+
+    }, function (error) {
+      alert("Geolocation error: " + error.message);
+    });
+  } else {
+    alert("Geolocation is not supported by this browser.");
+  }
+
+  return false; // prevent default form action
+}
+
+function get_data() {
+  "use strict";
+
+  // Set route_point into form input
+  var route_point = $('#route_point').val();
+  $('input[name="point_id"]').val(route_point);
+
+  // Disable the buttons to prevent double submission
+  $('#timesheets-form-check-in .check_in').attr('disabled', 'disabled');
+  $('#timesheets-form-check-out .check_out').attr('disabled', 'disabled');
+
+  // Get type_check value (1 = check-in, 2 = check-out)
+  const typeCheckInput = document.querySelector('input[name="type_check"]');
+  const isCheckIn = typeCheckInput && typeCheckInput.value === '1';
+  const isCheckOut = typeCheckInput && typeCheckInput.value === '2';
+
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function (position) {
+      // Fill form inputs
+      $('#latitude').val(position.coords.latitude);
+      $('#longitude').val(position.coords.longitude);
+      $('#accuracy_m').val(position.coords.accuracy);
+
+      // Store lat/long in location_user format (for backend compatibility)
+      const loc = position.coords.latitude + ',' + position.coords.longitude;
+      $('input[name="location_user"]').val(loc);
+
+      // Reverse geocoding (optional, to populate address input if needed)
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}`)
+        .then(response => response.json())
+        .then(data => {
+          $('#address').val(data.display_name || '');
+
+          // Submit form after address is set
+          if (isCheckIn) {
+            localStorage.setItem("track_enabled", "1");
+            document.getElementById("timesheets-form-check-in").submit();
+          } else if (isCheckOut) {
+            localStorage.removeItem("track_enabled");
+            stopTracking(); // optional: ends any running interval
+            document.getElementById("timesheets-form-check-out").submit();
+          }
+        })
+        .catch(() => {
+          // Fallback: submit without address if geocoding fails
+          if (isCheckIn) {
+            localStorage.setItem("track_enabled", "1");
+            document.getElementById("timesheets-form-check-in").submit();
+          } else if (isCheckOut) {
+            localStorage.removeItem("track_enabled");
+            stopTracking();
+            document.getElementById("timesheets-form-check-out").submit();
+          }
+        });
+
+    }, function (error) {
+      alert("Geolocation error: " + error.message);
+    });
+  } else {
+    alert("Geolocation is not supported by this browser.");
+  }
+
+  return false; // prevent default form action
+}
+
+function get_data() {
+  "use strict";
+
+  // Set route_point into form input
+  var route_point = $('#route_point').val();
+  $('input[name="point_id"]').val(route_point);
+
+  // Disable the buttons to prevent double submission
+  $('#timesheets-form-check-in .check_in').attr('disabled', 'disabled');
+  $('#timesheets-form-check-out .check_out').attr('disabled', 'disabled');
+
+  // Get type_check value (1 = check-in, 2 = check-out)
+  const typeCheckInput = document.querySelector('input[name="type_check"]');
+  const isCheckIn = typeCheckInput && typeCheckInput.value === '1';
+  const isCheckOut = typeCheckInput && typeCheckInput.value === '2';
+
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function (position) {
+      // Fill form inputs
+      $('#latitude').val(position.coords.latitude);
+      $('#longitude').val(position.coords.longitude);
+      $('#accuracy_m').val(position.coords.accuracy);
+
+      // Store lat/long in location_user format (for backend compatibility)
+      const loc = position.coords.latitude + ',' + position.coords.longitude;
+      $('input[name="location_user"]').val(loc);
+
+      // Reverse geocoding (optional, to populate address input if needed)
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}`)
+        .then(response => response.json())
+        .then(data => {
+          $('#address').val(data.display_name || '');
+
+          // Submit form after address is set
+          if (isCheckIn) {
+            localStorage.setItem("track_enabled", "1");
+            document.getElementById("timesheets-form-check-in").submit();
+          } else if (isCheckOut) {
+            localStorage.removeItem("track_enabled");
+            stopTracking(); // optional: ends any running interval
+            document.getElementById("timesheets-form-check-out").submit();
+          }
+        })
+        .catch(() => {
+          // Fallback: submit without address if geocoding fails
+          if (isCheckIn) {
+            localStorage.setItem("track_enabled", "1");
+            document.getElementById("timesheets-form-check-in").submit();
+          } else if (isCheckOut) {
+            localStorage.removeItem("track_enabled");
+            stopTracking();
+            document.getElementById("timesheets-form-check-out").submit();
+          }
+        });
+
+    }, function (error) {
+      alert("Geolocation error: " + error.message);
+    });
+  } else {
+    alert("Geolocation is not supported by this browser.");
+  }
+
+  return false; // prevent default form action
+}
+
+function get_data() {
+  "use strict";
+
+  // Set route_point into form input
+  var route_point = $('#route_point').val();
+  $('input[name="point_id"]').val(route_point);
+
+  // Disable the buttons to prevent double submission
+  $('#timesheets-form-check-in .check_in').attr('disabled', 'disabled');
+  $('#timesheets-form-check-out .check_out').attr('disabled', 'disabled');
+
+  // Get type_check value (1 = check-in, 2 = check-out)
+  const typeCheckInput = document.querySelector('input[name="type_check"]');
+  const isCheckIn = typeCheckInput && typeCheckInput.value === '1';
+  const isCheckOut = typeCheckInput && typeCheckInput.value === '2';
+
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function (position) {
+      // Fill form inputs
+      $('#latitude').val(position.coords.latitude);
+      $('#longitude').val(position.coords.longitude);
+      $('#accuracy_m').val(position.coords.accuracy);
+
+      // Store lat/long in location_user format (for backend compatibility)
+      const loc = position.coords.latitude + ',' + position.coords.longitude;
+      $('input[name="location_user"]').val(loc);
+
+      // Reverse geocoding (optional, to populate address input if needed)
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}`)
+        .then(response => response.json())
+        .then(data => {
+          $('#address').val(data.display_name || '');
+
+          // Submit form after address is set
+          if (isCheckIn) {
+            localStorage.setItem("track_enabled", "1");
+            document.getElementById("timesheets-form-check-in").submit();
+          } else if (isCheckOut) {
+            localStorage.removeItem("track_enabled");
+            stopTracking(); // optional: ends any running interval
+            document.getElementById("timesheets-form-check-out").submit();
+          }
+        })
+        .catch(() => {
+          // Fallback: submit without address if geocoding fails
+          if (isCheckIn) {
+            localStorage.setItem("track_enabled", "1");
+            document.getElementById("timesheets-form-check-in").submit();
+          } else if (isCheckOut) {
+            localStorage.removeItem("track_enabled");
+            stopTracking();
+            document.getElementById("timesheets-form-check-out").submit();
+          }
+        });
+
+    }, function (error) {
+      alert("Geolocation error: " + error.message);
+    });
+  } else {
+    alert("Geolocation is not supported by this browser.");
+  }
+
+  return false; // prevent default form action
+}
+
+function get_data() {
+  "use strict";
+
+  // Set route_point into form input
+  var route_point = $('#route_point').val();
+  $('input[name="point_id"]').val(route_point);
+
+  // Disable the buttons to prevent double submission
+  $('#timesheets-form-check-in .check_in').attr('disabled', 'disabled');
+  $('#timesheets-form-check-out .check_out').attr('disabled', 'disabled');
+
+  // Get type_check value (1 = check-in, 2 = check-out)
+  const typeCheckInput = document.querySelector('input[name="type_check"]');
+  const isCheckIn = typeCheckInput && typeCheckInput.value === '1';
+  const isCheckOut = typeCheckInput && typeCheckInput.value === '2';
+
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function (position) {
+      // Fill form inputs
+      $('#latitude').val(position.coords.latitude);
+      $('#longitude').val(position.coords.longitude);
+      $('#accuracy_m').val(position.coords.accuracy);
+
+      // Store lat/long in location_user format (for backend compatibility)
+      const loc = position.coords.latitude + ',' + position.coords.longitude;
+      $('input[name="location_user"]').val(loc);
+
+      // Reverse geocoding (optional, to populate address input if needed)
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}`)
+        .then(response => response.json())
+        .then(data => {
+          $('#address').val(data.display_name || '');
+
+          // Submit form after address is set
+          if (isCheckIn) {
+            localStorage.setItem("track_enabled", "1");
+            document.getElementById("timesheets-form-check-in").submit();
+          } else if (isCheckOut) {
+            localStorage.removeItem("track_enabled");
+            stopTracking(); // optional: ends any running interval
+            document.getElementById("timesheets-form-check-out").submit();
+          }
+        })
+        .catch(() => {
+          // Fallback: submit without address if geocoding fails
+          if (isCheckIn) {
+            localStorage.setItem("track_enabled", "1");
+            document.getElementById("timesheets-form-check-in").submit();
+          } else if (isCheckOut) {
+            localStorage.removeItem("track_enabled");
+            stopTracking();
+            document.getElementById("timesheets-form-check-out").submit();
+          }
+        });
+
+    }, function (error) {
+      alert("Geolocation error: " + error.message);
+    });
+  } else {
+    alert("Geolocation is not supported by this browser.");
+  }
+
+  return false; // prevent default form action
+}
+
+function get_data() {
+  "use strict";
+
+  // Set route_point into form input
+  var route_point = $('#route_point').val();
+  $('input[name="point_id"]').val(route_point);
+
+  // Disable the buttons to prevent double submission
+  $('#timesheets-form-check-in .check_in').attr('disabled', 'disabled');
+  $('#timesheets-form-check-out .check_out').attr('disabled', 'disabled');
+
+  // Get type_check value (1 = check-in, 2 = check-out)
+  const typeCheckInput = document.querySelector('input[name="type_check"]');
+  const isCheckIn = typeCheckInput && typeCheckInput.value === '1';
+  const isCheckOut = typeCheckInput && typeCheckInput.value === '2';
+
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function (position) {
+      // Fill form inputs
+      $('#latitude').val(position.coords.latitude);
+      $('#longitude').val(position.coords.longitude);
+      $('#accuracy_m').val(position.coords.accuracy);
+
+      // Store lat/long in location_user format (for backend compatibility)
+      const loc = position.coords.latitude + ',' + position.coords.longitude;
+      $('input[name="location_user"]').val(loc);
+
+      // Reverse geocoding (optional, to populate address input if needed)
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}`)
+        .then(response => response.json())
+        .then(data => {
+          $('#address').val(data.display_name || '');
+
+          // Submit form after address is set
+          if (isCheckIn) {
+            localStorage.setItem("track_enabled", "1");
+            document.getElementById("timesheets-form-check-in").submit();
+          } else if (isCheckOut) {
+            localStorage.removeItem("track_enabled");
+            stopTracking(); // optional: ends any running interval
+            document.getElementById("timesheets-form-check-out").submit();
+          }
+        })
+        .catch(() => {
+          // Fallback: submit without address if geocoding fails
+          if (isCheckIn) {
+            localStorage.setItem("track_enabled", "1");
+            document.getElementById("timesheets-form-check-in").submit();
+          } else if (isCheckOut) {
+            localStorage.removeItem("track_enabled");
+            stopTracking();
+            document.getElementById("timesheets-form-check-out").submit();
+          }
+        });
+
+    }, function (error) {
+      alert("Geolocation error: " + error.message);
+    });
+  } else {
+    alert("Geolocation is not supported by this browser.");
+  }
+
+  return false; // prevent default form action
+}
+
+function get_data() {
+  "use strict";
+
+  // Set route_point into form input
+  var route_point = $('#route_point').val();
+  $('input[name="point_id"]').val(route_point);
+
+  // Disable the buttons to prevent double submission
+  $('#timesheets-form-check-in .check_in').attr('disabled', 'disabled');
+  $('#timesheets-form-check-out .check_out').attr('disabled', 'disabled');
+
+  // Get type_check value (1 = check-in, 2 = check-out)
+  const typeCheckInput = document.querySelector('input[name="type_check"]');
+  const isCheckIn = typeCheckInput && typeCheckInput.value === '1';
+  const isCheckOut = typeCheckInput && typeCheckInput.value === '2';
+
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function (position) {
+      // Fill form inputs
+      $('#latitude').val(position.coords.latitude);
+      $('#longitude').val(position.coords.longitude);
+      $('#accuracy_m').val(position.coords.accuracy);
+
+      // Store lat/long in location_user format (for backend compatibility)
+      const loc = position.coords.latitude + ',' + position.coords.longitude;
+      $('input[name="location_user"]').val(loc);
+
+      // Reverse geocoding (optional, to populate address input if needed)
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}`)
+        .then(response => response.json())
+        .then(data => {
+          $('#address').val(data.display_name || '');
+
+          // Submit form after address is set
+          if (isCheckIn) {
+            localStorage.setItem("track_enabled", "1");
+            document.getElementById("timesheets-form-check-in").submit();
+          } else if (isCheckOut) {
+            localStorage.removeItem("track_enabled");
+            stopTracking(); // optional: ends any running interval
+            document.getElementById("timesheets-form-check-out").submit();
+          }
+        })
+        .catch(() => {
+          // Fallback: submit without address if geocoding fails
+          if (isCheckIn) {
+            localStorage.setItem("track_enabled", "1");
+            document.getElementById("timesheets-form-check-in").submit();
+          } else if (isCheckOut) {
+            localStorage.removeItem("track_enabled");
+            stopTracking();
+            document.getElementById("timesheets-form-check-out").submit();
+          }
+        });
+
+    }, function (error) {
+      alert("Geolocation error: " + error.message);
+    });
+  } else {
+    alert("Geolocation is not supported by this browser.");
+  }
+
+  return false; // prevent default form action
+}
+
+function get_data() {
+  "use strict";
+
+  // Set route_point into form input
+  var route_point = $('#route_point').val();
+  $('input[name="point_id"]').val(route_point);
+
+  // Disable the buttons to prevent double submission
+  $('#timesheets-form-check-in .check_in').attr('disabled', 'disabled');
+  $('#timesheets-form-check-out .check_out').attr('disabled', 'disabled');
+
+  // Get type_check value (1 = check-in, 2 = check-out)
+  const typeCheckInput = document.querySelector('input[name="type_check"]');
+  const isCheckIn = typeCheckInput && typeCheckInput.value === '1';
+  const isCheckOut = typeCheckInput && typeCheckInput.value === '2';
+
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function (position) {
+      // Fill form inputs
+      $('#latitude').val(position.coords.latitude);
+      $('#longitude').val(position.coords.longitude);
+      $('#accuracy_m').val(position.coords.accuracy);
+
+      // Store lat/long in location_user format (for backend compatibility)
+      const loc = position.coords.latitude + ',' + position.coords.longitude;
+      $('input[name="location_user"]').val(loc);
+
+      // Reverse geocoding (optional, to populate address input if needed)
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}`)
+        .then(response => response.json())
+        .then(data => {
+          $('#address').val(data.display_name || '');
+
+          // Submit form after address is set
+          if (isCheckIn) {
+            localStorage.setItem("track_enabled", "1");
+            document.getElementById("timesheets-form-check-in").submit();
+          } else if (isCheckOut) {
+            localStorage.removeItem("track_enabled");
+            stopTracking(); // optional: ends any running interval
+            document.getElementById("timesheets-form-check-out").submit();
+          }
+        })
+        .catch(() => {
+          // Fallback: submit without address if geocoding fails
+          if (isCheckIn) {
+            localStorage.setItem("track_enabled", "1");
+            document.getElementById("timesheets-form-check-in").submit();
+          } else if (isCheckOut) {
+            localStorage.removeItem("track_enabled");
+            stopTracking();
+            document.getElementById("timesheets-form-check-out").submit();
+          }
+        });
+
+    }, function (error) {
+      alert("Geolocation error: " + error.message);
+    });
+  } else {
+    alert("Geolocation is not supported by this browser.");
+  }
+
+  return false; // prevent default form action
+}
+
+function get_data() {
+  "use strict";
+
+  // Set route_point into form input
+  var route_point = $('#route_point').val();
+  $('input[name="point_id"]').val(route_point);
+
+  // Disable the buttons to prevent double submission
+  $('#timesheets-form-check-in .check_in').attr('disabled', 'disabled');
+  $('#timesheets-form-check-out .check_out').attr('disabled', 'disabled');
+
+  // Get type_check value (1 = check-in, 2 = check-out)
+  const typeCheckInput = document.querySelector('input[name="type_check"]');
+  const isCheckIn = typeCheckInput && typeCheckInput.value === '1';
+  const isCheckOut = typeCheckInput && typeCheckInput.value === '2';
+
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function (position) {
+      // Fill form inputs
+      $('#latitude').val(position.coords.latitude);
+      $('#longitude').val(position.coords.longitude);
+      $('#accuracy_m').val(position.coords.accuracy);
+
+      // Store lat/long in location_user format (for backend compatibility)
+      const loc = position.coords.latitude + ',' + position.coords.longitude;
+      $('input[name="location_user"]').val(loc);
+
+      // Reverse geocoding (optional, to populate address input if needed)
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}`)
+        .then(response => response.json())
+        .then(data => {
+          $('#address').val(data.display_name || '');
+
+          // Submit form after address is set
+          if (isCheckIn) {
+            localStorage.setItem("track_enabled", "1");
+            document.getElementById("timesheets-form-check-in").submit();
+          } else if (isCheckOut) {
+            localStorage.removeItem("track_enabled");
+            stopTracking(); // optional: ends any running interval
+            document.getElementById("timesheets-form-check-out").submit();
+          }
+        })
+        .catch(() => {
+          // Fallback: submit without address if geocoding fails
+          if (isCheckIn) {
+            localStorage.setItem("track_enabled", "1");
+            document.getElementById("timesheets-form-check-in").submit();
+          } else if (isCheckOut) {
+            localStorage.removeItem("track_enabled");
+            stopTracking();
+            document.getElementById("timesheets-form-check-out").submit();
+          }
+        });
+
+    }, function (error) {
+      alert("Geolocation error: " + error.message);
+    });
+  } else {
+    alert("Geolocation is not supported by this browser.");
+  }
+
+  return false; // prevent default form action
+}
+
+function get_data() {
+  "use strict";
+
+  // Set route_point into form input
+  var route_point = $('#route_point').val();
+  $('input[name="point_id"]').val(route_point);
+
+  // Disable the buttons to prevent double submission
+  $('#timesheets-form-check-in .check_in').attr('disabled', 'disabled');
+  $('#timesheets-form-check-out .check_out').attr('disabled', 'disabled');
+
+  // Get type_check value (1 = check-in, 2 = check-out)
+  const typeCheckInput = document.querySelector('input[name="type_check"]');
+  const isCheckIn = typeCheckInput && typeCheckInput.value === '1';
+  const isCheckOut = typeCheckInput && typeCheckInput.value === '2';
+
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function (position) {
+      // Fill form inputs
+      $('#latitude').val(position.coords.latitude);
+      $('#longitude').val(position.coords.longitude);
+      $('#accuracy_m').val(position.coords.accuracy);
+
+      // Store lat/long in location_user format (for backend compatibility)
+      const loc = position.coords.latitude + ',' + position.coords.longitude;
+      $('input[name="location_user"]').val(loc);
+
+      // Reverse geocoding (optional, to populate address input if needed)
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}`)
+        .then(response => response.json())
+        .then(data => {
+          $('#address').val(data.display_name || '');
+
+          // Submit form after address is set
+          if (isCheckIn) {
+            localStorage.setItem("track_enabled", "1");
+            document.getElementById("timesheets-form-check-in").submit();
+          } else if (isCheckOut) {
+            localStorage.removeItem("track_enabled");
+            stopTracking(); // optional: ends any running interval
+            document.getElementById("timesheets-form-check-out").submit();
+          }
+        })
+        .catch(() => {
+          // Fallback: submit without address if geocoding fails
+          if (isCheckIn) {
+            localStorage.setItem("track_enabled", "1");
+            document.getElementById("timesheets-form-check-in").submit();
+          } else if (isCheckOut) {
+            localStorage.removeItem("track_enabled");
+            stopTracking();
+            document.getElementById("timesheets-form-check-out").submit();
+          }
+        });
+
+    }, function (error) {
+      alert("Geolocation error: " + error.message);
+    });
+  } else {
+    alert("Geolocation is not supported by this browser.");
+  }
+
+  return false; // prevent default form action
+}
+
+function get_data() {
+  "use strict";
+
+  // Set route_point into form input
+  var route_point = $('#route_point').val();
+  $('input[name="point_id"]').val(route_point);
+
+  // Disable the buttons to prevent double submission
+  $('#timesheets-form-check-in .check_in').attr('disabled', 'disabled');
+  $('#timesheets-form-check-out .check_out').attr('disabled', 'disabled');
+
+  // Get type_check value (1 = check-in, 2 = check-out)
+  const typeCheckInput = document.querySelector('input[name="type_check"]');
+  const isCheckIn = typeCheckInput && typeCheckInput.value === '1';
+  const isCheckOut = typeCheckInput && typeCheckInput.value === '2';
+
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function (position) {
+      // Fill form inputs
+      $('#latitude').val(position.coords.latitude);
+      $('#longitude').val(position.coords.longitude);
+      $('#accuracy_m').val(position.coords.accuracy);
+
+      // Store lat/long in location_user format (for backend compatibility)
+      const loc = position.coords.latitude + ',' + position.coords.longitude;
+      $('input[name="location_user"]').val(loc);
+
+      // Reverse geocoding (optional, to populate address input if needed)
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}`)
+        .then(response => response.json())
+        .then(data => {
+          $('#address').val(data.display_name || '');
+
+          // Submit form after address is set
+          if (isCheckIn) {
+            localStorage.setItem("track_enabled", "1");
+            document.getElementById("timesheets-form-check-in").submit();
+          } else if (isCheckOut) {
+            localStorage.removeItem("track_enabled");
+            stopTracking(); // optional: ends any running interval
+            document.getElementById("timesheets-form-check-out").submit();
+          }
+        })
+        .catch(() => {
+          // Fallback: submit without address if geocoding fails
+          if (isCheckIn) {
+            localStorage.setItem("track_enabled", "1");
+            document.getElementById("timesheets-form-check-in").submit();
+          } else if (isCheckOut) {
+            localStorage.removeItem("track_enabled");
+            stopTracking();
+            document.getElementById("timesheets-form-check-out").submit();
+          }
+        });
+
+    }, function (error) {
+      alert("Geolocation error: " + error.message);
+    });
+  } else {
+    alert("Geolocation is not supported by this browser.");
+  }
+
+  return false; // prevent default form action
+}
+
+function get_data() {
+  "use strict";
+
+  // Set route_point into form input
+  var route_point = $('#route_point').val();
+  $('input[name="point_id"]').val(route_point);
+
+  // Disable the buttons to prevent double submission
+  $('#timesheets-form-check-in .check_in').attr('disabled', 'disabled');
+  $('#timesheets-form-check-out .check_out').attr('disabled', 'disabled');
+
+  // Get type_check value (1 = check-in, 2 = check-out)
+  const typeCheckInput = document.querySelector('input[name="type_check"]');
+  const isCheckIn = typeCheckInput && typeCheckInput.value === '1';
+  const isCheckOut = typeCheckInput && typeCheckInput.value === '2';
+
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function (position) {
+      // Fill form inputs
+      $('#latitude').val(position.coords.latitude);
+      $('#longitude').val(position.coords.longitude);
+      $('#accuracy_m').val(position.coords.accuracy);
+
+      // Store lat/long in location_user format (for backend compatibility)
+      const loc = position.coords.latitude + ',' + position.coords.longitude;
+      $('input[name="location_user"]').val(loc);
+
+      // Reverse geocoding (optional, to populate address input if needed)
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}`)
+        .then(response => response.json())
+        .then(data => {
+          $('#address').val(data.display_name || '');
+
+          // Submit form after address is set
+          if (isCheckIn) {
+            localStorage.setItem("track_enabled", "1");
+            document.getElementById("timesheets-form-check-in").submit();
+          } else if (isCheckOut) {
+            localStorage.removeItem("track_enabled");
+            stopTracking(); // optional: ends any running interval
+            document.getElementById("timesheets-form-check-out").submit();
+          }
+        })
+        .catch(() => {
+          // Fallback: submit without address if geocoding fails
+          if (isCheckIn) {
+            localStorage.setItem("track_enabled", "1");
+            document.getElementById("timesheets-form-check-in").submit();
+          } else if (isCheckOut) {
+            localStorage.removeItem("track_enabled");
+            stopTracking();
+            document.getElementById("timesheets-form-check-out").submit();
+          }
+        });
+
+    }, function (error) {
+      alert("Geolocation error: " + error.message);
+    });
+  } else {
+    alert("Geolocation is not supported by this browser.");
+  }
+
+  return false; // prevent default form action
+}
+
+function get_data() {
+  "use strict";
+
+  // Set route_point into form input
+  var route_point = $('#route_point').val();
+  $('input[name="point_id"]').val(route_point);
+
+  // Disable the buttons to prevent double submission
+  $('#timesheets-form-check-in .check_in').attr('disabled', 'disabled');
+  $('#timesheets-form-check-out .check_out').attr('disabled', 'disabled');
+
+  // Get type_check value (1 = check-in, 2 = check-out)
+  const typeCheckInput = document.querySelector('input[name="type_check"]');
+  const isCheckIn = typeCheckInput && typeCheckInput.value === '1';
+  const isCheckOut = typeCheckInput && typeCheckInput.value === '2';
+
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function (position) {
+      // Fill form inputs
+      $('#latitude').val(position.coords.latitude);
+      $('#longitude').val(position.coords.longitude);
+      $('#accuracy_m').val(position.coords.accuracy);
+
+      // Store lat/long in location_user format (for backend compatibility)
+      const loc = position.coords.latitude + ',' + position.coords.longitude;
+      $('input[name="location_user"]').val(loc);
+
+      // Reverse geocoding (optional, to populate address input if needed)
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}`)
+        .then(response => response.json())
+        .then(data => {
+          $('#address').val(data.display_name || '');
+
+          // Submit form after address is set
+          if (isCheckIn) {
+            localStorage.setItem("track_enabled", "1");
+            document.getElementById("timesheets-form-check-in").submit();
+          } else if (isCheckOut) {
+            localStorage.removeItem("track_enabled");
+            stopTracking(); // optional: ends any running interval
+            document.getElementById("timesheets-form-check-out").submit();
+          }
+        })
+        .catch(() => {
+          // Fallback: submit without address if geocoding fails
+          if (isCheckIn) {
+            localStorage.setItem("track_enabled", "1");
+            document.getElementById("timesheets-form-check-in").submit();
+          } else if (isCheckOut) {
+            localStorage.removeItem("track_enabled");
+            stopTracking();
+            document.getElementById("timesheets-form-check-out").submit();
+          }
+        });
+
+    }, function (error) {
+      alert("Geolocation error: " + error.message);
+    });
+  } else {
+    alert("Geolocation is not supported by this browser.");
+  }
+
+  return false; // prevent default form action
+}
+
+function get_data() {
+  "use strict";
+
+  // Set route_point into form input
+  var route_point = $('#route_point').val();
+  $('input[name="point_id"]').val(route_point);
+
+  // Disable the buttons to prevent double submission
+  $('#timesheets-form-check-in .check_in').attr('disabled', 'disabled');
+  $('#timesheets-form-check-out .check_out').attr('disabled', 'disabled');
+
+  // Get type_check value (1 = check-in, 2 = check-out)
+  const typeCheckInput = document.querySelector('input[name="type_check"]');
+  const isCheckIn = typeCheckInput && typeCheckInput.value === '1';
+  const isCheckOut = typeCheckInput && typeCheckInput.value === '2';
+
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function (position) {
+      // Fill form inputs
+      $('#latitude').val(position.coords.latitude);
+      $('#longitude').val(position.coords.longitude);
+      $('#accuracy_m').val(position.coords.accuracy);
+
+      // Store lat/long in location_user format (for backend compatibility)
+      const loc = position.coords.latitude + ',' + position.coords.longitude;
+      $('input[name="location_user"]').val(loc);
+
+      // Reverse geocoding (optional, to populate address input if needed)
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}`)
+        .then(response => response.json())
+        .then(data => {
+          $('#address').val(data.display_name || '');
+
+          // Submit form after address is set
+          if (isCheckIn) {
+            localStorage.setItem("track_enabled", "1");
+            document.getElementById("timesheets-form-check-in").submit();
+          } else if (isCheckOut) {
+            localStorage.removeItem("track_enabled");
+            stopTracking(); // optional: ends any running interval
+            document.getElementById("timesheets-form-check-out").submit();
+          }
+        })
+        .catch(() => {
+          // Fallback: submit without address if geocoding fails
+          if (isCheckIn) {
+            localStorage.setItem("track_enabled", "1");
+            document.getElementById("timesheets-form-check-in").submit();
+          } else if (isCheckOut) {
+            localStorage.removeItem("track_enabled");
+            stopTracking();
+            document.getElementById("timesheets-form-check-out").submit();
+          }
+        });
+
+    }, function (error) {
+      alert("Geolocation error: " + error.message);
+    });
+  } else {
+    alert("Geolocation is not supported by this browser.");
+  }
+
+  return false; // prevent default form action
+}
+
+function get_data() {
+  "use strict";
+
+  // Set route_point into form input
+  var route_point = $('#route_point').val();
+  $('input[name="point_id"]').val(route_point);
+
+  // Disable the buttons to prevent double submission
+  $('#timesheets-form-check-in .check_in').attr('disabled', 'disabled');
+  $('#timesheets-form-check-out .check_out').attr('disabled', 'disabled');
+
+  // Get type_check value (1 = check-in, 2 = check-out)
+  const typeCheckInput = document.querySelector('input[name="type_check"]');
+  const isCheckIn = typeCheckInput && typeCheckInput.value === '1';
+  const isCheckOut = typeCheckInput && typeCheckInput.value === '2';
+
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function (position) {
+      // Fill form inputs
+      $('#latitude').val(position.coords.latitude);
+      $('#longitude').val(position.coords.longitude);
+      $('#accuracy_m').val(position.coords.accuracy);
+
+      // Store lat/long in location_user format (for backend compatibility)
+      const loc = position.coords.latitude + ',' + position.coords.longitude;
+      $('input[name="location_user"]').val(loc);
+
+      // Reverse geocoding (optional, to populate address input if needed)
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}`)
+        .then(response => response.json())
+        .then(data => {
+          $('#address').val(data.display_name || '');
+
+          // Submit form after address is set
+          if (isCheckIn) {
+            localStorage.setItem("track_enabled", "1");
+            document.getElementById("timesheets-form-check-in").submit();
+          } else if (isCheckOut) {
+            localStorage.removeItem("track_enabled");
+            stopTracking(); // optional: ends any running interval
+            document.getElementById("timesheets-form-check-out").submit();
+          }
+        })
+        .catch(() => {
+          // Fallback: submit without address if geocoding fails
+          if (isCheckIn) {
+            localStorage.setItem("track_enabled", "1");
+            document.getElementById("timesheets-form-check-in").submit();
+          } else if (isCheckOut) {
+            localStorage.removeItem("track_enabled");
+            stopTracking();
+            document.getElementById("timesheets-form-check-out").submit();
+          }
+        });
+
+    }, function (error) {
+      alert("Geolocation error: " + error.message);
+    });
+  } else {
+    alert("Geolocation is not supported by this browser.");
+  }
+
+  return false; // prevent default form action
+}
+
 
 function getLocation() {
   "use strict";
@@ -273,5 +1576,44 @@ function onScanSuccess(decodedText, decodedResult) {
 function scan_continue(){
   $('#scan_qr_code_modal .scan_qr_code_continue_btn').addClass('hide');
   open_scan_qr_code();
+}
+
+
+let trackingEnabled = false;
+let trackingInterval = null;
+
+// Enable tracking after successful check-in
+function startTracking() {
+  if (trackingEnabled) return;
+
+  trackingEnabled = true;
+
+  trackingInterval = setInterval(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(function(position) {
+        const data = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy_m: position.coords.accuracy,
+          address: '', // Optional, or use reverse geocoding like Nominatim if needed
+        };
+
+        // Send data to backend
+        fetch(admin_url + 'timesheets/track_location', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') // if needed
+          },
+          body: JSON.stringify(data)
+        });
+      });
+    }
+  }, 2 * 60 * 1000); // every 2 minutes
+}
+
+function stopTracking() {
+  trackingEnabled = false;
+  clearInterval(trackingInterval);
 }
 

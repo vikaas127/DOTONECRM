@@ -119,6 +119,11 @@ if (isset($lead)) {
                                     <?php echo _l('lead_add_edit_activity'); ?>
                                 </a>
                             </li>
+                            <li role="presentation" >
+    <a href="#tab_lead_checkin" aria-controls="tab_lead_profile" role="tab"
+        data-toggle="tab">
+        <?php echo _l('lead_checkinhistory'); ?>
+    </a>     </li>
                             <?php if (is_gdpr() && (get_option('gdpr_enable_lead_public_form') == '1' || get_option('gdpr_enable_consent_for_leads') == '1')) { ?>
                             <li role="presentation">
                                 <a href="#gdpr" aria-controls="gdpr" role="tab" data-toggle="tab">
@@ -138,6 +143,9 @@ if (isset($lead)) {
                 <!-- from leads modal -->
                 <div role="tabpanel" class="tab-pane active" id="tab_lead_profile">
                     <?php $this->load->view('admin/leads/profile'); ?>
+                </div>
+                <div role="tabpanel" class="tab-pane active" id="tab_lead_checkin">
+                    <?php $this->load->view('admin/leads/check_in_out_history'); ?>
                 </div>
                 <?php if (isset($lead)) { ?>
                 <?php if (count($mail_activity) > 0 || isset($show_email_activity) && $show_email_activity) { ?>

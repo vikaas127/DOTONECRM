@@ -42,6 +42,13 @@ class Leads_model extends App_Model
         return $this->db->get(db_prefix() . 'leads')->result_array();
     }
 
+
+    public function get_checkin_history($lead_id) {
+        $this->db->where('lead_id', $lead_id);
+        $this->db->order_by('created_at', 'DESC');
+        $query = $this->db->get('tbllead_checkins');
+        return $query->result();
+    }
     /**
      * Get lead by given email
      *

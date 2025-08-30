@@ -145,6 +145,7 @@ class Authentication extends ClientsController
      */
     public function tenant_admin_magic_auth()
     {
+        
         try {
 
             // Check if the user is not a tenant or if instance switching is not enabled

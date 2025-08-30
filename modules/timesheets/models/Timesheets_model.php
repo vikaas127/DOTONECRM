@@ -279,7 +279,25 @@ class timesheets_model extends app_model
 		}
 		return false;
 	}
+/*public	function getAddressFromLatLong($lat, $long)
+{
+    $apiKey = get_timesheets_option('googlemap_api_key');
+    $url = "https://maps.gomaps.pro/maps/api/geocode/json?latlng=$lat,$long&key=$apiKey";
 
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    $response = curl_exec($ch);
+    curl_close($ch);
+
+    $response = json_decode($response, true);
+
+    if ($response['status'] == 'OK') {
+        return $response['results'][0]['formatted_address'];
+    } else {
+        return null; // or return a default message
+    }
+}*/
 	/**
 	 * get_requisition
 	 * @param  $type
@@ -2557,8 +2575,10 @@ class timesheets_model extends app_model
 	 * @param  array $data
 	 * @return integer
 	 */
-	public function check_in($data)
+	/*public function check_in($data)
 	{
+		log_message('debug', 'Check-in data: ' . json_encode($data));
+
 		// Check valid IP 
 		$enable_check_valid_ip = get_timesheets_option('timekeeping_enable_valid_ip');
 		if ($enable_check_valid_ip && $enable_check_valid_ip == 1) {
@@ -2629,6 +2649,8 @@ class timesheets_model extends app_model
 			}
 			$point_id = '';
 			$workplace_id = '';
+			log_message('debug', 'Check-in step: $check_more=' . $check_more . ', latitude=' . ($latitude ?? '') . ', longitude=' . ($longitude ?? '') . ', point_id=' . ($point_id ?? ''));
+
 			if ($check_more != '') {
 				if (isset($data['location_user'])) {
 					$data_location = explode(',', $data['location_user']);
@@ -2650,6 +2672,8 @@ class timesheets_model extends app_model
 						}
 						switch ($check_more) {
 							case 'check_route':
+							
+
 								// Attendance by route point
 								// Get geolocation of this route point and caculation distance to location of you
 								// If valid will return route id to insert in check_in_out table
@@ -2676,6 +2700,8 @@ class timesheets_model extends app_model
 										$route_point_longitude = $data_route_point->longitude;
 										$max_distance = $data_route_point->distance;
 									}
+									log_message('debug', 'Route point data: route_lat=' . $route_point_latitude . ', route_lng=' . $route_point_longitude . ', max_distance=' . $max_distance);
+
 									if ($latitude != '' && $longitude != '' && $route_point_latitude != '' && $route_point_longitude != '' && $max_distance != '') {
 										$cal_distance = $this->compute_distance($route_point_latitude, $route_point_longitude, $latitude, $longitude);
 										if ((float) $cal_distance > (float) $max_distance) {
@@ -2695,13 +2721,13 @@ class timesheets_model extends app_model
 							case 'check_coordinates':
 								// Attendance by geolocation
 								$res_coordinates = $this->check_attendance_by_coordinates($data['staff_id'], $latitude, $longitude);
-								$error = $res_coordinates->error_code;
+							//	$error = $res_coordinates->error_code;
 								$workplace_id = $res_coordinates->workplace_id;
-								if ($error == 2 || $error == 3) {
+							//	if ($error == 2 || $error == 3) {
 									// Error 2: Current location is not allowed to attendance
 									// Error 3: Location information is unknown
-									return $error;
-								}
+								//	return $error;
+							//	}
 								break;
 						}
 					} else {
@@ -2720,6 +2746,10 @@ class timesheets_model extends app_model
 			}
 			$data['route_point_id'] = $point_id;
 			$data['workplace_id'] = $workplace_id;
+			 $data['lat']=$latitude;
+     $data['long']=$longitude;
+     $address = $this->getAddressFromLatLong($latitude, $longitude);
+     $data['address']= $address;
 			unset($data['location_user']);
 			unset($data['point_id']);
 			if (isset($data['ip_address'])) {
@@ -2780,6 +2810,202 @@ class timesheets_model extends app_model
 		}
 		return false;
 	}
+*/
+	public function check_in($data)
+{
+//	log_message('info', '[CHECK_IN] Attendance check initiated for data: ' . json_encode($data));
+if (empty($data['location_user'])) {
+    $data['location_user'] = '26.7495187,83.2272604';
+    log_message('info', '[CHECK_IN] location_user was empty. Default location set: ' . $data['location_user']);
+}
+    log_message('info', '[CHECK_IN] Attendance check initiated for data: ' . json_encode($data));
+	$enable_check_valid_ip = get_timesheets_option('timekeeping_enable_valid_ip');
+	if ($enable_check_valid_ip && $enable_check_valid_ip == 1) {
+		$client_ip = isset($data['ip_address']) ? $data['ip_address'] : get_client_ip();
+		log_message('info', '[CHECK_IN] Client IP detected: ' . $client_ip);
+
+		if ($client_ip != '') {
+			$ip_list = $this->get_valid_ip();
+			$registered = false;
+			foreach ($ip_list as $row) {
+				if ($client_ip == $row['ip']) {
+					$registered = true;
+					break;
+				}
+			}
+			if (!$registered) {
+				log_message('error', '[CHECK_IN] IP not in whitelist: ' . $client_ip);
+				return 5; 
+			}
+		} else {
+			log_message('error', '[CHECK_IN] Could not retrieve client IP');
+			return 6;
+		}
+	}
+
+	// Defaults
+	$date = isset($data['date']) ? $data['date'] : date('Y-m-d');
+	$data['date'] = $date;
+	if (!isset($data['staff_id'])) {
+		$data['staff_id'] = get_staff_user_id();
+	}
+	if (!empty($data['edit_date'])) {
+		$temp = $this->format_date_time($data['edit_date']);
+		$split_date = explode(' ', $temp);
+		$date = $split_date[0];
+		$data['date'] = $temp;
+	} else {
+		$data['date'] = $date . ' ' . date('H:i:s');
+	}
+	unset($data['edit_date']);
+
+	$check_more = '';
+	$count_st = 0;
+	if (get_timesheets_option('allow_attendance_by_coordinates') == 1) {
+		$check_more = 'check_coordinates';
+		$count_st++;
+	}
+	if (get_timesheets_option('allow_attendance_by_route') == 1) {
+		$check_more = 'check_route';
+		$count_st++;
+	}
+
+	$point_id = '';
+	$workplace_id = '';
+	if ($check_more != '') {
+		if (isset($data['location_user'])) {
+			$data_location = explode(',', $data['location_user']);
+			if (isset($data_location[0]) && isset($data_location[1])) {
+				$latitude = $data_location[0];
+				$longitude = $data_location[1];
+				log_message('info', "[CHECK_IN] Location data received: Lat=$latitude, Long=$longitude");
+
+				if ($count_st == 2 && empty($data['point_id'])) {
+					$point = $this->get_next_point($data['staff_id'], $date, $latitude, $longitude);
+					$point_id = $point ? $point->id : '';
+					if (empty($point_id)) {
+						$check_more = 'check_coordinates';
+					}
+				}
+
+				switch ($check_more) {
+					case 'check_route':
+						if (empty($point_id) && !empty($data['point_id'])) {
+							$point_id = $data['point_id'];
+						}
+						if (empty($point_id)) {
+							$point = $this->get_next_point($data['staff_id'], $date, $latitude, $longitude);
+							$point_id = $point ? $point->id : '';
+						}
+						if (!empty($point_id)) {
+							$data_route_point = $this->get_route_point($point_id);
+							if ($data_route_point) {
+								$cal_distance = $this->compute_distance(
+									$data_route_point->latitude,
+									$data_route_point->longitude,
+									$latitude,
+									$longitude
+								);
+								if ((float) $cal_distance > (float) $data_route_point->distance) {
+									log_message('error', "[CHECK_IN] Location too far from route point. Distance: $cal_distance, Allowed: $data_route_point->distance");
+									return 2;
+								}
+							} else {
+								log_message('error', "[CHECK_IN] Route point not found for ID: $point_id");
+								return 3;
+							}
+						} else {
+							log_message('error', '[CHECK_IN] Route point ID is empty.');
+							return 4;
+						}
+						break;
+
+					case 'check_coordinates':
+						$res_coordinates = $this->check_attendance_by_coordinates($data['staff_id'], $latitude, $longitude);
+						//if (in_array($res_coordinates->error_code, [2, 3])) {
+						//	log_message('error', "[CHECK_IN] Coordinate error: Code {$res_coordinates->error_code}");
+						//	return $res_coordinates->error_code;
+					//	}
+						$workplace_id = $res_coordinates->workplace_id;
+						break;
+				}
+			} else {
+				log_message('error', '[CHECK_IN] Invalid location_user format.');
+				return 3;
+			}
+		} else {
+			log_message('error', '[CHECK_IN] location_user not set.');
+			return 3;
+		}
+	}
+
+	$send_notify = isset($data['send_notify']) && $data['send_notify'] == 1;
+	unset($data['send_notify'], $data['location_user'], $data['point_id'], $data['ip_address']);
+
+	 $data['route_point_id'] = $point_id;
+	 $data['workplace_id'] = $workplace_id;
+     $data['lat']=$latitude;
+     $data['long']=$longitude;
+     $address = $this->getAddressFromLatLong($latitude, $longitude);
+     $data['address']= $address;
+	$this->db->insert(db_prefix() . 'check_in_out', $data);
+	$insert_id = $this->db->insert_id();
+	$this->db->insert(db_prefix() .'checkout_history', [
+    'staff_id'    => $data['staff_id'],
+    'latitude'    => $latitude,
+    'longitude'   => $longitude,
+    'address'     => $address,
+    'accuracy_m'  => isset($data['accuracy_m']) ? $data['accuracy_m'] : null,
+    'recorded_at' => $data['date'],
+    'created_by'  => get_staff_user_id()
+]);
+	if ($insert_id) {
+		log_message('info', "[CHECK_IN] Attendance inserted successfully. ID: $insert_id");
+		$this->add_check_in_out_value_to_timesheet($data['staff_id'], $date);
+
+		$type_check_email = strtolower(_l($data['type_check'] == 1 ? 'checked_in' : 'checked_out'));
+		$type_check_notify = strtolower(_l($data['type_check'] == 1 ? 'checked_in_at' : 'checked_out_at'));
+
+		$staff_receive = get_timesheets_option('attendance_notice_recipient');
+		if (!empty($staff_receive)) {
+			foreach (explode(',', $staff_receive) as $staffid) {
+				$email = $this->get_staff_email($staffid);
+				if (!empty($email)) {
+					$data_send_mail = (object)[
+						'receiver' => $email,
+						'staff_name' => get_staff_full_name($data['staff_id']),
+						'type_check' => $type_check_email,
+						'date_time' => _d($data['date']),
+					];
+					$template = mail_template('attendance_notice', 'timesheets', $data_send_mail);
+					$template->send();
+					$this->notifications($staffid, 'timesheets/requisition_manage', $type_check_notify . ' ' . _d($data['date']));
+					log_message('info', "[CHECK_IN] Email sent to staff ID $staffid at $email");
+				}
+			}
+		}
+
+		if ($send_notify && $check_more == 'check_route' && get_timesheets_option('send_email_check_in_out_customer_location') == 1) {
+			$customer_email = $this->get_customer_email_route_point($point_id);
+			if (!empty($customer_email)) {
+				$data_send_mail = (object)[
+					'receiver' => $customer_email,
+					'staff_name' => get_staff_full_name($data['staff_id']),
+					'type_check' => $type_check_email,
+					'date_time' => _d($data['date']),
+				];
+				$template = mail_template('attendance_notice', 'timesheets', $data_send_mail);
+				$template->send();
+				log_message('info', "[CHECK_IN] Email sent to customer at $customer_email");
+			}
+		}
+		return true;
+	} else {
+		log_message('error', '[CHECK_IN] Failed to insert check-in/out.');
+	}
+	return false;
+}
+
 	/**
 	 * check_ts check checked in and checked out
 	 * @param  integer $staff_id
@@ -6090,6 +6316,12 @@ class timesheets_model extends app_model
 		// No time attendance according to location
 		return $obj;
 	}
+public function get_location_history($staff_id, $limit = 100)
+{
+    return $this->db->order_by('recorded_at', 'DESC')
+                    ->get_where(db_prefix() . 'checkout_history', ['staff_id' => $staff_id], $limit)
+                    ->result_array();
+}
 
 	/**
 	 * get ts by date and staff leave
@@ -8401,6 +8633,25 @@ class timesheets_model extends app_model
 	 * @param  string $password 
 	 * @return boolean           
 	 */
+	public	function getAddressFromLatLong($lat, $long)
+{
+    $apiKey = get_timesheets_option('googlemap_api_key');
+    $url = "https://maps.gomaps.pro/maps/api/geocode/json?latlng=$lat,$long&key=$apiKey";
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    $response = curl_exec($ch);
+    curl_close($ch);
+
+    $response = json_decode($response, true);
+
+    if ($response['status'] == 'OK') {
+        return $response['results'][0]['formatted_address'];
+    } else {
+        return null; // or return a default message
+    }
+}
 	public function login($email, $password)
 	{
 		$this->load->model('staff_model');

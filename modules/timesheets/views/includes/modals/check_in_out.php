@@ -65,7 +65,15 @@
                       $type_check = _l('checked_out_at');
                       $alert_type = 'alert-warning';
                     }
-                    $html_list .= '<div class="row"><div class="col-md-12"><div class="alert ' . $alert_type . '">' . $type_check . ': ' . _dt($value['date']) . '</div></div></div>';
+                //    $html_list .= '<div class="row"><div class="col-md-12"><div class="alert ' . $alert_type . '">' . $type_check . ': ' . _dt($value['date']) . '</div></div></div>';
+                 $html_list .= '<div class="row">
+                     <div class="col-md-12">
+                       <div class="alert ' . $alert_type . '">
+                         <strong>' . $type_check . '</strong>: ' . _dt($value['date']) . '<br>
+                         <strong>Address</strong>: ' . (!empty($value['address']) ? $value['address'] : 'N/A') . '
+                       </div>
+                     </div>
+                   </div>';
                   } ?>
                   <?php
                   $allows_updating_check_in_time = 0;
@@ -117,6 +125,10 @@
                         <input type="hidden" name="edit_date" value="">
                         <input type="hidden" name="point_id" value="">
                         <input type="hidden" name="location_user" value="">
+                        <input type="hidden" name="ip" value="<?php echo $_SERVER['REMOTE_ADDR']; ?>">
+                         <input type="hidden" name="device_type" value="<?php echo $_SERVER['HTTP_USER_AGENT']; ?>">
+                        <input type="hidden" name="device_fingerprint" value="">
+
                         <button class="btn btn-primary check_in"><?php echo _l('check_in'); ?></button>
                       <?php echo form_close();
                       } ?>
@@ -130,6 +142,9 @@
                         <input type="hidden" name="edit_date" value="">
                         <input type="hidden" name="point_id" value="">
                         <input type="hidden" name="location_user" value="">
+                          <input type="hidden" name="ip" value="<?php echo $_SERVER['REMOTE_ADDR']; ?>">
+                          <input type="hidden" name="device_type" value="<?php echo $_SERVER['HTTP_USER_AGENT']; ?>">
+                           <input type="hidden" name="device_fingerprint" value="">
                         <button class="btn btn-warning check_out"><?php echo _l('check_out'); ?></button>
                       <?php echo form_close();
                       } ?>

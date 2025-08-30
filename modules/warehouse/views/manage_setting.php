@@ -61,5 +61,8 @@ require 'modules/warehouse/assets/js/inventory_js.php';
 }elseif(!(strpos($viewuri,'admin/warehouse/setting?group=inventory_setting') === false)){
   require('modules/warehouse/assets/js/settings/inventory_setting_js.php');
 } ?>
+<?php if($group == 'item_name_setting' ){
+require 'modules/warehouse/assets/js/item_name_setting_js.php';
+}?>
 </body>
 </html>

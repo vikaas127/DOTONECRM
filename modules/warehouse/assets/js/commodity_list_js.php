@@ -2,9 +2,13 @@
   var hidden_columns = [2,6];
   var sub_group_value ='';
   var sizesData = <?php echo json_encode($sizes); ?>;
+var tblNamingAttrPref = <?php echo json_encode($pref_data); ?>;
+var tblNamingAttrStore = <?php echo json_encode($store_data); ?>;
 
 
-  (function($) {
+
+
+(function($) {
     "use strict";
 
     $('input[name="description"]' ).change(function() {
@@ -145,6 +149,7 @@
       $.post(admin_url + 'warehouse/get_subgroup_fill_data',data_select).done(function(response){
        response = JSON.parse(response);
        $("select[name='sub_group']").html('');
+      $("select[name='sub_group']").append('<option value=""></option>');
 
        $("select[name='sub_group']").append(response.subgroup);
        $("select[name='sub_group']").selectpicker('refresh');
@@ -173,7 +178,7 @@
 
 
 
-   })(jQuery); 
+})(jQuery); 
 
 
 
@@ -769,7 +774,8 @@ warehouse_type_value = warehouse_type;
       }
     }
 
-    function edit_commodity_item(invoker){
+function edit_commodity_item(invoker)
+{
       "use strict";
       $('#commodity_list-add-edit').modal('show');
       
@@ -791,6 +797,9 @@ warehouse_type_value = warehouse_type;
       $('#commodity_list-add-edit input[name="sku_code"]').val($(invoker).data('sku_code'));
       $('#commodity_list-add-edit input[name="sku_name"]').val($(invoker).data('sku_name'));
       $('#commodity_list-add-edit input[name="purchase_price"]').val($(invoker).data('purchase_price'));
+
+      
+      $('#commodity_list-add-edit input[name="sort_name"]').val($(invoker).data('sort_name'));
 
 
       if($(invoker).data('tax') != 0){
@@ -1019,7 +1028,7 @@ warehouse_type_value = warehouse_type;
     $('#commodity_list-add-edit').find('select').selectpicker('refresh');
 
 
-  }
+}
 
   function formatNumber(n) {
     return n.replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",")
@@ -1049,10 +1058,57 @@ warehouse_type_value = warehouse_type;
     input[0].setSelectionRange(caret_pos, caret_pos);
   }
 
+// function updateLiveDescription() {
+//     var group_id = parseInt($('#commodity_list-add-edit select[name="group_id"]').val());
+//     var sub_group_id = parseInt($('#commodity_list-add-edit select[name="sub_group"]').val());
+
+//     if(!group_id || !sub_group_id) {
+//         $('#commodity_list-add-edit input[name="description"]').val('');
+//         $('#commodity_list-add-edit input[name="sku_name"]').val('');
+//         return;
+//     }
+
+//     // Find the matching pref
+//     var pref = tblNamingAttrPref.find(p => 
+//         p.group_ids.includes(group_id) && p.subgroup_ids.includes(sub_group_id)
+//     );
+
+//     if(!pref) {
+//         $('#commodity_list-add-edit input[name="description"]').val('');
+//         $('#commodity_list-add-edit input[name="sku_name"]').val('');
+//         return;
+//     }
+
+//     // Get store attributes for this pref, only where use_attr=true, ordered by display_order
+//     var storeAttrs = tblNamingAttrStore
+//         .filter(attr => attr.pref_id === pref.id && attr.use_attr)
+//         .sort((a,b) => a.display_order - b.display_order);
+
+//     var description = '';
+
+//     storeAttrs.forEach((attr, index) => {
+//         var inputEl = $('#commodity_list-add-edit [name="' + attr.name + '"]');
+//         if(inputEl.length) {
+//             var val = inputEl.val().trim();
+//             if(val) {
+//                 if(description !== '') description += attr.separator; // use this attribute's separator
+//                 description += val;
+//             }
+//         }
+//     });
+
+//     // Update inputs
+//     $('#commodity_list-add-edit input[name="description"]').val(description);
+//     $('#commodity_list-add-edit input[name="sku_name"]').val(description);
+// }
+
+// Attach live listeners
+// $('#commodity_list-add-edit').on('input change', 'input, select, textarea', updateLiveDescription);
 
 
 
-  function new_commodity_item(){
+
+function new_commodity_item(){
     
     "use strict";
 
@@ -1079,6 +1135,8 @@ warehouse_type_value = warehouse_type;
         $(".selectpicker").selectpicker('refresh');
 
         init_ajax_search('items','#parent_id.ajax-search',undefined,admin_url+'warehouse/wh_parent_item_search');
+        // updateLiveDescription();
+
     });
 
     $('#commodity_list-add-edit').modal('show');
@@ -1108,6 +1166,8 @@ warehouse_type_value = warehouse_type;
     $('#commodity_list-add-edit textarea[name="long_description"]').val('');
 
     $('#commodity_list-add-edit input[name="description"]').val('');
+    $('#commodity_list-add-edit input[name="sort_name"]').val('');
+
     $('#commodity_list-add-edit input[name="sku_code"]').val('');
     $('#commodity_list-add-edit input[name="thickness"]').val('');
 
@@ -1154,10 +1214,51 @@ warehouse_type_value = warehouse_type;
     init_selectpicker();
 
 
-    
+    // setTimeout(updateLiveDescription, 100); // small delay ensures inputs exist
+
 
     
 }
+
+
+
+
+// function updateDescriptionField() {
+//     var thicknessVal = $('input[name="thickness"]').val().trim();
+//     var thickness = '';
+
+//     if (thicknessVal !== '') {
+//         // Convert to number and remove decimals if whole number
+//         var num = parseFloat(thicknessVal);
+//         thickness = Number.isNaN(num) ? '' : (Number.isInteger(num) ? num : num.toString());
+//     }
+
+//     var shortDesc = $('input[name="short_description"]').val().trim(); // UI-only
+//     var grade     = $('select[name="model_id"] option:selected').text().trim();
+
+//     var lengthM   = $('input[name="length_m"]').val();
+//     var widthM    = $('input[name="width_m"]').val();
+//     var lengthFt  = $('input[name="length_in"]').val();
+//     var widthFt   = $('input[name="width_in"]').val();
+
+//     var parts = [];
+
+//     if (thickness) parts.push(thickness + 'mm');
+//     if (shortDesc) parts.push(shortDesc);
+//     if (grade)     parts.push(grade);
+
+//     if (lengthM && widthM) {
+//         parts.push(`${lengthM}X${widthM} (${lengthFt}X${widthFt})`);
+//     }
+
+//     $('input[name="description"]').val(parts.join(' | '));
+// }
+
+// $(document).on('change keyup', 
+//     'input[name="thickness"], input[name="short_description"], select[name="model_id"], select[name="size_id"]', 
+//     updateDescriptionField
+// );
+
 
 
 $(document).on('change', 'select[name="size_id"]', function () {
@@ -1171,18 +1272,21 @@ $(document).on('change', 'select[name="size_id"]', function () {
         var widthFt  = parseFloat(sizeInfo.width) || 0;  // from DB column 'width'
 
         // Convert ft → m
-        var lengthM = (lengthFt * 0.305).toFixed(3);
-        var widthM  = (widthFt * 0.305).toFixed(3);
+        var lengthM = (lengthFt * 0.0254).toFixed(4);
+        var widthM  = (widthFt * 0.0254).toFixed(4);
 
         // Populate UI fields
-        $('input[name="length_ft"]').val(lengthFt || '');
-        $('input[name="width_ft"]').val(widthFt || '');
+        $('input[name="length_in"]').val(lengthFt || '');
+        $('input[name="width_in"]').val(widthFt || '');
         $('input[name="length_m"]').val(lengthM || '');
         $('input[name="width_m"]').val(widthM || '');
     } else {
-        $('input[name="length_ft"], input[name="width_ft"], input[name="length_m"], input[name="width_m"]').val('');
+        $('input[name="length_in"], input[name="width_in"], input[name="length_m"], input[name="width_m"]').val('');
     }
+
+   
 });
+
 
 
   $("body").on('click', '.tagit-close', function() {
@@ -1524,6 +1628,10 @@ $(document).ready(function() {
 }
 
 
+//item name/description 
+
+
+
 //variation
 var addMoreVendorsInputKey;
 (function($) {
@@ -1791,6 +1899,154 @@ function add_opening_stock_modal(id) {
   init_ajax_search('items','#commodity_filter.ajax-search',undefined,admin_url+'warehouse/wh_commodity_code_search_all');
 
   init_ajax_search('items','#item_select_print_barcode.ajax-search',undefined,admin_url+'warehouse/wh_commodity_code_search_all');
+/*function updateLiveItemName() {
+    const groupId = parseInt($('#commodity_list-add-edit select[name="group_id"]').val());
+    const subGroupId = parseInt($('#commodity_list-add-edit select[name="sub_group"]').val());
 
+
+$('#commodity_list-add-edit').on('change input', 'select, input, textarea', function () {
+    updateLiveItemName();
+});
+function updateLiveItemName() {
+    const groupId = parseInt($('#commodity_list-add-edit select[name="group_id"]').val());
+    const subGroupId = parseInt($('#commodity_list-add-edit select[name="sub_group"]').val());
+
+
+    if (!groupId || !subGroupId) {
+        $('#commodity_list-add-edit input[name="description"]').val('');
+        $('#commodity_list-add-edit input[name="sku_name"]').val('');
+        return;
+    }
+
+    // Find matching naming preference
+    const pref = tblNamingAttrPref.find(p => {
+        const pairs = Array.isArray(p.group_subgroup_pairs)
+            ? p.group_subgroup_pairs
+            : JSON.parse(p.group_subgroup_pairs);
+
+        return pairs.some(pair =>
+            pair.group_id == groupId && pair.sub_group_id == subGroupId
+        );
+    });
+
+    if (!pref) {
+        $('#commodity_list-add-edit input[name="description"]').val('');
+        $('#commodity_list-add-edit input[name="sku_name"]').val('');
+        return;
+    }
+
+    // Filter and sort relevant attributes
+    const attributes = tblNamingAttrStore
+        .filter(attr => attr.pref_id == pref.id && attr.use_attr)
+        .sort((a, b) => a.display_order - b.display_order);
+
+    let nameParts = [];
+
+    attributes.forEach(attr => {
+        const $el = $('#commodity_list-add-edit [name="' + attr.name + '"]');
+        if ($el.length) {
+            const val = $el.val()?.trim();
+            if (val) {
+                nameParts.push(val);
+            }
+        }
+    });
+
+    const finalName = nameParts.join(pref.separator || ' - ');
+
+    $('#commodity_list-add-edit input[name="description"]').val(finalName);
+    $('#commodity_list-add-edit input[name="sku_name"]').val(finalName);
+}
+$('#commodity_list-add-edit').on('change input', 'select, input, textarea', function () {
+    updateLiveItemName();
+});
+function fetchNamingRulesAndGenerateName(groupId, subGroupId) {
+    $.post(admin_url + 'warehouse/get_naming_pref_ajax', {
+        group_id: groupId,
+        sub_group_id: subGroupId
+    }).done(function (response) {
+        let data = JSON.parse(response);
+        if (!data || !data.pref || !data.attrs) return;
+
+        let separator = data.pref.separator || ' - ';
+        let nameParts = [];
+
+        data.attrs.forEach(attr => {
+            let inputEl = $('#commodity_list-add-edit [name="' + attr.name + '"]');
+            if (inputEl.length) {
+                let val = inputEl.val()?.trim();
+                if (val) nameParts.push(val);
+            }
+        });
+
+        let finalName = nameParts.join(separator);
+        $('#commodity_list-add-edit input[name="description"]').val(finalName);
+        $('#commodity_list-add-edit input[name="sku_name"]').val(finalName);
+    });
+}
+$('#commodity_list-add-edit').on('change input', 'select, input', function () {
+    let groupId = $('select[name="group_id"]').val();
+    let subGroupId = $('select[name="sub_group"]').val();
+
+    if (groupId && subGroupId) {
+        fetchNamingRulesAndGenerateName(groupId, subGroupId);
+    }
+});
+*/
+function fetchNamingRulesAndGenerateName(groupId, subGroupId) {
+      console.log("Fetching naming rules for:", { groupId, subGroupId });
+
+    $.post(admin_url + 'warehouse/get_naming_pref_ajax', {
+        group_id: groupId,
+        sub_group_id: subGroupId
+    }).done(function (response) {
+    console.log("Raw response:", response);
+
+        let data = JSON.parse(response);
+        if (!data || !data.pref || !data.attrs) return;
+
+        let nameParts = [];
+
+        data.attrs.forEach((attr, index) => {
+            let inputEl = $('#commodity_list-add-edit [name="' + attr.name + '"]');
+            if (inputEl.length) {
+                let val;
+                if (inputEl.is('select')) {
+                    val = inputEl.find("option:selected").text().trim();
+                } else {
+                    val = inputEl.val()?.trim();
+                }
+
+                if (val) {
+                    // push with attribute-specific separator
+                    nameParts.push(val);
+
+                    // if this attr has separator, append it
+                    if (attr.separator && index < data.attrs.length - 1) {
+                        nameParts.push(attr.separator);
+                    }
+                }
+            }
+        });
+
+        let finalName = nameParts.join('');
+        console.log("Generated finalName with per-attr separator:", finalName);
+
+        $('#commodity_list-add-edit input[name="description"]').val(finalName);
+        $('#commodity_list-add-edit input[name="sku_name"]').val(finalName);
+
+    });
+}
+
+$('#commodity_list-add-edit').on('change input', 'select, input', function () {
+
+    let groupId = $('select[name="group_id"]').val();
+    let subGroupId = $('select[name="sub_group"]').val();
+  console.log("Form change detected. groupId:", groupId, "subGroupId:", subGroupId);
+
+    if (groupId && subGroupId) {
+        fetchNamingRulesAndGenerateName(groupId, subGroupId);
+    }
+});
 
 </script>

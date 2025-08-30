@@ -8,6 +8,10 @@
          <th ><?php echo _l('type'); ?></th>
          <th><?php echo _l('shift'); ?></th>
          <th><?php echo _l('workplace'); ?></th>
+           <th><?php echo _l('address'); ?></th>
+          <th><?php echo _l('ip'); ?></th>
+         <th><?php echo _l('device_type'); ?></th>
+          <th><?php echo _l('device_fingerprint'); ?></th>
          <th><?php echo _l('route'); ?></th>
       </tr>
    </thead>

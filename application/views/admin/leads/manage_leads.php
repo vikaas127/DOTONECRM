@@ -314,6 +314,70 @@ $(function() {
         }
     });
 });
+
+
+(function(){
+  function postLeadActivity(leadId, type, lat, lng, accuracy, address){
+    var message = (type === 'checkin' ? 'Checked in' : 'Checked out') + ' by assigned user';
+
+    // 🧪 Logs
+    console.log('LeadID:', leadId, 'Type:', type, 'Lat:', lat, 'Lng:', lng, 'Acc:', accuracy, 'Address:', address);
+
+    $.post(admin_url + "leads/save_checkin", {
+      leadid: leadId,
+      type: type,
+      latitude: lat,
+      longitude: lng,
+      accuracy_m: accuracy,
+      address: address || ''
+    }).done(function(resp){
+      alert('Saved successfully.');
+      // Optionally refresh activity area:
+      // window.location.reload();
+    }).fail(function(err){
+      console.error(err);
+      alert('Failed to save. Please try again.');
+    });
+  }
+
+  function getLocationAndSend($btn){
+    var leadId = $btn.data('lead-id');
+    var type   = $btn.data('type');
+
+    if (!navigator.geolocation) {
+      return postLeadActivity(leadId, type, null, null, null, '');
+    }
+
+    $btn.prop('disabled', true).text('Saving...');
+
+    navigator.geolocation.getCurrentPosition(function(pos){
+      var lat = pos.coords.latitude;
+      var lng = pos.coords.longitude;
+      var acc = pos.coords.accuracy;
+
+      // If you want reverse geocoding: call your backend to resolve address (optional).
+      // For now, just send blank string:
+      postLeadActivity(leadId, type, lat, lng, acc, '');
+
+      $btn.prop('disabled', false).text(type === 'checkin' ? 'Check-In' : 'Check-Out');
+    }, function(err){
+      console.warn('Geolocation error:', err);
+      // Proceed without location
+      postLeadActivity(leadId, type, null, null, null, '');
+      $btn.prop('disabled', false).text(type === 'checkin' ? 'Check-In' : 'Check-Out');
+    }, {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 0
+    });
+  }
+
+  $(document).on('click', '.checkin-btn, .checkout-btn', function(){
+     console.log('Button clicked');
+    getLocationAndSend($(this));
+  });
+})();
+
 </script>
 </body>
 

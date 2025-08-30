@@ -883,6 +883,27 @@ class timesheets extends AdminController {
 		$data['list_approve_status'] = $this->timesheets_model->get_list_approval_details($id, $rel_type);
 		$this->load->view('timesheets/requisition_detail', $data);
 	}
+public function location_history($staff_id = null)
+{
+    // Only staff or admin can view
+    if (!is_staff_logged_in()) {
+        show_error('Forbidden', 403);
+    }
+
+    $this->load->model('timesheets_model');
+
+    // If no staff_id passed, use logged-in staff
+    if (!$staff_id) {
+        $staff_id = get_staff_user_id();
+    }
+
+    // Get location history (latest 100)
+    $locations = $this->timesheets_model->get_location_history($staff_id, 100);
+
+    $data['locations'] = $locations;
+    $data['staff_id'] = $staff_id;
+    $this->load->view('timekeeping/location_detailed_history', $data);
+}
 
 /**
  * delete requisition
@@ -3948,6 +3969,24 @@ class timesheets extends AdminController {
 /**
  * check in timesheet
  */
+public function track_location() {
+    $json = json_decode(file_get_contents('php://input'), true);
+
+    if (isset($json['latitude']) && isset($json['longitude'])) {
+        $this->db->insert('tblcheckout_history', [
+            'staff_id'    => get_staff_user_id(),
+            'latitude'    => $json['latitude'],
+            'longitude'   => $json['longitude'],
+            'accuracy_m'  => isset($json['accuracy_m']) ? $json['accuracy_m'] : null,
+            'address'     => isset($json['address']) ? $json['address'] : null,
+            'recorded_at' => date('Y-m-d H:i:s'),
+            'created_by'  => get_staff_user_id()
+        ]);
+    }
+
+    echo json_encode(['status' => 'ok']);
+}
+
 public function check_in_ts() {
 	if ($this->input->post()) {
 		$data = $this->input->post();
@@ -3975,8 +4014,10 @@ public function check_in_ts() {
 			if ($re == true) {
 				if ($type == 1) {
 					set_alert('success', _l('check_in_successfull'));
+					$this->session->set_flashdata('start_location_tracking', true);
 				} else {
 					set_alert('success', _l('check_out_successfull'));
+					 $this->session->set_flashdata('stop_location_tracking', true);
 				}
 			} else {
 				if ($type == 1) {
@@ -3989,6 +4030,33 @@ public function check_in_ts() {
 		redirect(admin_url('timesheets/timekeeping?group=timesheets'));
 	}
 }
+public function save_location()
+{
+    if (!is_staff_logged_in()) {
+        show_error('Forbidden', 403);
+    }
+
+    $lat = $this->input->post('lat');
+    $lng = $this->input->post('lng');
+    $accuracy = $this->input->post('accuracy');
+
+    if (!$lat || !$lng) {
+        echo json_encode(['error' => 'Invalid location']);
+        return;
+    }
+
+    $this->db->insert(db_prefix() . 'checkout_history', [
+        'staff_id'     => get_staff_user_id(),
+        'latitude'     => $lat,
+        'longitude'    => $lng,
+        'accuracy_m'   => $accuracy,
+        'recorded_at'  => date('Y-m-d H:i:s'),
+        'created_by'   => get_staff_user_id()
+    ]);
+
+    echo json_encode(['success' => true]);
+}
+
 /**
  * get leave setting
  * @return json
@@ -4526,7 +4594,15 @@ public function check_in_ts() {
 					$type_check = _l('checked_out_at');
 					$alert_type = 'alert-warning';
 				}
-				$html_list .= '<div class="row"><div class="col-md-12"><div class="alert ' . $alert_type . '">' . $type_check . ': ' . _dt($value['date']) . '</div></div></div>';
+				// $html_list .= '<div class="row"><div class="col-md-12"><div class="alert ' . $alert_type . '">' . $type_check . ': ' . _dt($value['date']) . '</div></div></div>';
+				$html_list .= '<div class="row">
+                     <div class="col-md-12">
+                       <div class="alert ' . $alert_type . '">
+                         <strong>' . $type_check . '</strong>: ' . _dt($value['date']) . '<br>
+                         <strong>Address</strong>: ' . (!empty($value['address']) ? $value['address'] : 'N/A') . '
+                       </div>
+                     </div>
+                   </div>';
 			}
 			echo json_encode([
 				'html_list' => $html_list,
@@ -5177,6 +5253,9 @@ public function check_in_ts() {
 		$this->load->view('route_management/manage', $data);
 	}
 
+ 
+
+
 	public function get_route_map_data($staffid = '', $current_date = '') {
 		if ($staffid == '') {
 			$staffid = get_staff_user_id();
@@ -5821,7 +5900,8 @@ public function check_in_ts() {
 					'type_check',
 					'id',
 					'workplace_id',
-					'route_point_id',
+					'route_point_id','address','ip','device_type','device_fingerprint',
+
 				];
 
 				$query = '';
@@ -5902,7 +5982,8 @@ public function check_in_ts() {
 					'date',
 					'type_check',
 					'workplace_id',
-					'route_point_id',
+					'route_point_id','address','ip','device_type','device_fingerprint',
+
 				]);
 
 				$output = $result['output'];
@@ -5948,7 +6029,11 @@ public function check_in_ts() {
 					}
 // End workplace
 					$row[] = $workplace_name;
+ $row[] = !empty($aRow['address']) ? html_escape($aRow['address']) : '-';
 
+  $row[] = !empty($aRow['ip']) ? html_escape($aRow['ip']) : '-';
+ $row[] = !empty($aRow['device_type']) ? html_escape($aRow['device_type']) : '-';
+ $row[] = !empty($aRow['device_fingerprint']) ? html_escape($aRow['device_fingerprint']) : '-';
 // Route
 					$route_name = '';
 					if ($aRow['route_point_id'] && $aRow['route_point_id'] != '' && $aRow['route_point_id'] != 0) {
@@ -5957,6 +6042,7 @@ public function check_in_ts() {
 							$route_name = $route_data->name;
 						}
 					}
+
 // End route
 					$row[] = $route_name;
 					if ($allow_add == true) {
@@ -6972,6 +7058,7 @@ public function check_in_ts() {
 							$alert_type = 'alert-warning';
 						}
 						$html_list .= '<div class="row"><div class="col-md-12"><div class="alert ' . $alert_type . '">' . $type_check_st . ': ' . _dt($value['date']) . '</div></div></div>';
+				
 					}
 					if ($type_check == 1) {
 						$message = _l('check_in_successfull');

@@ -31,7 +31,7 @@ define('WAREHOUSE_REPORT', 'modules/warehouse/uploads/reports/');
 
 define('REVISION', 139);
 //true display: brand, model, series in settings menu
-define('ACTIVE_BRAND_MODEL_SERIES', false);
+define('ACTIVE_BRAND_MODEL_SERIES', true);
 define('ACTIVE_PROPOSAL', true);
 define('ACTIVE_PROPOSAL_OLD_CUSTOMER', false);
 define('WAREHOUSE_PATH_LIBRARIES', 'modules/warehouse/libraries');
@@ -362,6 +362,7 @@ function warehouse_load_js(){
     if (!(strpos($viewuri, '/admin/warehouse/setting?group=colors') === false)) {
          echo '<script src="' . module_dir_url(WAREHOUSE_MODULE_NAME, 'assets/js/color.js').'?v=' . REVISION.'"></script>';
     }
+   
 
 
     if (!(strpos($viewuri, '/admin/warehouse/goods_delivery') === false) || !(strpos($viewuri, '/admin/warehouse/manage_goods_receipt') === false)) {
