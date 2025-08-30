@@ -2687,16 +2687,16 @@ public function get_item_description()
 						//Writer file
 						$writer_header = array(
 							"(*)" ._l('commodity_code')          =>'string',
-							"(*)" ._l('commodity_name')          =>'string',
+							"(*)" ._l('commodity_sort_name')          =>'string',
 							_l('commodity_barcode')          =>'string',
 							_l('sku_code')          =>'string',
 							_l('sku_name')          =>'string',
 							_l('Tags')          =>'string',
-							_l('description')          =>'string',
+							_l('long_description')          =>'string',
 							_l('commodity_type')          =>'string',
 							_l('unit_id')          =>'string',
 							"(*)" ._l('commodity_group')          =>'string',
-							_l('sub_group')          =>'string',
+							"(*)"._l('sub_group')          =>'string',
 							_l('_profit_rate'). "(%)"          =>'string',
 							_l('purchase_price')          =>'string',
 							"(*)" ._l('rate')          =>'string',
@@ -2768,7 +2768,7 @@ public function get_item_description()
 
 
 								$value_cell_commodity_code = isset($data[$row][0]) ? $data[$row][0] : null; //A
-								$value_cell_description = isset($data[$row][1]) ? $data[$row][1] : null; //B
+								$value_cell_sort_name = isset($data[$row][1]) ? $data[$row][1] : null; //B
 								$value_cell_commodity_barcode = isset($data[$row][2]) ? $data[$row][2] : ''; //A
 								$value_cell_sku_code = isset($data[$row][3]) ? $data[$row][3] : ''; //A
 								$value_cell_sku_name = isset($data[$row][4]) ? $data[$row][4] : ''; //A
@@ -2808,9 +2808,14 @@ public function get_item_description()
 									$flag = 1;
 								}
 
+								if (is_null($value_cell_sub_group) == true) {
+									$string_error .= _l('commodity_subgroup') . _l('not_yet_entered');
+									$flag = 1;
+								}
 
-								if (is_null($value_cell_description) == true) {
-									$string_error .= _l('commodity_name') . _l('not_yet_entered');
+
+								if (is_null($value_cell_sort_name) == true) {
+									$string_error .= _l('commodity_sort_name') . _l('not_yet_entered');
 									$flag = 1;
 								}
 
@@ -3027,7 +3032,7 @@ public function get_item_description()
 									$rd['commodity_barcode'] = isset($data[$row][2]) ? $data[$row][2] : '';
 									$rd['sku_code'] = isset($data[$row][3]) ? $data[$row][3] : '';
 									$rd['sku_name'] = isset($data[$row][4]) ? $data[$row][4] : '';
-									// $rd['description'] = isset($data[$row][1]) ? $data[$row][1] : '';
+									$rd['sort_name'] = isset($data[$row][1]) ? $data[$row][1] : '';
 									$rd['tags'] = isset($data[$row][5]) ? $data[$row][5] : '';
 									$rd['long_description'] = isset($data[$row][6]) ? $data[$row][6] : '';
 
@@ -3055,69 +3060,24 @@ public function get_item_description()
 									$rd['purchase_price'] = isset($data[$row][12]) ? $data[$row][12] : null;
 									$rd['minimum_inventory'] = isset($value_cell_minimum_inventory) ? $value_cell_minimum_inventory : 0;
 									$rd['without_checking_warehouse'] =  0;
-
-
-									// Inside your foreach loop for each row before INSERT
-// 1. Excel-provided description
-$excel_description = isset($data[$row][1]) ? trim($data[$row][1]) : '';
-
-// 2. Thickness in mm (as integer)
-$thickness_mm = isset($data[$row][20]) ? round($data[$row][20],2) : 0;
-
-$model_name = '';
-				if (!empty($value_cell_model_id)) {
-										$this->db->select('body_name');
-										$this->db->where('body_type_id', $value_cell_model_id);
-										$model = $this->db->get(db_prefix() . 'ware_body_type')->row();
-
-										if (!$model) {
-											$this->db->select('body_name');
-											$this->db->where('body_code', $value_cell_model_id);
-											$model = $this->db->get(db_prefix() . 'ware_body_type')->row();
-										}
-
-										$model_name = $model ? $model->body_name : '';
+									// Generate description dynamically using your naming rules
+									if (!empty($rd['group_id']) && !empty($rd['sub_group'])) {
+										$rd['description'] = $this->warehouse_model->generate_description_from_rule(
+											$rd['group_id'],
+											$rd['sub_group'],
+											$rd
+										);
+									} else {
+										// fallback if no rule exists
+										$rd['description'] = $rd['sort_name'] ?? '';
 									}
 
 
 
-$length_in = '';
-$width_in  = '';
 
-if (!empty($value_cell_size_id)) {
-    // First try with size_type_id
-    $this->db->select('length, width');
-    $this->db->where('size_type_id', $value_cell_size_id);
-    $sizeRes = $this->db->get(db_prefix() . 'ware_size_type')->row();
+									
 
-    // If not found, try with size_code
-    if (!$sizeRes) {
-        $this->db->select('length, width');
-        $this->db->where('size_code', $value_cell_size_id);
-        $sizeRes = $this->db->get(db_prefix() . 'ware_size_type')->row();
-    }
-
-    if ($sizeRes) {
-        $length_in = round($sizeRes->length); // no decimal
-        $width_in  = round($sizeRes->width);  // no decimal
-    }
-}
-
-
-// 5. Convert inches to meters (keep 3 decimals)
-$length_m = '';
-$width_m  = '';
-if ($length_in !== '' && $width_in !== '') {
-    $length_m = round($length_in * 0.0254, 4);
-    $width_m  = round($width_in * 0.0254, 4);
-}
-
-// 6. Build final description
-
-$rd['description'] = trim("{$thickness_mm}mm | {$excel_description} | {$model_name} | {$length_m}X{$width_m}({$length_in}X{$width_in})", " | ");
-
-
-				}
+											}
 
 								$flag_insert = false;
 
@@ -3143,7 +3103,7 @@ $rd['description'] = trim("{$thickness_mm}mm | {$excel_description} | {$model_na
 									//write error file
 									$writer->writeSheetRow('Sheet1', [
 										$value_cell_commodity_code,
-										$value_cell_description,
+										$value_cell_sort_name,
 										$value_cell_commodity_barcode,
 										$value_cell_sku_code,
 										$value_cell_sku_name,

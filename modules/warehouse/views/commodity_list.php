@@ -625,7 +625,7 @@ body #wrapper .dataTables_wrapper .table tr th {
                                      <?php echo render_select('unit_id',$units,array('unit_type_id','unit_name'),'units'); ?>
                                 </div>
                                 <div class="col-md-3">
-                                    <?php echo render_input('hsn_code', 'hsn_code'); ?>
+                                    <?php echo render_input('hs_code', 'hs_code'); ?>
                                 </div>
                             </div>
 
