@@ -547,6 +547,8 @@ warehouse_type_value = warehouse_type;
     data.commodity_barcode = $('input[name="commodity_barcode"]').val();
     data.sku_code = $('input[name="sku_code"]').val();
     data.thickness = $('input[name="thickness"]').val();
+    data.hs_code = $('input[name="hs_code"]').val();
+
 
     data.sku_name = $('input[name="sku_name"]').val();
 
@@ -800,6 +802,7 @@ function edit_commodity_item(invoker)
 
       
       $('#commodity_list-add-edit input[name="sort_name"]').val($(invoker).data('sort_name'));
+      $('#commodity_list-add-edit input[name="hs_code"]').val($(invoker).data('hs_code'));
 
 
       if($(invoker).data('tax') != 0){
@@ -1167,6 +1170,8 @@ function new_commodity_item(){
 
     $('#commodity_list-add-edit input[name="description"]').val('');
     $('#commodity_list-add-edit input[name="sort_name"]').val('');
+    $('#commodity_list-add-edit input[name="hs_code"]').val('');
+
 
     $('#commodity_list-add-edit input[name="sku_code"]').val('');
     $('#commodity_list-add-edit input[name="thickness"]').val('');
