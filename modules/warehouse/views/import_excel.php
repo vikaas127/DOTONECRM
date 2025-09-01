@@ -59,7 +59,7 @@ $file_header[] = _l('minimum_inventory');
 											$total_fields = 0;
 											
 											for($i=0;$i<count($file_header);$i++){
-												if($i == 0  ||$i == 1||$i == 9){
+												if($i == 0  ||$i == 1||$i == 9 |$i == 10){
 													?>
 													<th class="bold"><span class="text-danger">*</span> <?php echo new_html_entity_decode($file_header[$i]) ?> </th>
 													<?php 
