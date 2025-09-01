@@ -57,7 +57,7 @@ $file_header[] = _l('pur_shipping_country');
                       $total_fields = 0;
                       
                       for($i=0;$i<count($file_header);$i++){
-                          if($i == 0  ||$i == 1 ||$i == 2 ||$i == 6){
+                          if($i == 0   ||$i == 6){
                           ?>
                           <th class="bold"><span class="text-danger">*</span> <?php echo pur_html_entity_decode($file_header[$i]) ?> </th>
                           <?php 
