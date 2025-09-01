@@ -9,7 +9,7 @@ class Import_customers extends App_import
 
     private $countryFields = ['country', 'billing_country', 'shipping_country'];
 
-    protected $requiredFields = ['firstname', 'lastname', 'email'];
+    protected $requiredFields = [ 'company' ];
 
     public function __construct()
     {
