@@ -5914,7 +5914,7 @@ class purchase extends AdminController
                                 }
                             }
                             
-                            if(is_null($value_fist_name) == true || $value_fist_name ==''){
+                         /*   if(is_null($value_fist_name) == true || $value_fist_name ==''){
                                 $string_error .=_l('fist_name'). _l('not_yet_entered');
                                 $flag = 1;
                             }
@@ -5922,7 +5922,7 @@ class purchase extends AdminController
                             if(is_null($value_last_name) == true || $value_last_name ==''){
                                 $string_error .=_l('last_name'). _l('not_yet_entered');
                                 $flag = 1;
-                            }
+                            }*/
 
                             if(is_null($value_email) == true || $value_email ==''){
                                 $string_error .=_l('email'). _l('not_yet_entered');
