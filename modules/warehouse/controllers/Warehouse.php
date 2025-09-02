@@ -99,8 +99,10 @@ public function get_naming_pref_ajax()
 				 } 
 				$data['naming_rules'] = $prefs; } elseif ($data['group'] == 'sub_group') { 
 				$data['sub_groups'] = $this->warehouse_model->get_sub_group(); $data['item_group'] = $this->warehouse_model->get_item_group();
+$used_pairs = $this->warehouse_model->get_used_group_subgroups();
+$data['used_group_subgroups'] = $used_pairs; // array of "groupId-subgroupId" strings
 
-             $data['used_group_subgroups'] = $this->warehouse_model->get_used_group_subgroups();
+
 
 		} elseif ($data['group'] == 'sub_group') {
 
@@ -162,16 +164,20 @@ public function save_pref($id = null)
 
     // --- Build pairs JSON ---
     $pairs = [];
-    if (!empty($post['pairs']) && is_array($post['pairs'])) {
-        foreach ($post['pairs'] as $p) {
-            if (!empty($p['group_id']) && !empty($p['subgroup_id'])) {
-                $pairs[] = [
-                    'group_id'    => (int) $p['group_id'],
-                    'subgroup_id' => (int) $p['subgroup_id']
-                ];
-            }
-        }
-    }
+	if (!empty($post['pairs']) && is_array($post['pairs'])) {
+		foreach ($post['pairs'] as $pairJson) {
+			$p = json_decode($pairJson, true); // decode JSON string into array
+			if (!empty($p['group_id']) && !empty($p['subgroup_id'])) {
+				$pairs[] = [
+					'group_id'      => (int) $p['group_id'],
+					'subgroup_id'   => (int) $p['subgroup_id'],
+					'group_name'    => $p['group_name'],    // keep as string
+					'subgroup_name' => $p['subgroup_name']  // keep as string
+				];
+			}
+		}
+	}
+
 
     // fallback: user selected dropdowns but didn’t click "Add Pair"
     if (empty($pairs) && !empty($post['group_id']) && !empty($post['subgroup_id'])) {
