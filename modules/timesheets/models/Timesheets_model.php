@@ -2811,13 +2811,14 @@ class timesheets_model extends app_model
 		return false;
 	}
 */
-	public function check_in($data)
+public function check_in($data)
 {
-//	log_message('info', '[CHECK_IN] Attendance check initiated for data: ' . json_encode($data));
-if (empty($data['location_user'])) {
-    $data['location_user'] = '26.7495187,83.2272604';
-    log_message('info', '[CHECK_IN] location_user was empty. Default location set: ' . $data['location_user']);
-}
+	//	log_message('info', '[CHECK_IN] Attendance check initiated for data: ' . json_encode($data));
+	if (empty($data['location_user'])) {
+		$data['location_user'] = '26.7495187,83.2272604';
+		log_message('info', '[CHECK_IN] location_user was empty. Default location set: ' . $data['location_user']);
+	}
+
     log_message('info', '[CHECK_IN] Attendance check initiated for data: ' . json_encode($data));
 	$enable_check_valid_ip = get_timesheets_option('timekeeping_enable_valid_ip');
 	if ($enable_check_valid_ip && $enable_check_valid_ip == 1) {
@@ -2849,6 +2850,7 @@ if (empty($data['location_user'])) {
 	if (!isset($data['staff_id'])) {
 		$data['staff_id'] = get_staff_user_id();
 	}
+
 	if (!empty($data['edit_date'])) {
 		$temp = $this->format_date_time($data['edit_date']);
 		$split_date = explode(' ', $temp);
@@ -2857,14 +2859,17 @@ if (empty($data['location_user'])) {
 	} else {
 		$data['date'] = $date . ' ' . date('H:i:s');
 	}
+
 	unset($data['edit_date']);
 
 	$check_more = '';
 	$count_st = 0;
+
 	if (get_timesheets_option('allow_attendance_by_coordinates') == 1) {
 		$check_more = 'check_coordinates';
 		$count_st++;
 	}
+
 	if (get_timesheets_option('allow_attendance_by_route') == 1) {
 		$check_more = 'check_route';
 		$count_st++;
@@ -2872,10 +2877,14 @@ if (empty($data['location_user'])) {
 
 	$point_id = '';
 	$workplace_id = '';
+
 	if ($check_more != '') {
+
 		if (isset($data['location_user'])) {
+
 			$data_location = explode(',', $data['location_user']);
 			if (isset($data_location[0]) && isset($data_location[1])) {
+
 				$latitude = $data_location[0];
 				$longitude = $data_location[1];
 				log_message('info', "[CHECK_IN] Location data received: Lat=$latitude, Long=$longitude");
@@ -2893,10 +2902,12 @@ if (empty($data['location_user'])) {
 						if (empty($point_id) && !empty($data['point_id'])) {
 							$point_id = $data['point_id'];
 						}
+
 						if (empty($point_id)) {
 							$point = $this->get_next_point($data['staff_id'], $date, $latitude, $longitude);
 							$point_id = $point ? $point->id : '';
 						}
+
 						if (!empty($point_id)) {
 							$data_route_point = $this->get_route_point($point_id);
 							if ($data_route_point) {
@@ -2940,27 +2951,34 @@ if (empty($data['location_user'])) {
 	}
 
 	$send_notify = isset($data['send_notify']) && $data['send_notify'] == 1;
-	unset($data['send_notify'], $data['location_user'], $data['point_id'], $data['ip_address']);
+	unset($data['send_notify'], $data['location_user'], $data['point_id'], $data['ip'], $data['device_type'], $data['device_fingerprint']);
 
-	 $data['route_point_id'] = $point_id;
-	 $data['workplace_id'] = $workplace_id;
-     $data['lat']=$latitude;
-     $data['long']=$longitude;
-     $address = $this->getAddressFromLatLong($latitude, $longitude);
-     $data['address']= $address;
+	$data['route_point_id'] = $point_id;
+	$data['workplace_id'] = $workplace_id;
+	$data['lat']=$latitude;
+	$data['long']=$longitude;
+	$address = $this->getAddressFromLatLong($latitude, $longitude);
+	$data['address']= $address;
+
+
 	$this->db->insert(db_prefix() . 'check_in_out', $data);
+
 	$insert_id = $this->db->insert_id();
 	$this->db->insert(db_prefix() .'checkout_history', [
-    'staff_id'    => $data['staff_id'],
-    'latitude'    => $latitude,
-    'longitude'   => $longitude,
-    'address'     => $address,
-    'accuracy_m'  => isset($data['accuracy_m']) ? $data['accuracy_m'] : null,
-    'recorded_at' => $data['date'],
-    'created_by'  => get_staff_user_id()
-]);
+		'staff_id'    => $data['staff_id'],
+		'latitude'    => $latitude,
+		'longitude'   => $longitude,
+		'address'     => $address,
+		'accuracy_m'  => isset($data['accuracy_m']) ? $data['accuracy_m'] : null,
+		'recorded_at' => $data['date'],
+		'created_by'  => get_staff_user_id()
+	]);
+
 	if ($insert_id) {
 		log_message('info', "[CHECK_IN] Attendance inserted successfully. ID: $insert_id");
+		$checkInType	= $data['type_check'] == 2 ? '0' : '1';
+
+		$this->session->set_userdata('user_check_in', $checkInType);
 		$this->add_check_in_out_value_to_timesheet($data['staff_id'], $date);
 
 		$type_check_email = strtolower(_l($data['type_check'] == 1 ? 'checked_in' : 'checked_out'));
