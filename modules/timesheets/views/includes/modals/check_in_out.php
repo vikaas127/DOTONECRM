@@ -119,7 +119,7 @@
                     <div class="bottom_co_btn_item">
                       <?php
                       if ($type_check_in_out == '' || $type_check_in_out == 2 || $allows_updating_check_in_time == 1 || is_admin()) {
-                        echo form_open(admin_url('timesheets/check_in_ts'), array('id' => 'timesheets-form-check-in', 'onsubmit' => 'get_data()')); ?>
+                        echo form_open(admin_url('timesheets/check_in_ts'), array('id' => 'timesheets-form-check-in')); ?>
                         <input type="hidden" name="staff_id" value="<?php echo get_staff_user_id(); ?>">
                         <input type="hidden" name="type_check" value="1">
                         <input type="hidden" name="edit_date" value="">
@@ -135,7 +135,7 @@
                     </div>
                     <div class="bottom_co_btn_item">
                       <?php if ($type_check_in_out == 1 || $allows_updating_check_in_time == 1 || is_admin()) {
-                        echo form_open(admin_url('timesheets/check_in_ts'), array('id' => 'timesheets-form-check-out', 'onsubmit' => 'get_data()'));
+                        echo form_open(admin_url('timesheets/check_in_ts'), array('id' => 'timesheets-form-check-out'));
                       ?>
                         <input type="hidden" name="staff_id" value="<?php echo get_staff_user_id(); ?>">
                         <input type="hidden" name="type_check" value="2">
