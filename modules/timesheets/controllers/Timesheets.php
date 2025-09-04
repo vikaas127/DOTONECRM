@@ -3968,12 +3968,84 @@ public function location_history($staff_id = null)
 	}
 /**
  * check in timesheet
- */
+
+*/
+public function json()
+    {
+        $staff_id = (int)$this->input->get('staff_id', true);
+        $date     = $this->input->get('date', true);
+        $from     = $this->input->get('from', true);
+        $to       = $this->input->get('to', true);
+        $maxAcc   = (float)$this->input->get('max_accuracy_m', true);
+        if ($maxAcc <= 0) $maxAcc = 200;
+
+        if (!$staff_id) return $this->_json_error('staff_id required');
+
+        if ($date) {
+            $points = $this->timesheets_model->get_path_for_date($staff_id, $date, $maxAcc);
+            return $this->_json_ok([
+                'mode'   => 'single_day',
+                'date'   => $date,
+                'points' => $points,
+            ]);
+        }
+
+        if ($from && $to) {
+            $paths = $this->timesheets_model->get_paths_between($staff_id, $from, $to, $maxAcc);
+            return $this->_json_ok([
+                'mode'  => 'range_by_day',
+                'from'  => $from,
+                'to'    => $to,
+                'days'  => $paths, // { 'YYYY-MM-DD': [points...] }
+            ]);
+        }
+
+        return $this->_json_error('Provide either date=YYYY-MM-DD OR from=YYYY-MM-DD&to=YYYY-MM-DD');
+    }
+
+    private function _json_ok($payload)
+    {
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode(['status' => true] + $payload));
+    }
+
+    private function _json_error($msg)
+    {
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode(['status' => false, 'error' => $msg]));
+    }
+
+    /**
+     * Map page (loads Google Map and draws polylines).
+     * /location/map?staff_id=4&date=2025-08-27
+     * /location/map?staff_id=4&from=2025-08-27&to=2025-08-30
+     */
+    public function map()
+    {
+        $data['staff_id'] = (int)$this->input->get('staff_id', true);
+        $data['date']     = $this->input->get('date', true);
+        $data['from']     = $this->input->get('from', true);
+        $data['to']       = $this->input->get('to', true);
+        $data['max_accuracy_m'] = $this->input->get('max_accuracy_m', true);
+$data['staff_list'] = $this->db
+        ->select('staffid as id, CONCAT(firstname," ",lastname) as full_name')
+        ->from(db_prefix().'staff') // or 'tblstaff'
+        ->where('active', 1)
+        ->order_by('full_name', 'ASC')
+        ->get()->result_array();
+
+    // 2) Google Maps API key from your option
+    $data['googlemap_api_key'] = get_timesheets_option('googlemap_api_key'); // or fallback if you want
+
+        $this->load->view('timekeeping/staff_map', $data);
+    }
 public function track_location() {
     $json = json_decode(file_get_contents('php://input'), true);
 
     if (isset($json['latitude']) && isset($json['longitude'])) {
-        $this->db->insert('tblcheckout_history', [
+        $this->db->insert(db_prefix() .'checkout_history', [
             'staff_id'    => get_staff_user_id(),
             'latitude'    => $json['latitude'],
             'longitude'   => $json['longitude'],

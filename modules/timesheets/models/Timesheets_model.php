@@ -42,6 +42,81 @@ class timesheets_model extends app_model
 
 		return $this->db->get(db_prefix() . 'staff')->result_array();
 	}
+	public function get_path_for_date($staff_id, $date, $max_accuracy_m = 200)
+    {
+        $this->db->from(db_prefix() .'checkout_history');
+        $this->db->where('staff_id', (int)$staff_id);
+        $this->db->where('DATE(recorded_at) =', $date);
+        $this->db->where('latitude IS NOT NULL', null, false);
+        $this->db->where('longitude IS NOT NULL', null, false);
+        $this->db->where('latitude !=', 0);
+        $this->db->where('longitude !=', 0);
+        $this->db->where('accuracy_m <=', (float)$max_accuracy_m);
+        $this->db->order_by('recorded_at', 'ASC');
+        $rows = $this->db->get()->result_array();
+
+        // Drop consecutive duplicates
+        $out = [];
+        $prev = null;
+        foreach ($rows as $r) {
+            $key = $r['latitude'].'|'.$r['longitude'];
+            if ($prev === $key) continue;
+            $prev = $key;
+            $out[] = [
+                'id'          => (int)$r['id'],
+                'lat'         => (float)$r['latitude'],
+                'lng'         => (float)$r['longitude'],
+                'accuracy_m'  => isset($r['accuracy_m']) ? (float)$r['accuracy_m'] : null,
+                'address'     => $r['address'],
+                'recorded_at' => $r['recorded_at'],
+                'device_id'   => $r['device_id'],
+            ];
+        }
+        return $out;
+    }
+
+    /**
+     * Get points grouped by DATE(recorded_at) within a range (inclusive).
+     * Returns: ['YYYY-MM-DD' => [points...], ...]
+     */
+    public function get_paths_between($staff_id, $from_date, $to_date, $max_accuracy_m = 200)
+    {
+        $this->db->select('id, staff_id, latitude, longitude, address, accuracy_m, recorded_at, device_id, DATE(recorded_at) as d');
+        $this->db->from(db_prefix() .'checkout_history');
+        $this->db->where('staff_id', (int)$staff_id);
+        $this->db->where('DATE(recorded_at) >=', $from_date);
+        $this->db->where('DATE(recorded_at) <=', $to_date);
+        $this->db->where('latitude IS NOT NULL', null, false);
+        $this->db->where('longitude IS NOT NULL', null, false);
+        $this->db->where('latitude !=', 0);
+        $this->db->where('longitude !=', 0);
+        $this->db->where('accuracy_m <=', (float)$max_accuracy_m);
+        $this->db->order_by('recorded_at', 'ASC');
+        $rows = $this->db->get()->result_array();
+
+        // Group per day + drop consecutive dupes within each day
+        $grouped = [];
+        $prevKeyByDay = [];
+        foreach ($rows as $r) {
+            $day = $r['d'];
+            $key = $r['latitude'].'|'.$r['longitude'];
+            if (!isset($prevKeyByDay[$day])) $prevKeyByDay[$day] = null;
+            if ($prevKeyByDay[$day] === $key) continue;
+            $prevKeyByDay[$day] = $key;
+
+            $grouped[$day][] = [
+                'id'          => (int)$r['id'],
+                'lat'         => (float)$r['latitude'],
+                'lng'         => (float)$r['longitude'],
+                'accuracy_m'  => isset($r['accuracy_m']) ? (float)$r['accuracy_m'] : null,
+                'address'     => $r['address'],
+                'recorded_at' => $r['recorded_at'],
+                'device_id'   => $r['device_id'],
+            ];
+        }
+        return $grouped;
+    }
+
 	/**
 	 * get staff role
 	 * @param  integer $staff_id
