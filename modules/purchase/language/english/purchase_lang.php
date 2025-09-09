@@ -14,7 +14,7 @@ $lang['unit_name']  = 'Unit name';
 $lang['approval']  = 'Approval';
 $lang['profile']  = 'Profile';
 $lang['clientid']  = 'Customer';
-
+$lang['error']='Error';
 $lang['contacts']  = 'Contacts';
 $lang['vendor_add_edit_profile']  = 'Profile';
 $lang['vendor_admins']  = 'Vendor admins';
