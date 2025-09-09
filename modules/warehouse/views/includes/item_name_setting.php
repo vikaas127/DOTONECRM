@@ -1,15 +1,19 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed'); ?>
 
-<div class="panel panel-default">
-    <div class="panel-heading clearfix">
-        <h4 class="panel-title pull-left">Item Naming Preferences</h4>
-        <button class="btn btn-primary pull-right" data-toggle="modal" data-target="#prefModal">
+<div class="">
+    <div class="">
+       
+        <button class="btn btn-primary " data-toggle="modal" data-target="#prefModal">
             + Add Preference
         </button>
     </div>
-    <div class="panel-body">
-        <table class="table table-striped table-bordered">
-            <thead>
+    <div class="clearfix"></div>
+<hr class="hr-panel-heading" />
+<div class="clearfix"></div>
+   <div class="" style="padding: 0; overflow-x: auto;">
+    <div class="table-responsive" style="margin: 0; overflow-x: auto;">
+        <table class="table table-striped table-bordered" style="width: max-content;">
+              <thead>
                 <tr>
                     <th>Group(s) & Subgroup(s)</th>
                     <th>Attributes</th>
@@ -22,15 +26,25 @@
                         <tr>
                             <td>
                                 <?php
-                                $pairs = json_decode($pref['group_subgroup_pairs'], true);
-                                if ($pairs) {
-                                    foreach ($pairs as $p) {
-                                        echo '<span class="label label-info mright5">Group ' . $p['group_id'] . ' - Subgroup ' . $p['subgroup_id'] . '</span>';
-                                    }
-                                } else {
-                                    echo 'All Groups/Subgroups';
-                                }
-                                ?>
+                             
+$pairs = json_decode($pref['group_subgroup_pairs'], true);
+$assignedPairs = [];
+
+if ($pairs) {
+    foreach ($pairs as $p) {
+        $groupName = isset($p['group_name']) ? $p['group_name'] : $p['group_id'];
+        $subgroupName = isset($p['subgroup_name']) ? $p['subgroup_name'] : $p['subgroup_id'];
+
+        // Print the label
+        echo '<span class="label label-info mright5">Group: ' . htmlspecialchars($groupName) . ' - Subgroup: ' . htmlspecialchars($subgroupName) . '</span>';
+
+        // Build JS-friendly array for duplicate checking
+        $assignedPairs[] = $p['group_id'] . '-' . $p['subgroup_id'];
+    }
+} else {
+    echo 'All Groups/Subgroups available';
+}
+?>
                             </td>
                             <td>
                                 <?php
@@ -46,9 +60,13 @@
                                 ?>
                             </td>
                             <td>
-                                <button class="btn btn-sm btn-warning edit-rule" data-id="<?= $pref['id']; ?>">Edit</button>
+                               
+                               <button class="btn btn-default btn-icon edit-rule" data-id="<?= $pref['id']; ?>">
+                                    <i class="fa-regular fa-pen-to-square"></i>
+                                </button>
+
                                 <a href="<?= admin_url('warehouse/delete_pref/' . $pref['id']); ?>"
-                                   class="btn btn-sm btn-danger _delete">Delete</a>
+                                   class="btn btn-danger btn-icon _delete"><i class="fa fa-remove"></i></a>
                             </td>
                         </tr>
                     <?php } ?>
@@ -60,7 +78,10 @@
     </div>
 </div>
 
-<<!-- Add/Edit Modal -->
+
+</div>
+
+<!-- Add/Edit Modal -->
 <div class="modal fade" id="prefModal" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
@@ -161,7 +182,11 @@
     </div>
 </div>
 
-<script>
-window.assignedGroupSubgroups = <?= json_encode($used_group_subgroups); ?>;
 
+<script>
+window.assignedGroupSubgroups = <?php echo json_encode($assignedPairs); ?>;
+console.log('Assigned DB pairs:', window.assignedGroupSubgroups);
 </script>
+
+
+

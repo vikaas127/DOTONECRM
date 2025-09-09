@@ -64,7 +64,7 @@ function _init_admin_assets()
 
     $CI->app_scripts->add(
         'app-js',
-          base_url($CI->app_scripts->core_file('assets/js', 'main.js')) . '?v=3.1.11',
+          base_url($CI->app_scripts->core_file('assets/js', 'main.js')) . '?v=3.1.18',
 
         //base_url($CI->app_scripts->core_file('assets/js', 'main.js')) . '?v=' . $CI->app_css->core_version(),
         'admin',

@@ -3968,12 +3968,84 @@ public function location_history($staff_id = null)
 	}
 /**
  * check in timesheet
- */
+
+*/
+public function json()
+    {
+        $staff_id = (int)$this->input->get('staff_id', true);
+        $date     = $this->input->get('date', true);
+        $from     = $this->input->get('from', true);
+        $to       = $this->input->get('to', true);
+        $maxAcc   = (float)$this->input->get('max_accuracy_m', true);
+        if ($maxAcc <= 0) $maxAcc = 200;
+
+        if (!$staff_id) return $this->_json_error('staff_id required');
+
+        if ($date) {
+            $points = $this->timesheets_model->get_path_for_date($staff_id, $date, $maxAcc);
+            return $this->_json_ok([
+                'mode'   => 'single_day',
+                'date'   => $date,
+                'points' => $points,
+            ]);
+        }
+
+        if ($from && $to) {
+            $paths = $this->timesheets_model->get_paths_between($staff_id, $from, $to, $maxAcc);
+            return $this->_json_ok([
+                'mode'  => 'range_by_day',
+                'from'  => $from,
+                'to'    => $to,
+                'days'  => $paths, // { 'YYYY-MM-DD': [points...] }
+            ]);
+        }
+
+        return $this->_json_error('Provide either date=YYYY-MM-DD OR from=YYYY-MM-DD&to=YYYY-MM-DD');
+    }
+
+    private function _json_ok($payload)
+    {
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode(['status' => true] + $payload));
+    }
+
+    private function _json_error($msg)
+    {
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode(['status' => false, 'error' => $msg]));
+    }
+
+    /**
+     * Map page (loads Google Map and draws polylines).
+     * /location/map?staff_id=4&date=2025-08-27
+     * /location/map?staff_id=4&from=2025-08-27&to=2025-08-30
+     */
+    public function map()
+    {
+        $data['staff_id'] = (int)$this->input->get('staff_id', true);
+        $data['date']     = $this->input->get('date', true);
+        $data['from']     = $this->input->get('from', true);
+        $data['to']       = $this->input->get('to', true);
+        $data['max_accuracy_m'] = $this->input->get('max_accuracy_m', true);
+$data['staff_list'] = $this->db
+        ->select('staffid as id, CONCAT(firstname," ",lastname) as full_name')
+        ->from(db_prefix().'staff') // or 'tblstaff'
+        ->where('active', 1)
+        ->order_by('full_name', 'ASC')
+        ->get()->result_array();
+
+    // 2) Google Maps API key from your option
+    $data['googlemap_api_key'] = get_timesheets_option('googlemap_api_key'); // or fallback if you want
+
+        $this->load->view('timekeeping/staff_map', $data);
+    }
 public function track_location() {
     $json = json_decode(file_get_contents('php://input'), true);
 
     if (isset($json['latitude']) && isset($json['longitude'])) {
-        $this->db->insert('tblcheckout_history', [
+        $this->db->insert(db_prefix() .'checkout_history', [
             'staff_id'    => get_staff_user_id(),
             'latitude'    => $json['latitude'],
             'longitude'   => $json['longitude'],
@@ -6055,6 +6127,204 @@ public function save_location()
 			}
 		}
 	}
+
+	public function check_in_out_distance_report() {
+    if ($this->input->is_ajax_request()) {
+        if ($this->input->post()) {
+            $months_report = $this->input->post('months_filter');
+
+            $staff_fillter       = $this->input->post("staff_2_fillter");
+            $department_fillter  = $this->input->post("department_2_fillter");
+            $roles_fillter       = $this->input->post("roles_2_fillter");
+            $workplace_fillter   = $this->input->post("workplace_2_fillter");
+            $route_point_fillter = $this->input->post("route_point_2_fillter");
+            $word_shift_fillter  = $this->input->post("word_shift_2_fillter");
+            $type_fillter        = $this->input->post("type_2_fillter");
+
+            // Date filter
+            if ($months_report == 'this_month') {
+                $from_date = date('Y-m-01');
+                $to_date   = date('Y-m-t');
+            } elseif ($months_report == '1') {
+                $from_date = date('Y-m-01', strtotime('first day of last month'));
+                $to_date   = date('Y-m-t', strtotime('last day of last month'));
+            } elseif ($months_report == 'this_year') {
+                $from_date = date('Y-01-01');
+                $to_date   = date('Y-12-31');
+            } elseif ($months_report == 'last_year') {
+                $from_date = date('Y-01-01', strtotime('last year'));
+                $to_date   = date('Y-12-31', strtotime('last year'));
+            } elseif (in_array($months_report, ['3','6','12'])) {
+                $months_report--;
+                $from_date = date('Y-m-01', strtotime("-$months_report MONTH"));
+                $to_date   = date('Y-m-t');
+            } elseif ($months_report == 'custom') {
+                $from_date = to_sql_date($this->input->post('report_from'));
+                $to_date   = to_sql_date($this->input->post('report_to'));
+            }
+
+            $select = [
+                'staff_id',
+                'date',
+                'type_check',
+                'id',
+				'address'
+            ];
+
+            $query = '';
+
+            // Staff filter
+            if (has_permission('report_management', '', 'view') || is_admin()) {
+                if (!empty($staff_fillter)) {
+                    $staffid_list = implode(',', $staff_fillter);
+                    $query .= ' staff_id in (' . $staffid_list . ') and';
+                }
+            } else {
+                $query .= ' ' . timesheet_staff_manager_query('report_management', 'staff_id', '') . ' and';
+            }
+
+            // Department filter
+            if (!empty($department_fillter)) {
+                $department_list = implode(',', $department_fillter);
+                $query .= ' staff_id in (SELECT staffid FROM ' . db_prefix() . 'staff_departments where departmentid in (' . $department_list . ')) and';
+            }
+
+            // Workplace filter
+            if (!empty($workplace_fillter)) {
+                $workplace_id_list = implode(',', $workplace_fillter);
+                $query .= ' workplace_id in (' . $workplace_id_list . ') and';
+            }
+
+            // Route point filter
+            if (!empty($route_point_fillter)) {
+                $route_point_id_list = implode(',', $route_point_fillter);
+                $query .= ' route_point_id in (' . $route_point_id_list . ') and';
+            }
+
+            // Type filter
+            if (!empty($type_fillter) && $type_fillter != 3) {
+                $query .= ' type_check = ' . $type_fillter . ' and';
+            }
+
+            // Date range filter
+            if (!empty($months_report)) {
+                $query .= ' date_format(date, "%Y-%m-%d") between "' . $from_date . '" AND "' . $to_date . '" and';
+            }
+
+            // Role filter
+            if (!empty($roles_fillter)) {
+                $roles_id_list = implode(',', $roles_fillter);
+                $query .= ' staff_id in (SELECT staffid FROM ' . db_prefix() . 'staff where role IN (' . $roles_id_list . ')) and';
+            }
+
+            // Active staff filter
+            $data_staff = $this->staff_model->get('', 'active = 1');
+            if ($data_staff) {
+                $staff_id_list = [];
+                foreach ($data_staff as $value) {
+                    $staff_id_list[] = $value['staffid'];
+                }
+                if (count($staff_id_list) > 0) {
+                    $query .= ' staff_id in (' . implode(',', $staff_id_list) . ') and';
+                } else {
+                    $query .= ' staff_id in (0) and';
+                }
+            } else {
+                $query .= ' staff_id in (0) and';
+            }
+
+            // Final where
+            $total_query = '';
+            if (!empty($query)) {
+                $total_query = rtrim($query, ' and');
+                $total_query = ' where ' . $total_query;
+            }
+
+            $where = [$total_query];
+            $aColumns = $select;
+            $sIndexColumn = 'id';
+            $sTable = db_prefix() . 'check_in_out';
+            $join = [];
+
+            $result = data_tables_init($aColumns, $sIndexColumn, $sTable, $join, $where, [
+                'id',
+                'staff_id',
+                'date',
+                'type_check',
+				'address'
+            ]);
+
+            $output  = $result['output'];
+            $rResult = $result['rResult'];
+
+            /** --------------------------
+             *  Group by staff + date
+             * -------------------------- */
+            $grouped = [];
+
+       foreach ($rResult as $aRow) {
+    $dateKey = date('d-m-Y', strtotime($aRow['date']));
+    $staffId = $aRow['staff_id'];
+
+    if (!isset($grouped[$staffId][$dateKey])) {
+        $grouped[$staffId][$dateKey] = [
+            'staff_id'   => $staffId,
+            'date'       => $dateKey,
+            'check_in'   => null,
+            'check_out'  => null,
+            'check_in_time'  => null,  // raw timestamps
+            'check_out_time' => null
+        ];
+    }
+
+    $time = strtotime($aRow['date']);
+    $timeFormatted = date('h:i A', $time);
+    $address = !empty($aRow['address']) 
+        ? ' <span style="color:' . ($aRow['type_check'] == 1 ? '#28a745' : '#dc3545') . ';">(' . html_escape($aRow['address']) . ')</span>'
+        : '';
+
+    // Check-in = earliest time
+    if ($aRow['type_check'] == 1) {
+        if ($grouped[$staffId][$dateKey]['check_in_time'] === null || $time < $grouped[$staffId][$dateKey]['check_in_time']) {
+            $grouped[$staffId][$dateKey]['check_in_time'] = $time;
+            $grouped[$staffId][$dateKey]['check_in'] = $timeFormatted . $address;
+        }
+    }
+
+    // Check-out = latest time
+    if ($aRow['type_check'] == 2) {
+        if ($grouped[$staffId][$dateKey]['check_out_time'] === null || $time > $grouped[$staffId][$dateKey]['check_out_time']) {
+            $grouped[$staffId][$dateKey]['check_out_time'] = $time;
+            $grouped[$staffId][$dateKey]['check_out'] = $timeFormatted . $address;
+        }
+    }
+}
+
+
+            /** --------------------------
+             *  Build rows
+             * -------------------------- */
+            $output['aaData'] = [];
+            foreach ($grouped as $staffDates) {
+                foreach ($staffDates as $row) {
+                  $output['aaData'][] = [
+						'<a href="' . admin_url('timesheets/map?staff_id=' . $row['staff_id'] . '&date=' . date('Y-m-d', strtotime(str_replace('-', '/', $row['date']))) ) . '" target="_blank">' . 
+							get_staff_full_name($row['staff_id']) . 
+						'</a>',
+						$row['date'],
+                        $row['check_in'] ?? '-',
+                        $row['check_out'] ?? '-',
+                        '' // distance empty for now
+                    ];
+                }
+            }
+
+            echo json_encode($output);
+            die();
+        }
+    }
+}
+
 
 	/**
  	* check in out progress according to the route report

@@ -184,6 +184,7 @@ body #header li.icon  .quick-span{
 
             <ul class="nav navbar-nav navbar-right">
                 <?php do_action_deprecated('after_render_top_search', [], '3.0.0', 'admin_navbar_start'); ?>
+                <input type="hidden" name="user_check_in" id="user_check_in" value="<?php echo $this->session->userdata('user_check_in'); ?>">
                 <?php hooks()->do_action('admin_navbar_start'); ?>
                 <?php if (is_staff_member()) { ?>
                 <li class="icon header-newsfeed">

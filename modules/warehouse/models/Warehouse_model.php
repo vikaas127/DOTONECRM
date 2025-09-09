@@ -6465,11 +6465,11 @@ public function get_stock_export_pdf_html($goods_delivery_id) {
     }
 public function get_group_name($id)
 {
-    $row = $this->db->select('group_name')
+    $row = $this->db->select('name')
         ->where('id', $id)
         ->get('tblitems_groups')
         ->row();
-    return $row ? $row->group_name : '';
+    return $row ? $row->name : '';
 }
 
 public function get_subgroup_name($id)

@@ -112,6 +112,7 @@
 		$('#year_requisition').addClass('hide');
 		$('#year_period').addClass('hide');
 		$('#history_check_in_out').addClass('hide');
+		$('#check_in_out_distance').addClass('hide');
 		$('#check_in_out_progress_according_to_the_route').addClass('hide');
 		$('#general_public_report').addClass('hide');
 		$('.leave_by_department').addClass('hide');
@@ -156,6 +157,12 @@
 			$('#report-time').removeClass('hide');   
 			$('.sorting_2_table').removeClass('hide');
 			$('#history_check_in_out').removeClass('hide');
+		} 
+		else if(type == 'check_in_out_distance'){
+			$('.filter_fr_2').removeClass('hide');
+			$('#report-time').removeClass('hide');   
+			$('.sorting_2_table').removeClass('hide');
+			$('#check_in_out_distance').removeClass('hide');
 		}  
 		else if(type == 'check_in_out_progress_according_to_the_route'){
 			$('.department_2_fr').removeClass('hide');
@@ -478,6 +485,9 @@
 	 			case 'history_check_in_out':
 	 			history_check_in_out_report();
 	 			break;  
+				case 'check_in_out_distance':
+	 			check_in_out_distance_report();
+	 			break;  
 	 			case 'check_in_out_progress_according_to_the_route':
 	 			check_in_out_progress_according_to_the_route_report();
 	 			break;  
@@ -557,6 +567,22 @@
 	 	} 
 	 	initDataTable('.table-history_check_in_out_report', admin_url + 'timesheets/history_check_in_out_report', false, false, fnServerParams, [1, 'desc']);
 	 }
+	function check_in_out_distance_report(){
+		"use strict";
+		$('.title_table').text("<?php echo _l('check_in_out_distance'); ?>");
+		if ($.fn.DataTable.isDataTable('.table-check_in_out_distance_report')) {
+			$('.table-check_in_out_distance_report').DataTable().destroy();
+		} 
+		initDataTable(
+			'.table-check_in_out_distance_report',
+			admin_url + 'timesheets/check_in_out_distance_report',
+			false,
+			false,
+			fnServerParams,
+			[1, 'desc']
+		);
+	}
+
 	 function check_in_out_progress_according_to_the_route_report(){
 	 	"use strict";
 	 	$('#check_in_out_progress_according_to_the_route').html('<table class="table table-check_in_out_progress_according_to_the_route_report scroll-responsive"><thead><tr></tr></thead><tbody></tbody><tfoot><tr></tr></tfoot></table>');
