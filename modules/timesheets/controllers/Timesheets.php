@@ -6168,7 +6168,8 @@ public function save_location()
                 'date',
                 'type_check',
                 'id',
-				'address'
+				'address',
+				 'distance'
             ];
 
             $query = '';
@@ -6273,8 +6274,12 @@ public function save_location()
             'check_in'   => null,
             'check_out'  => null,
             'check_in_time'  => null,  // raw timestamps
-            'check_out_time' => null
+            'check_out_time' => null,
+			'distance'   => 0,
         ];
+    }
+	 if (!is_null($aRow['distance']) && $aRow['distance'] != '') {
+        $grouped[$staffId][$dateKey]['distance'] += $aRow['distance'];
     }
 
     $time = strtotime($aRow['date']);
@@ -6314,7 +6319,8 @@ public function save_location()
 						$row['date'],
                         $row['check_in'] ?? '-',
                         $row['check_out'] ?? '-',
-                        '' // distance empty for now
+                        isset($row['distance']) ? round($row['distance'] / 1000, 2) . ' km' : '-'  // convert to km
+
                     ];
                 }
             }
