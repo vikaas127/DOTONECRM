@@ -5924,14 +5924,25 @@ class purchase extends AdminController
                                 $flag = 1;
                             }*/
 
-                            if(is_null($value_email) == true || $value_email ==''){
-                                $string_error .=_l('email'). _l('not_yet_entered');
+                            // if(is_null($value_email) == true || $value_email ==''){
+                            //     $string_error .=_l('email'). _l('not_yet_entered');
+                            //     $flag = 1;
+                            // }else{
+                            //     $this->db->where('email', $value_email);
+                            //     $total_rows_check_email = $this->db->count_all_results(db_prefix().'pur_contacts');
+                            //     if ($total_rows_check_email > 0) {
+                            //         $string_error .=_l('email'). _l('already_exist');
+                            //         $flag = 1;
+                            //     }
+                            // }
+                             if(is_null($value_phonenumber) == true || $value_phonenumber ==''){
+                                $string_error .=_l('phonenumber'). _l('not_yet_entered');
                                 $flag = 1;
                             }else{
-                                $this->db->where('email', $value_email);
-                                $total_rows_check_email = $this->db->count_all_results(db_prefix().'pur_contacts');
-                                if ($total_rows_check_email > 0) {
-                                    $string_error .=_l('email'). _l('already_exist');
+                                $this->db->where('phonenumber', $value_phonenumber);
+                                $total_rows_check_phonenumber = $this->db->count_all_results(db_prefix().'pur_contacts');
+                                if ($total_rows_check_phonenumber > 0) {
+                                    $string_error .=_l('phonenumber'). _l('already_exist');
                                     $flag = 1;
                                 }
                             }
