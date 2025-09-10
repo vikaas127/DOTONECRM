@@ -2887,7 +2887,7 @@ class timesheets_model extends app_model
 	}
 */
 public function check_in($data)
-{
+{ 
 	//	log_message('info', '[CHECK_IN] Attendance check initiated for data: ' . json_encode($data));
 	if (empty($data['location_user'])) {
 		$data['location_user'] = '26.7495187,83.2272604';
@@ -3036,7 +3036,45 @@ public function check_in($data)
 	$data['address']= $address;
 
 
-	$this->db->insert(db_prefix() . 'check_in_out', $data);
+   if ($data['type_check'] == 2) { // Check-out
+    $staff_id = $data['staff_id'];
+    $current_date = date('Y-m-d', strtotime($data['date']));
+
+    // Get latest check-in before this check-out
+    $last_checkin = $this->db->query("
+        SELECT lat, `long` 
+        FROM " . db_prefix() . "check_in_out
+        WHERE staff_id = ? 
+          AND DATE(date) = ? 
+          AND type_check = 1
+        ORDER BY date DESC 
+        LIMIT 1
+    ", [$staff_id, $current_date])->row();
+
+    // Insert the check-out
+    $this->db->insert(db_prefix() . 'check_in_out', $data);
+    $insert_id = $this->db->insert_id();
+
+    // Update distance if last check-in exists
+    if ($last_checkin && $last_checkin->lat && $last_checkin->long && $latitude && $longitude && $insert_id) {
+        $distance = $this->compute_distance(
+            $last_checkin->lat,
+            $last_checkin->long,
+            $latitude,
+            $longitude
+        );
+
+        // Update the just inserted check-out with distance
+        $this->db->where('id', $insert_id)->update(db_prefix().'check_in_out', [
+            'distance' => $distance
+        ]);
+    }
+
+} else {
+    // Check-in insert
+    $this->db->insert(db_prefix() . 'check_in_out', $data);
+    $insert_id = $this->db->insert_id();
+}
 
 	$insert_id = $this->db->insert_id();
 	$this->db->insert(db_prefix() .'checkout_history', [
