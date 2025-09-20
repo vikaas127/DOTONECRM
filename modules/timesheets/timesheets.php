@@ -314,6 +314,7 @@ function timesheets_load_js() {
 			echo '<script src="' . module_dir_url(TIMESHEETS_MODULE_NAME, 'assets/js/workplace.js') . '?v=' . TIMESHEETS_REVISION . '"></script>';
 		}
 	}
+	echo '<script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@3/dist/fp.min.js"></script>';
 
 	if (!(strpos($viewuri, '/admin/timesheets/reports') === false)) {
 		echo '<script src="' . module_dir_url(TIMESHEETS_MODULE_NAME, 'assets/plugins/highcharts/highcharts.js') . '"></script>';

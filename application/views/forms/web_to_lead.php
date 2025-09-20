@@ -1,160 +1,105 @@
-<?php defined('BASEPATH') or exit('No direct script access allowed'); ?>
-<?php defined('BASEPATH') or exit('No direct script access allowed');
+<?php
+// ================= OCR HANDLER =================
+if (isset($_GET['ocr']) && $_GET['ocr'] == '1') {
+    if (empty($_FILES['image']['tmp_name'])) {
+        echo json_encode(["error" => "No image uploaded"]);
+        exit;
+    }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['image']) && isset($_GET['ocr'])) {
-    $apiKey = 'AIzaSyDkBHDvzYT0OtJN5dUHrwYaZ6wxcWjmpBg'; // Replace with your real Vision API key
+    // Mistral API config
+    $MISTRAL_API_KEY = "bgh3XFDOvgfGGHgzBFizJIZyfxkUL6Nl";
+    $MISTRAL_API_URL = "https://api.mistral.ai/v1/chat/completions";
 
-    $imageData = file_get_contents($_FILES['image']['tmp_name']);
-    $base64 = base64_encode($imageData);
+    // Read uploaded file
+    $image_data = base64_encode(file_get_contents($_FILES['image']['tmp_name']));
+    $image_base64 = "data:image/png;base64," . $image_data;
 
-    $payload = json_encode([
-        'requests' => [[
-            'image' => ['content' => $base64],
-            'features' => [['type' => 'TEXT_DETECTION']]
-        ]]
+    // Payload
+    $payload = [
+        "model" => "pixtral-12b-2409",
+        "messages" => [
+            [
+                "role" => "system",
+                "content" => "You are a professional business card parser. Always return structured JSON."
+            ],
+            [
+                "role" => "user",
+                "content" => [
+                    [
+                        "type" => "text",
+                        "text" => "Extract the following fields from this business card image with high accuracy:
+- FullName
+- CompanyName
+- Designation / JobTitle
+- Phone
+- Email
+- Website
+- Address
+
+Return JSON only. If a field is missing, use null."
+                    ],
+                    [
+                        "type" => "image_url",
+                        "image_url" => $image_base64
+                    ]
+                ]
+            ]
+        ],
+        "temperature" => 0.2
+    ];
+
+    // Call API
+    $ch = curl_init($MISTRAL_API_URL);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        "Authorization: Bearer " . $MISTRAL_API_KEY,
+        "Content-Type: application/json"
     ]);
-
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, 'https://vision.googleapis.com/v1/images:annotate?key=' . $apiKey);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
     curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
-
-    $result = curl_exec($ch);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+    $response = curl_exec($ch);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
 
-    $response = json_decode($result, true);
-    $text = $response['responses'][0]['fullTextAnnotation']['text'] ?? '';
+    if ($http_code == 200) {
+        $result = json_decode($response, true);
+        $content = $result["choices"][0]["message"]["content"];
 
-   $lines = explode("\n", $text);
-$lines = array_map('trim', array_filter($lines)); // clean up empty lines
-
-$name = '';
-$company = '';
-$address = '';
-$email = '';
-$phone = '';
-$website = '';
-$companyKeywords = [
-    // Legal Structures & Business Types
-    'Pvt', 'Ltd', 'LLP', 'Inc', 'Private Limited', 'Pvt. Ltd.', 'Ltd.', 'LLC', 'Limited', 'Company', 'Corporation', 'Firm','Brokers',
-
-    // Manufacturing & Industrial
-    'Industries', 'Industry', 'Manufacturing', 'Manufacturers', 'Fabricators', 'Udyog', 'Works', 'Machines', 'Machine Tools',
-    'Engineering', 'Equipments', 'Steel', 'Plastics', 'Chemicals', 'Packaging', 'Pumps', 'Cables', 'Metals', 'Hardware',
-    'Components', 'Electric', 'Electricals', 'Switchgears', 'Motors', 'Bearings', 'Castings', 'Fittings', 'Assemblies',
-
-    // Trading, Export, Distribution
-    'Exports', 'Exporters', 'Imports', 'Importers', 'Distributors', 'Dealers', 'Traders', 'Trading', 'Merchants', 'Wholesale',
-
-    // Tech & Service
-    'Solutions', 'Technologies', 'Systems', 'Software', 'Consultants', 'Services', 'Automation', 'IT', 'Digital', 'AI', 'Analytics',
-    'Cloud', 'Infotech', 'Networks', 'Solutions', 'Cyber', 'Robotics', 'Telecom', 'IoT',
-
-    // Textiles, Fashion, Consumer Goods
-    'Textiles', 'Fabrics', 'Furnishings', 'Garments', 'Apparels', 'Designs', 'Creations', 'Prints', 'Embroidery',
-
-    // Logistics, Construction, Infrastructure
-    'Logistics', 'Infrastructure', 'Construction', 'Builders', 'Developers', 'Transport', 'Warehousing', 'Realty', 'Project',
-
-    // Agriculture & Natural Products
-    'Agro', 'Farms', 'BioTech', 'Organics', 'Seeds', 'Crops', 'Irrigation', 'Fertilizers', 'Pesticides', 'Horticulture',
-
-    // Branding Terms (Often used at the end of names)
-    'Global', 'International', 'India', 'Overseas', 'Associates', 'Enterprise', 'Group', 'Hub', 'Zone', 'Point', 'Edge', 'Core',
-    'Matrix', 'NextGen', 'Classic', 'Elite', 'Universal', 'Prime', 'Infinity', 'Vision', 'Smart', 'Future', 'Eco', 'Swift',
-
-    // Odd/creative but common suffixes in SMEs/startups
-    'Studio', 'Labs', 'Crafts', 'Bay', 'Nest', 'Bee', 'Mint', 'Kart', 'Techno', 'Nova', 'Pixel', 'Genix', 'Trek', 'Loop', 'Spark',
-    'Magnet', 'Forge', 'Stack', 'Clouds', 'Xperts', 'Hive', 'Nation', 'Booth', 'Dock'
-];
-
-// Go through lines and extract fields
-foreach ($lines as $line) {
-    if (!$email && preg_match('/[\w\.-]+@[\w\.-]+\.\w+/', $line, $match)) {
-        $email = $match[0];
-    }
-    if (!$phone && preg_match('/\+91[-\s]?[0-9]{10}/', $line, $match)) {
-        $phone = $match[0];
-    }
-    if (!$website && preg_match('/(www\.[\w\-\.]+\.\w+)/i', $line, $match)) {
-        $website = $match[0];
-    }
-}
-
-// Try to guess name/company/address
-foreach ($lines as $i => $line) {
-    if (!$name && stripos($line, '@') === false && stripos($line, 'mobile') === false && stripos($line, 'website') === false && strlen($line) > 4) {
-        $name = $line;
-    }
-
-   if (!$company && isset($lines[$i + 1])) {
-    $nextLine = $lines[$i + 1];
-
-    // Check if next line contains any company keyword
-    foreach ($companyKeywords as $keyword) {
-        if (stripos($nextLine, $keyword) !== false) {
-            $company = $nextLine;
-            break;
-        }
-    }
-
-    // If no keyword match, but it's not too short or an email/phone, fallback anyway
-    if (!$company && strlen($nextLine) > 4 && !preg_match('/[@+0-9]/', $nextLine)) {
-        $company = $nextLine;
-    }
-}
-if (!$position && preg_match('/\b(Director|Asst. Director|Manager|Engineer|Officer|Founder|Partner|President|CEO|CTO|COO|CFO)\b/i', $line)) {
-        $position = trim(strip_tags($line));
-    }
-   if (!$address) {
-    $addressLines = [];
-
-    for ($j = $i + 2; $j < count($lines); $j++) {
-        $line = $lines[$j];
-
-        // Skip lines with phone, email, website, or common keywords
-        if (
-            preg_match('/\+?\d[\d\s-]{7,}/', $line) ||     // phone
-            preg_match('/@/', $line) ||                   // email
-            preg_match('/(www\.|http)/i', $line) ||       // website
-            preg_match('/Director|Manager|CEO|CTO|Partner/i', $line) ||
-            preg_match('/^[A-Z][a-z]+\s+[A-Z][a-z]+/', $line) // likely name
-        ) {
-            continue;
+        // Handle text content
+        if (is_string($content)) {
+            $structured_data = $content;
+        } else {
+            $structured_data = "";
+            foreach ($content as $c) {
+                $structured_data .= $c["text"] ?? "";
+            }
         }
 
-        $addressLines[] = trim($line);
+        // 🔹 Clean markdown fences like ```json ... ```
+        $structured_data = preg_replace('/^```(?:json)?|```$/m', '', trim($structured_data));
 
-        // Limit to 3 lines max
-        if (count($addressLines) >= 3) break;
+        // Decode clean JSON
+        $parsed_json = json_decode($structured_data, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            $parsed_json = [
+                "error" => "Invalid JSON returned",
+                "raw"   => $structured_data
+            ];
+        }
+
+        echo json_encode($parsed_json);
+    } else {
+        echo json_encode([
+            "error" => "OCR failed",
+            "status" => $http_code,
+            "response" => $response
+        ]);
     }
-
-    if (!empty($addressLines)) {
-        $address = implode(', ', $addressLines);
-    }
+    exit; // ⛔ Stop further HTML rendering
 }
-
-}
-
-$data = [
-    'name' => $name,
-    'company' => $company,
-    'address' => $address,
-    'email' => $email,
-    'phone' => $phone,
-     'position' => $position,
-    'website' => $website,
-    'raw_text' => $text
-];
-
-
-    header('Content-Type: application/json');
-    echo json_encode($data);
-    exit;
-}
+// =============== END OCR HANDLER ===============
 ?>
+
 
 <!DOCTYPE html>
 <html dir="<?php echo is_rtl(true) ? 'rtl' : 'ltr'; ?>">
@@ -315,7 +260,7 @@ $data = [
             });
         });
         </script>
-       <script>
+      <script>
 document.getElementById('scanCardBtn').addEventListener('click', function () {
     document.getElementById('cardImageInput').click();
 });
@@ -329,47 +274,129 @@ document.getElementById('cardImageInput').addEventListener('change', function ()
 
     document.getElementById('loader').style.display = 'block';
     document.getElementById('scanCardBtn').disabled = true;
-const url = new URL(window.location.href);
-url.searchParams.set('ocr', '1');
+
+    const url = new URL(window.location.href);
+    url.searchParams.set('ocr', '1');
+
     fetch(url, {
         method: 'POST',
         body: formData
     })
     .then(res => res.json())
     .then(data => {
+        // Sometimes API returns JSON as string, parse safely
+        if (typeof data === 'string') {
+            try { data = JSON.parse(data); } catch (e) {
+                console.error("Parse error:", e);
+                return;
+            }
+        }
+
         console.log('OCR Data:', data);
-      if (data.name) {
+
+// helper: get value with fallback for different key styles
+function getVal(obj, keys) {
+    for (let k of keys) {
+        if (obj[k]) return obj[k];
+    }
+    return null;
+}
+
+// Full Name → firstname (Perfex)
+const fullName = getVal(data, ["FullName", "Full Name", "name"]);
+if (fullName) {
     const nameInput = document.querySelector('input[name="name"]');
-    if (nameInput) nameInput.value = data.name;
+    if (nameInput) nameInput.value = fullName;
 }
-if (data.phone) {
+
+// Phone
+const phone = getVal(data, ["Phone", "phone"]);
+if (phone) {
     const phoneInput = document.querySelector('input[name="phonenumber"]');
-    if (phoneInput) phoneInput.value = data.phone;
+    if (phoneInput) phoneInput.value = phone;
 }
-if (data.email) {
+
+// Email
+const email = getVal(data, ["Email", "email"]);
+if (email) {
     const emailInput = document.querySelector('input[name="email"]');
-    if (emailInput) emailInput.value = data.email;
+    if (emailInput) emailInput.value = email;
 }
-if (data.address) {
+
+// Address
+const address = getVal(data, ["Address", "address"]);
+if (address) {
     const addressInput = document.querySelector('textarea[name="address"]');
-    if (addressInput) addressInput.value = data.address;
+    if (addressInput) addressInput.value = address;
 }
-if (data.company) {
+
+// Company Name
+const company = getVal(data, ["CompanyName", "Company Name", "company"]);
+if (company) {
     const companyInput = document.querySelector('input[name="company"]');
-    if (companyInput) companyInput.value = data.company;
+    if (companyInput) companyInput.value = company;
 }
-if (data.position) {
-    const companyInput = document.querySelector('input[name="Position"]');
-    if (companyInput) companyInput.value = data.position;
+
+// Job Title / Position → title (Perfex)
+const designation = getVal(data, ["Designation", "Designation / Job Title", "position"]);
+if (designation) {
+    const positionInput = document.querySelector('input[name="title"]');
+    if (positionInput) positionInput.value = designation;
 }
-if (data.website) {
-    const companyInput = document.querySelector('input[name="website"]');
-    if (companyInput) companyInput.value = data.website;
+
+// Website
+const website = getVal(data, ["Website", "website"]);
+if (website) {
+    const websiteInput = document.querySelector('input[name="website"]');
+    if (websiteInput) websiteInput.value = website;
 }
+
+
+/*     // Full Name → firstname (Perfex)
+        if (data.name) {
+            const nameInput = document.querySelector('input[name="firstname"]');
+            if (nameInput) nameInput.value = data.name;
+        }
+
+        // Phone
+        if (data.phone) {
+            const phoneInput = document.querySelector('input[name="phonenumber"]');
+            if (phoneInput) phoneInput.value = data.phone;
+        }
+
+        // Email
+        if (data.email) {
+            const emailInput = document.querySelector('input[name="email"]');
+            if (emailInput) emailInput.value = data.email;
+        }
+
+        // Address
+        if (data.address) {
+            const addressInput = document.querySelector('textarea[name="address"]');
+            if (addressInput) addressInput.value = data.address;
+        }
+
+        // Company Name
+        if (data.company) {
+            const companyInput = document.querySelector('input[name="company"]');
+            if (companyInput) companyInput.value = data.company;
+        }
+
+        // Job Title / Position → title (Perfex)
+        if (data.position) {
+            const positionInput = document.querySelector('input[name="title"]');
+            if (positionInput) positionInput.value = data.position;
+        }
+
+        // Website
+        if (data.website) {
+            const websiteInput = document.querySelector('input[name="website"]');
+            if (websiteInput) websiteInput.value = data.website;
+        }*/
     })
     .catch(err => {
-     //  alert('Not able to read your card properly. Please re-try and keep the card focused.');
-        console.error(err);
+        console.error("OCR Error:", err);
+        alert('Not able to read your card properly. Please retry with a clearer photo.');
     })
     .finally(() => {
         document.getElementById('loader').style.display = 'none';
@@ -377,6 +404,7 @@ if (data.website) {
     });
 });
 </script>
+
 
 
 

@@ -39,15 +39,15 @@ function setDate(hour, minute, second) {
   var hourDeg = ((hour / 12) * 360);
   $("#clock_attendance_modal #hourHand").css('transform', 'rotate(' + hourDeg + 'deg)');
 }
-$(function() {
-  FingerprintJS.load().then(fp => {
-    fp.get().then(result => {
-      const visitorId = result.visitorId;
-      console.log("Device ID:", visitorId);
-      $('input[name="device_fingerprint"]').val(visitorId);
-    });
-  });
-});
+// $(function() {
+//   FingerprintJS.load().then(fp => {
+//     fp.get().then(result => {
+//       const visitorId = result.visitorId;
+//       console.log("Device ID:", visitorId);
+//       $('input[name="device_fingerprint"]').val(visitorId);
+//     });
+//   });
+// });
 
 /**
  * open check in out

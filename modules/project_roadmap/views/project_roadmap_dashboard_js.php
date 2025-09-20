@@ -1,3 +1,6 @@
+
+<script src="<?= base_url('assets/plugins/jquery-circle-progress/circle-progress.min.js') ?>"></script>
+
 <script>
   $(function(){
      var circle = $('.project-progress').circleProgress({fill: {

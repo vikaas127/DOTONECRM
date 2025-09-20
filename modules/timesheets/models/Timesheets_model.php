@@ -2890,7 +2890,7 @@ public function check_in($data)
 { 
 	//	log_message('info', '[CHECK_IN] Attendance check initiated for data: ' . json_encode($data));
 	if (empty($data['location_user'])) {
-		$data['location_user'] = '26.7495187,83.2272604';
+	//	$data['location_user'] = '26.7495187,83.2272604';
 		log_message('info', '[CHECK_IN] location_user was empty. Default location set: ' . $data['location_user']);
 	}
 
