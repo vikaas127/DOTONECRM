@@ -1,11 +1,47 @@
 <?php
 // ================= OCR HANDLER =================
 if (isset($_GET['ocr']) && $_GET['ocr'] == '1') {
-    if (empty($_FILES['image']['tmp_name'])) {
-        echo json_encode(["error" => "No image uploaded"]);
+    // log_message('info', '$_FILES dump: ' . print_r($_FILES, true));
+
+    if (!isset($_FILES['image'])) {
+        echo json_encode(["error" => "No file field found in upload"]);
         exit;
     }
 
+    $fileError = $_FILES['image']['error'];
+    $fileName  = $_FILES['image']['name'];
+    $fileSize  = $_FILES['image']['size'];
+
+    // Map PHP upload errors
+    $uploadErrors = [
+        UPLOAD_ERR_OK         => null,
+        UPLOAD_ERR_INI_SIZE   => "The uploaded file exceeds the server's maximum allowed size.",
+        UPLOAD_ERR_FORM_SIZE  => "The uploaded file exceeds the form's maximum allowed size.",
+        UPLOAD_ERR_PARTIAL    => "The uploaded file was only partially uploaded.",
+        UPLOAD_ERR_NO_FILE    => "No file was uploaded.",
+        UPLOAD_ERR_NO_TMP_DIR => "Missing a temporary folder on the server.",
+        UPLOAD_ERR_CANT_WRITE => "Failed to write file to disk.",
+        UPLOAD_ERR_EXTENSION  => "A PHP extension stopped the file upload."
+    ];
+
+    if ($fileError !== UPLOAD_ERR_OK) {
+        echo json_encode([
+            "error" => $uploadErrors[$fileError] ?? "Unknown upload error",
+            "file_name" => $fileName,
+            "file_size" => $fileSize,
+            "error_code" => $fileError
+        ]);
+        exit;
+    }
+
+    if (empty($_FILES['image']['tmp_name'])) {
+        echo json_encode([
+            "error" => "No temporary file available",
+            "file_name" => $fileName,
+            "file_size" => $fileSize
+        ]);
+        exit;
+    }
     // Mistral API config
     $MISTRAL_API_KEY = "bgh3XFDOvgfGGHgzBFizJIZyfxkUL6Nl";
     $MISTRAL_API_URL = "https://api.mistral.ai/v1/chat/completions";
@@ -95,7 +131,7 @@ Return JSON only. If a field is missing, use null."
             "response" => $response
         ]);
     }
-    exit; // ⛔ Stop further HTML rendering
+    exit; //  Stop further HTML rendering
 }
 // =============== END OCR HANDLER ===============
 ?>
@@ -108,7 +144,7 @@ Return JSON only. If a field is missing, use null."
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1">
-    <title><?php echo e($form->name); ?></title>
+    <title><?php echo ($form->name); ?></title>
     <?php app_external_form_header($form); ?>
     <?php hooks()->do_action('app_web_to_lead_form_head'); ?>
     <style>
@@ -124,14 +160,15 @@ Return JSON only. If a field is missing, use null."
             <div
                 class="<?php echo $this->input->get('col') ? $this->input->get('col') : ($this->input->get('styled') === '1' ? 'col-md-6 col-md-offset-3' : 'col-md-12'); ?>">
                 <?php if ($this->input->get('with_logo')) { ?>
-                <div class="text-center logo">
-                    <?php get_dark_company_logo(); ?>
+                <div class="text-center " >
+                    <!-- <?php get_dark_company_logo(); ?> -->
+<img style="max-width:300px"; src="<?php echo base_url('assets/images/Dotonecrm3.png'); ?>" alt="">
                 </div>
                 <?php } ?>
                  <button type="button" id="scanCardBtn" style="margin-bottom: 10px;">
     📷 Scan Card
 </button>
-<input type="file" accept="image/*" capture="environment" id="cardImageInput" style="display: none;">
+<input type="file"  name="image"  accept="image/*" capture="environment" id="cardImageInput" style="display: none;">
 <!-- Loader -->
 <div id="loader" style="display: none; margin: 10px 0;">🔄 Processing...</div>
 
@@ -165,13 +202,51 @@ Return JSON only. If a field is missing, use null."
                             </div>
                             <?php } ?>
                             <div class="clearfix"></div>
-                            <div class="text-left col-md-12 submit-btn-wrapper">
-                                <button class="btn" id="form_submit" type="submit"
-                                    style="color: <?php echo $form->submit_btn_text_color ?>;background-color: <?php echo $form->submit_btn_bg_color ?>;">
-                                    <i class="fa fa-spinner fa-spin hide" style="margin-right: 2px;"></i>
-                                    <?php echo e($form->submit_btn_name); ?></button>
-                            </div>
+                <div class="col-md-12 submit-btn-wrapper" 
+     style="display:flex; justify-content:space-between; align-items:center;">
+  
+  <button type="button" class="btn btn-default" data-toggle="modal" data-target="#reminderModal">
+    <i class="fa-regular fa-bell"></i> Set Reminder
+  </button>        
+  
+  <button class="btn" id="form_submit" type="submit"
+          style="color: <?php echo $form->submit_btn_text_color ?>;
+                 background-color: <?php echo $form->submit_btn_bg_color ?>;">
+    <i class="fa fa-spinner fa-spin hide" style="margin-right: 2px;"></i>
+    <?php echo ($form->submit_btn_name); ?>
+  </button>
+  
+</div>
+
                         </div>
+                        <div class="modal fade" id="reminderModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Set Reminder</h5>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <!-- hidden rel_type, leave rel_id empty -->
+        <input type="hidden" name="rel_type" value="lead">
+        <?php echo render_datetime_input('reminder_date','set_reminder_date','',array('data-date-min-date'=>_d(date('Y-m-d')))); ?>
+        <?php echo render_select('reminder_staff',$members,array('staffid',array('firstname','lastname')),'reminder_set_to',get_staff_user_id()); ?>
+        <?php echo render_textarea('reminder_description','reminder_description'); ?>
+        <?php if(is_email_template_active('reminder-email-staff')) { ?>
+  <div class="form-group">
+    <div class="checkbox checkbox-primary">
+      <input type="checkbox" name="notify_by_email" id="notify_by_email">
+      <label for="notify_by_email"><?php echo _l('reminder_notify_me_by_email'); ?></label>
+    </div>
+  </div>
+<?php } ?>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
 
                         <?php hooks()->do_action('web_to_lead_form_end'); ?>
                         <?php echo form_close(); ?>
@@ -179,9 +254,11 @@ Return JSON only. If a field is missing, use null."
                 </div>
             </div>
         </div>
+     
+
         <?php app_external_form_footer($form); ?>
         <script>
-        var form_id = '#<?php echo e($form->form_key); ?>';
+        var form_id = '#<?php echo ($form->form_key); ?>';
         var form_redirect_url = '<?php echo $form->submit_action == 1 ? $form->submit_redirect_url : 0; ?>';
         $(function() {
             $(form_id).appFormValidator({
@@ -265,145 +342,221 @@ document.getElementById('scanCardBtn').addEventListener('click', function () {
     document.getElementById('cardImageInput').click();
 });
 
+// document.getElementById('cardImageInput').addEventListener('change', function () {
+//     const file = this.files[0];
+//     if (!file) return;
+
+//     const formData = new FormData();
+//     formData.append('image', file);
+    
+
+//     document.getElementById('loader').style.display = 'block';
+//     document.getElementById('scanCardBtn').disabled = true;
+
+//     const url = new URL(window.location.href);
+//     url.searchParams.set('ocr', '1');
+
+//     fetch(url, {
+//         method: 'POST',
+//         body: formData
+//     })
+//     .then(res => res.json())
+//     .then(data => {
+//         // Sometimes API returns JSON as string, parse safely
+//         if (typeof data === 'string') {
+//             try { data = JSON.parse(data); } catch (e) {
+//                 console.error("Parse error:", e);
+//                 return;
+//             }
+//         }
+
+//         console.log('OCR Data:', data);
+
+//     // helper: get value with fallback for different key styles
+//     function getVal(obj, keys) {
+//         for (let k of keys) {
+//             if (obj[k]) return obj[k];
+//         }
+//         return null;
+//     }
+
+//     // Full Name → firstname (Perfex)
+//     const fullName = getVal(data, ["FullName", "Full Name", "name"]);
+//     if (fullName) {
+//         const nameInput = document.querySelector('input[name="name"]');
+//         if (nameInput) nameInput.value = fullName;
+//     }
+
+//     // Phone
+//     const phone = getVal(data, ["Phone", "phone"]);
+//     if (phone) {
+//         const phoneInput = document.querySelector('input[name="phonenumber"]');
+//         if (phoneInput) phoneInput.value = phone;
+//     }
+
+//     // Email
+//     const email = getVal(data, ["Email", "email"]);
+//     if (email) {
+//         const emailInput = document.querySelector('input[name="email"]');
+//         if (emailInput) emailInput.value = email;
+//     }
+
+//     // Address
+//     const address = getVal(data, ["Address", "address"]);
+//     if (address) {
+//         const addressInput = document.querySelector('textarea[name="address"]');
+//         if (addressInput) addressInput.value = address;
+//     }
+
+//     // Company Name
+//     const company = getVal(data, ["CompanyName", "Company Name", "company"]);
+//     if (company) {
+//         const companyInput = document.querySelector('input[name="company"]');
+//         if (companyInput) companyInput.value = company;
+//     }
+
+//     // Job Title / Position → title (Perfex)
+//     const designation = getVal(data, ["Designation", "Designation / Job Title", "position"]);
+//     if (designation) {
+//         const positionInput = document.querySelector('input[name="title"]');
+//         if (positionInput) positionInput.value = designation;
+//     }
+
+//     // Website
+//     const website = getVal(data, ["Website", "website"]);
+//     if (website) {
+//         const websiteInput = document.querySelector('input[name="website"]');
+//         if (websiteInput) websiteInput.value = website;
+//     }
+
+
+//     })
+//     .catch(err => {
+//         console.error("OCR Error:", err);
+//         alert('Not able to read your card properly. Please retry with a clearer photo.');
+//     })
+//     .finally(() => {
+//         document.getElementById('loader').style.display = 'none';
+//         document.getElementById('scanCardBtn').disabled = false;
+//     });
+// });
+
+
+
 document.getElementById('cardImageInput').addEventListener('change', function () {
     const file = this.files[0];
-    if (!file) return;
+    console.log(" Selected file:", file);
 
-    const formData = new FormData();
-    formData.append('image', file);
-
-    document.getElementById('loader').style.display = 'block';
-    document.getElementById('scanCardBtn').disabled = true;
-
-    const url = new URL(window.location.href);
-    url.searchParams.set('ocr', '1');
-
-    fetch(url, {
-        method: 'POST',
-        body: formData
-    })
-    .then(res => res.json())
-    .then(data => {
-        // Sometimes API returns JSON as string, parse safely
-        if (typeof data === 'string') {
-            try { data = JSON.parse(data); } catch (e) {
-                console.error("Parse error:", e);
-                return;
-            }
-        }
-
-        console.log('OCR Data:', data);
-
-// helper: get value with fallback for different key styles
-function getVal(obj, keys) {
-    for (let k of keys) {
-        if (obj[k]) return obj[k];
+    if (!file) {
+        console.warn(" No file selected");
+        return;
     }
-    return null;
-}
 
-// Full Name → firstname (Perfex)
-const fullName = getVal(data, ["FullName", "Full Name", "name"]);
-if (fullName) {
-    const nameInput = document.querySelector('input[name="name"]');
-    if (nameInput) nameInput.value = fullName;
-}
+    // Resize/compress image
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        const img = new Image();
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            const maxWidth = 1024;
+            const maxHeight = 1024;
+            let width = img.width;
+            let height = img.height;
 
-// Phone
-const phone = getVal(data, ["Phone", "phone"]);
-if (phone) {
-    const phoneInput = document.querySelector('input[name="phonenumber"]');
-    if (phoneInput) phoneInput.value = phone;
-}
+            if (width > height) {
+                if (width > maxWidth) {
+                    height *= maxWidth / width;
+                    width = maxWidth;
+                }
+            } else {
+                if (height > maxHeight) {
+                    width *= maxHeight / height;
+                    height = maxHeight;
+                }
+            }
 
-// Email
-const email = getVal(data, ["Email", "email"]);
-if (email) {
-    const emailInput = document.querySelector('input[name="email"]');
-    if (emailInput) emailInput.value = email;
-}
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
 
-// Address
-const address = getVal(data, ["Address", "address"]);
-if (address) {
-    const addressInput = document.querySelector('textarea[name="address"]');
-    if (addressInput) addressInput.value = address;
-}
+            canvas.toBlob(function(blob) {
+                const formData = new FormData();
+                formData.append('image', blob, file.name);
 
-// Company Name
-const company = getVal(data, ["CompanyName", "Company Name", "company"]);
-if (company) {
-    const companyInput = document.querySelector('input[name="company"]');
-    if (companyInput) companyInput.value = company;
-}
+                console.log(" FormData appended:", formData.get('image'));
 
-// Job Title / Position → title (Perfex)
-const designation = getVal(data, ["Designation", "Designation / Job Title", "position"]);
-if (designation) {
-    const positionInput = document.querySelector('input[name="title"]');
-    if (positionInput) positionInput.value = designation;
-}
+                document.getElementById('loader').style.display = 'block';
+                document.getElementById('scanCardBtn').disabled = true;
 
-// Website
-const website = getVal(data, ["Website", "website"]);
-if (website) {
-    const websiteInput = document.querySelector('input[name="website"]');
-    if (websiteInput) websiteInput.value = website;
-}
+                const url = new URL(window.location.href);
+                url.searchParams.set('ocr', '1');
+                console.log(" Sending fetch POST request to:", url.toString());
 
+                fetch(url, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    console.log(" Raw OCR Data received:", data);
 
-/*     // Full Name → firstname (Perfex)
-        if (data.name) {
-            const nameInput = document.querySelector('input[name="firstname"]');
-            if (nameInput) nameInput.value = data.name;
-        }
+                    function getVal(obj, keys) {
+                        for (let k of keys) {
+                            if (obj[k]) return obj[k];
+                        }
+                        return null;
+                    }
 
-        // Phone
-        if (data.phone) {
-            const phoneInput = document.querySelector('input[name="phonenumber"]');
-            if (phoneInput) phoneInput.value = data.phone;
-        }
+                    // Perfex field assignment (safe now)
+                    const fullName = getVal(data, ["FullName", "Full Name", "name"]);
+                    const nameInput = document.querySelector('input[name="name"]');
+                    if (nameInput && fullName) nameInput.value = fullName;
 
-        // Email
-        if (data.email) {
-            const emailInput = document.querySelector('input[name="email"]');
-            if (emailInput) emailInput.value = data.email;
-        }
+                    const phone = getVal(data, ["Phone", "phone"]);
+                    const phoneInput = document.querySelector('input[name="phonenumber"]');
+                    if (phoneInput && phone) phoneInput.value = phone;
 
-        // Address
-        if (data.address) {
-            const addressInput = document.querySelector('textarea[name="address"]');
-            if (addressInput) addressInput.value = data.address;
-        }
+                    const email = getVal(data, ["Email", "email"]);
+                    const emailInput = document.querySelector('input[name="email"]');
+                    if (emailInput && email) emailInput.value = email;
 
-        // Company Name
-        if (data.company) {
-            const companyInput = document.querySelector('input[name="company"]');
-            if (companyInput) companyInput.value = data.company;
-        }
+                    const address = getVal(data, ["Address", "address"]);
+                    const addressInput = document.querySelector('textarea[name="address"]');
+                    if (addressInput && address) addressInput.value = address;
 
-        // Job Title / Position → title (Perfex)
-        if (data.position) {
-            const positionInput = document.querySelector('input[name="title"]');
-            if (positionInput) positionInput.value = data.position;
-        }
+                    const company = getVal(data, ["CompanyName", "Company Name", "company"]);
+                    const companyInput = document.querySelector('input[name="company"]');
+                    if (companyInput && company) companyInput.value = company;
 
-        // Website
-        if (data.website) {
-            const websiteInput = document.querySelector('input[name="website"]');
-            if (websiteInput) websiteInput.value = data.website;
-        }*/
-    })
-    .catch(err => {
-        console.error("OCR Error:", err);
-        alert('Not able to read your card properly. Please retry with a clearer photo.');
-    })
-    .finally(() => {
-        document.getElementById('loader').style.display = 'none';
-        document.getElementById('scanCardBtn').disabled = false;
-    });
+                    const designation = getVal(data, ["Designation", "Designation / Job Title", "position"]);
+                    const positionInput = document.querySelector('input[name="title"]');
+                    if (positionInput && designation) positionInput.value = designation;
+
+                    const website = getVal(data, ["Website", "website"]);
+                    const websiteInput = document.querySelector('input[name="website"]');
+                    if (websiteInput && website) websiteInput.value = website;
+
+                })
+                .catch(err => {
+                    console.error(" OCR Error:", err);
+                    alert('Not able to read your card properly. Please retry with a clearer photo.');
+                })
+                .finally(() => {
+                    document.getElementById('loader').style.display = 'none';
+                    document.getElementById('scanCardBtn').disabled = false;
+                });
+
+            }, 'image/jpeg', 0.7); // compress 70%
+        };
+        img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
 });
+
 </script>
+
+
 
 
 

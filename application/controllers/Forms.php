@@ -277,6 +277,10 @@ class Forms extends ClientsController
         $GLOBALS['locale'] = get_locale_key($form->language);
 
         $data['form_fields'] = $form->form_data ? json_decode($form->form_data) : [];
+ $data['members'] = $this->staff_model->get('', [
+        'active'       => 1,
+        'is_not_staff' => 0,
+    ]);
 
         if ($this->input->post('key')) {
             if ($this->input->post('key') == $key) {
@@ -481,6 +485,60 @@ class Forms extends ClientsController
                     $regular_fields['is_public']    = $form->mark_public;
                     $this->db->insert(db_prefix() . 'leads', $regular_fields);
                     $lead_id = $this->db->insert_id();
+if ($lead_id) {
+    $reminder_date        = $this->input->post('reminder_date');
+    $reminder_description = $this->input->post('reminder_description');
+    $reminder_staff       = $this->input->post('reminder_staff');
+    $notify_by_email      = $this->input->post('notify_by_email') ? 1 : 0;
+
+    // Log received POST values
+    log_message('info', 'Received Reminder Data: ' . print_r([
+        'reminder_date'        => $reminder_date,
+        'reminder_description' => $reminder_description,
+        'reminder_staff'       => $reminder_staff,
+        'notify_by_email'      => $notify_by_email,
+    ], true));
+
+    if ($reminder_date && $reminder_staff) {
+        $this->load->model('misc_model');
+
+        // Prepare reminder data
+        $reminder_data = [
+            'description'      => nl2br($reminder_description),
+            'date'             => to_sql_date($reminder_date, true), // convert to SQL datetime
+            'staff'            => $reminder_staff,
+            'rel_type'         => 'lead',
+            'notify_by_email'  => $notify_by_email,
+        ];
+
+        // Insert reminder into DB
+        $this->db->insert(db_prefix() . 'reminders', array_merge($reminder_data, [
+            'rel_id'  => $lead_id,
+            'creator' => get_staff_user_id(),
+        ]));
+
+        $reminder_id = $this->db->insert_id();
+
+        if ($reminder_id) {
+            log_message('info', 'Reminder added for Lead ID ' . $lead_id . ' on ' . $reminder_data['date'] . ' (Reminder ID: ' . $reminder_id . ')');
+
+            // Log lead activity (Perfex CRM style)
+            $this->leads_model->log_lead_activity(
+                $lead_id,
+                'not_activity_new_reminder_created',
+                false,
+                serialize([
+                    get_staff_full_name($reminder_staff),
+                    _dt($reminder_data['date']),
+                ])
+            );
+        } else {
+            log_message('error', 'Failed to add reminder for Lead ID ' . $lead_id);
+        }
+    }
+}
+
+
 
                     hooks()->do_action('lead_created', [
                         'lead_id'          => $lead_id,

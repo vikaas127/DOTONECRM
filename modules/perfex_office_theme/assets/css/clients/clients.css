@@ -28,8 +28,8 @@ body.customers {
 }
 
 .modal-header {
-  background: #4e68ec;
-  background: linear-gradient(to right, #4e68ec, #5068e0 37%, #6c81ea 100%);
+  background: #002A46;
+  /* background: linear-gradient(to right, #002A46, #5068e0 37%, #6c81ea 100%); */
   color: #fff;
 }
 
@@ -40,7 +40,9 @@ body.customers {
 .modal-header .close {
   color: #ffffff;
 }
-
+.modal-title{
+  color:#fff;
+}
 .modal-dialog button.close[data-dismiss="modal"] span {
   position: absolute;
   right: 27px;

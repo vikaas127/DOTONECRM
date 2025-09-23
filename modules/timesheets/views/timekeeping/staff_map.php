@@ -190,41 +190,95 @@
       if (!bounds.isEmpty()) map.fitBounds(bounds);
     }
   }
-
   function drawPolyline(points, color, label, boundsOut){
-    if (!points || points.length === 0) return;
+    if (!points || points.length < 2) return; // need at least 2 points
 
-    const path = points.map(p => {
-      const ll = new google.maps.LatLng(parseFloat(p.lat), parseFloat(p.lng));
-      if (boundsOut) boundsOut.extend(ll);
-      return ll;
+    const directionsService = new google.maps.DirectionsService();
+    const directionsRenderer = new google.maps.DirectionsRenderer({
+        map: map,
+        suppressMarkers: true,
+        polylineOptions: { strokeColor: color, strokeWeight: 4 }
     });
 
-    const start = new google.maps.Marker({
-      position: path[0], map,
-      title: label + ' (Start)',
-      icon: { path: google.maps.SymbolPath.CIRCLE, scale: 6, fillColor: color, fillOpacity: 1, strokeColor: '#000', strokeWeight: 1 }
-    });
-    const end = new google.maps.Marker({
-      position: path[path.length - 1], map,
-      title: label + ' (End)',
-      icon: { path: google.maps.SymbolPath.BACKWARD_CLOSED_ARROW, scale: 5, fillColor: color, fillOpacity: 1, strokeColor: '#000', strokeWeight: 1 }
-    });
-    const line = new google.maps.Polyline({
-      path, geodesic: true, strokeColor: color, strokeOpacity: 0.9, strokeWeight: 4, map
-    });
-
-    overlays.push(start, end, line);
-
-    if (!boundsOut) {
-      const b = new google.maps.LatLngBounds();
-      path.forEach(ll => b.extend(ll));
-      if (!b.isEmpty()) map.fitBounds(b);
+    // Prepare waypoints (skip first & last)
+    let waypoints = [];
+    if(points.length > 2){
+        waypoints = points.slice(1, -1).map(p => ({
+            location: { lat: parseFloat(p.lat), lng: parseFloat(p.lng) },
+            stopover: true
+        }));
     }
 
-    addLegendRow(color, label, points.length);
-  }
+    // Directions request
+    const request = {
+        origin: { lat: parseFloat(points[0].lat), lng: parseFloat(points[0].lng) },
+        destination: { lat: parseFloat(points[points.length-1].lat), lng: parseFloat(points[points.length-1].lng) },
+        waypoints: waypoints,
+        travelMode: google.maps.TravelMode.DRIVING,
+        optimizeWaypoints: false
+    };
 
+    directionsService.route(request, function(result, status){
+        if(status === google.maps.DirectionsStatus.OK){
+            directionsRenderer.setDirections(result);
+
+            const route = result.routes[0];
+            let totalDistance = 0; // meters
+
+            // Calculate distance from legs
+            route.legs.forEach(leg => totalDistance += leg.distance.value);
+            const km = (totalDistance / 1000).toFixed(2);
+
+            // Add markers for check-in/out & intermediate points
+            const path = [];
+            route.legs.forEach(leg => {
+                leg.steps.forEach(step => {
+                    step.path.forEach(p => path.push(p));
+                });
+            });
+
+            // Check-in marker
+            const start = new google.maps.Marker({
+                position: path[0], map,
+                title: label + ' (Check-in: ' + points[0].time + ')',
+                icon: { path: google.maps.SymbolPath.CIRCLE, scale: 8, fillColor: '#00ff00', fillOpacity: 1, strokeColor: '#000', strokeWeight: 1 }
+            });
+
+            // Check-out marker
+            const end = new google.maps.Marker({
+                position: path[path.length - 1], map,
+                title: label + ' (Check-out: ' + points[points.length-1].time + ')',
+                icon: { path: google.maps.SymbolPath.BACKWARD_CLOSED_ARROW, scale: 8, fillColor: '#ff0000', fillOpacity: 1, strokeColor: '#000', strokeWeight: 1 }
+            });
+
+            overlays.push(start, end);
+
+            // Optional: intermediate points markers with time
+          /*  for(let i=1;i<points.length-1;i++){
+                const m = new google.maps.Marker({
+                    position: new google.maps.LatLng(parseFloat(points[i].lat), parseFloat(points[i].lng)),
+                    map,
+                    title: points[i].time,
+                    icon: { path: google.maps.SymbolPath.CIRCLE, scale: 6, fillColor: color, fillOpacity: 1, strokeColor: '#000', strokeWeight: 1 }
+                });
+                overlays.push(m);
+            }*/
+
+            // Add legend with distance
+            addLegendRow(color, label, points.length, km);
+
+            // Fit bounds
+            if(!boundsOut){
+                const b = new google.maps.LatLngBounds();
+                path.forEach(ll => b.extend(ll));
+                if(!b.isEmpty()) map.fitBounds(b);
+            }
+
+        } else {
+            console.error('Directions request failed due to ' + status);
+        }
+    });
+  }
   function clearMap(){
     overlays.forEach(o => o.setMap(null));
     overlays = [];
@@ -236,9 +290,9 @@
   }
 
   const legendRows = document.getElementById('legend-rows');
-  function addLegendRow(color, label, count){
+  function addLegendRow(color, label, count,km){
     const row = document.createElement('div');
-    row.innerHTML = `<span class="badge" style="background:${color}"></span> ${label} <small>(${count} pts)</small>`;
+    row.innerHTML = `<span class="badge" style="background:${color}"></span> ${label} <small>(${count} pts)</small> <small>(${km} KM)</small>`;
     legendRows.appendChild(row);
   }
   function clearLegend(){ legendRows.innerHTML=''; }

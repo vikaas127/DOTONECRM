@@ -9,7 +9,7 @@
       function initMap() {
       	var flightPlanCoordinates = <?php echo json_encode($coordinates_list); ?>;
         if(typeof flightPlanCoordinates[0] != 'undefined'){
-          showData(flightPlanCoordinates);         
+         // showData(flightPlanCoordinates);         
         }
         else{
            var map = new google.maps.Map(document.getElementById("map"), {
@@ -61,7 +61,7 @@
             }
             addMarker(flightPlanCoordinates[i][j], map, label, icon);
           }
-          drawLine(flightPlanCoordinates[i], map, hexColor[hex]);
+         drawLine(flightPlanCoordinates[i], map, hexColor[hex]);
           hex++;
           if(hex == 20){
             hex = 0;
@@ -70,42 +70,7 @@
       }     
     }
 
-    function drawLine(coordinates_array, map, color) {
-  if (coordinates_array.length < 2) return;
-
-  const directionsService = new google.maps.DirectionsService();
-  const directionsRenderer = new google.maps.DirectionsRenderer({
-    map: map,
-    suppressMarkers: true, // keep your custom markers
-    polylineOptions: {
-      strokeColor: color,
-      strokeWeight: 4
-    }
-  });
-
-  let waypoints = [];
-  if (coordinates_array.length > 2) {
-    waypoints = coordinates_array.slice(1, -1).map(coord => ({
-      location: { lat: parseFloat(coord.lat), lng: parseFloat(coord.lng) },
-      stopover: true
-    }));
-  }
-
-  const request = {
-    origin: { lat: parseFloat(coordinates_array[0].lat), lng: parseFloat(coordinates_array[0].lng) },
-    destination: { lat: parseFloat(coordinates_array[coordinates_array.length - 1].lat), lng: parseFloat(coordinates_array[coordinates_array.length - 1].lng) },
-    waypoints: waypoints,
-    travelMode: google.maps.TravelMode.DRIVING
-  };
-
-  directionsService.route(request, function (result, status) {
-    if (status === google.maps.DirectionsStatus.OK) {
-      directionsRenderer.setDirections(result);
-    } else {
-      console.error("Directions request failed due to " + status);
-    }
-  });
-}
+/*
 
     function drawLine(coordinates_array, map, color) {
   if (coordinates_array.length < 2) return;
@@ -130,7 +95,8 @@
 
   const request = {
     origin: { lat: parseFloat(coordinates_array[0].lat), lng: parseFloat(coordinates_array[0].lng) },
-    destination: { lat: parseFloat(coordinates_array[coordinates_array.length - 1].lat), lng: parseFloat(coordinates_array[coordinates_array.length - 1].lng) },
+    destination: { lat: parseFloat(coordinates_array[coordinates_array.length - 1].lat), 
+      lng: parseFloat(coordinates_array[coordinates_array.length - 1].lng) },
     waypoints: waypoints,
     travelMode: google.maps.TravelMode.DRIVING
   };
@@ -143,925 +109,41 @@
     }
   });
 }
+*/
 
-    function drawLine(coordinates_array, map, color) {
+
+function drawLine(coordinates_array, map, color) {
   if (coordinates_array.length < 2) return;
 
   const directionsService = new google.maps.DirectionsService();
   const directionsRenderer = new google.maps.DirectionsRenderer({
     map: map,
-    suppressMarkers: true, // keep your custom markers
-    polylineOptions: {
-      strokeColor: color,
-      strokeWeight: 4
-    }
+    suppressMarkers: true,
+    polylineOptions: { strokeColor: color, strokeWeight: 4 }
+  });
+
+  const getLatLng = (coord) => ({
+    lat: parseFloat(coord.lat || coord.latitude),
+    lng: parseFloat(coord.lng || coord.longitude)
   });
 
   let waypoints = [];
   if (coordinates_array.length > 2) {
     waypoints = coordinates_array.slice(1, -1).map(coord => ({
-      location: { lat: parseFloat(coord.lat), lng: parseFloat(coord.lng) },
+      location: getLatLng(coord),
       stopover: true
     }));
   }
 
   const request = {
-    origin: { lat: parseFloat(coordinates_array[0].lat), lng: parseFloat(coordinates_array[0].lng) },
-    destination: { lat: parseFloat(coordinates_array[coordinates_array.length - 1].lat), lng: parseFloat(coordinates_array[coordinates_array.length - 1].lng) },
+    origin: getLatLng(coordinates_array[0]),
+    destination: getLatLng(coordinates_array[coordinates_array.length - 1]),
     waypoints: waypoints,
     travelMode: google.maps.TravelMode.DRIVING
   };
 
-  directionsService.route(request, function (result, status) {
-    if (status === google.maps.DirectionsStatus.OK) {
-      directionsRenderer.setDirections(result);
-    } else {
-      console.error("Directions request failed due to " + status);
-    }
-  });
-}
-
-    function drawLine(coordinates_array, map, color) {
-  if (coordinates_array.length < 2) return;
-
-  const directionsService = new google.maps.DirectionsService();
-  const directionsRenderer = new google.maps.DirectionsRenderer({
-    map: map,
-    suppressMarkers: true, // keep your custom markers
-    polylineOptions: {
-      strokeColor: color,
-      strokeWeight: 4
-    }
-  });
-
-  let waypoints = [];
-  if (coordinates_array.length > 2) {
-    waypoints = coordinates_array.slice(1, -1).map(coord => ({
-      location: { lat: parseFloat(coord.lat), lng: parseFloat(coord.lng) },
-      stopover: true
-    }));
-  }
-
-  const request = {
-    origin: { lat: parseFloat(coordinates_array[0].lat), lng: parseFloat(coordinates_array[0].lng) },
-    destination: { lat: parseFloat(coordinates_array[coordinates_array.length - 1].lat), lng: parseFloat(coordinates_array[coordinates_array.length - 1].lng) },
-    waypoints: waypoints,
-    travelMode: google.maps.TravelMode.DRIVING
-  };
-
-  directionsService.route(request, function (result, status) {
-    if (status === google.maps.DirectionsStatus.OK) {
-      directionsRenderer.setDirections(result);
-    } else {
-      console.error("Directions request failed due to " + status);
-    }
-  });
-}
-
-    function drawLine(coordinates_array, map, color) {
-  if (coordinates_array.length < 2) return;
-
-  const directionsService = new google.maps.DirectionsService();
-  const directionsRenderer = new google.maps.DirectionsRenderer({
-    map: map,
-    suppressMarkers: true, // keep your custom markers
-    polylineOptions: {
-      strokeColor: color,
-      strokeWeight: 4
-    }
-  });
-
-  let waypoints = [];
-  if (coordinates_array.length > 2) {
-    waypoints = coordinates_array.slice(1, -1).map(coord => ({
-      location: { lat: parseFloat(coord.lat), lng: parseFloat(coord.lng) },
-      stopover: true
-    }));
-  }
-
-  const request = {
-    origin: { lat: parseFloat(coordinates_array[0].lat), lng: parseFloat(coordinates_array[0].lng) },
-    destination: { lat: parseFloat(coordinates_array[coordinates_array.length - 1].lat), lng: parseFloat(coordinates_array[coordinates_array.length - 1].lng) },
-    waypoints: waypoints,
-    travelMode: google.maps.TravelMode.DRIVING
-  };
-
-  directionsService.route(request, function (result, status) {
-    if (status === google.maps.DirectionsStatus.OK) {
-      directionsRenderer.setDirections(result);
-    } else {
-      console.error("Directions request failed due to " + status);
-    }
-  });
-}
-
-    function drawLine(coordinates_array, map, color) {
-  if (coordinates_array.length < 2) return;
-
-  const directionsService = new google.maps.DirectionsService();
-  const directionsRenderer = new google.maps.DirectionsRenderer({
-    map: map,
-    suppressMarkers: true, // keep your custom markers
-    polylineOptions: {
-      strokeColor: color,
-      strokeWeight: 4
-    }
-  });
-
-  let waypoints = [];
-  if (coordinates_array.length > 2) {
-    waypoints = coordinates_array.slice(1, -1).map(coord => ({
-      location: { lat: parseFloat(coord.lat), lng: parseFloat(coord.lng) },
-      stopover: true
-    }));
-  }
-
-  const request = {
-    origin: { lat: parseFloat(coordinates_array[0].lat), lng: parseFloat(coordinates_array[0].lng) },
-    destination: { lat: parseFloat(coordinates_array[coordinates_array.length - 1].lat), lng: parseFloat(coordinates_array[coordinates_array.length - 1].lng) },
-    waypoints: waypoints,
-    travelMode: google.maps.TravelMode.DRIVING
-  };
-
-  directionsService.route(request, function (result, status) {
-    if (status === google.maps.DirectionsStatus.OK) {
-      directionsRenderer.setDirections(result);
-    } else {
-      console.error("Directions request failed due to " + status);
-    }
-  });
-}
-
-    function drawLine(coordinates_array, map, color) {
-  if (coordinates_array.length < 2) return;
-
-  const directionsService = new google.maps.DirectionsService();
-  const directionsRenderer = new google.maps.DirectionsRenderer({
-    map: map,
-    suppressMarkers: true, // keep your custom markers
-    polylineOptions: {
-      strokeColor: color,
-      strokeWeight: 4
-    }
-  });
-
-  let waypoints = [];
-  if (coordinates_array.length > 2) {
-    waypoints = coordinates_array.slice(1, -1).map(coord => ({
-      location: { lat: parseFloat(coord.lat), lng: parseFloat(coord.lng) },
-      stopover: true
-    }));
-  }
-
-  const request = {
-    origin: { lat: parseFloat(coordinates_array[0].lat), lng: parseFloat(coordinates_array[0].lng) },
-    destination: { lat: parseFloat(coordinates_array[coordinates_array.length - 1].lat), lng: parseFloat(coordinates_array[coordinates_array.length - 1].lng) },
-    waypoints: waypoints,
-    travelMode: google.maps.TravelMode.DRIVING
-  };
-
-  directionsService.route(request, function (result, status) {
-    if (status === google.maps.DirectionsStatus.OK) {
-      directionsRenderer.setDirections(result);
-    } else {
-      console.error("Directions request failed due to " + status);
-    }
-  });
-}
-
-    function drawLine(coordinates_array, map, color) {
-  if (coordinates_array.length < 2) return;
-
-  const directionsService = new google.maps.DirectionsService();
-  const directionsRenderer = new google.maps.DirectionsRenderer({
-    map: map,
-    suppressMarkers: true, // keep your custom markers
-    polylineOptions: {
-      strokeColor: color,
-      strokeWeight: 4
-    }
-  });
-
-  let waypoints = [];
-  if (coordinates_array.length > 2) {
-    waypoints = coordinates_array.slice(1, -1).map(coord => ({
-      location: { lat: parseFloat(coord.lat), lng: parseFloat(coord.lng) },
-      stopover: true
-    }));
-  }
-
-  const request = {
-    origin: { lat: parseFloat(coordinates_array[0].lat), lng: parseFloat(coordinates_array[0].lng) },
-    destination: { lat: parseFloat(coordinates_array[coordinates_array.length - 1].lat), lng: parseFloat(coordinates_array[coordinates_array.length - 1].lng) },
-    waypoints: waypoints,
-    travelMode: google.maps.TravelMode.DRIVING
-  };
-
-  directionsService.route(request, function (result, status) {
-    if (status === google.maps.DirectionsStatus.OK) {
-      directionsRenderer.setDirections(result);
-    } else {
-      console.error("Directions request failed due to " + status);
-    }
-  });
-}
-
-    function drawLine(coordinates_array, map, color) {
-  if (coordinates_array.length < 2) return;
-
-  const directionsService = new google.maps.DirectionsService();
-  const directionsRenderer = new google.maps.DirectionsRenderer({
-    map: map,
-    suppressMarkers: true, // keep your custom markers
-    polylineOptions: {
-      strokeColor: color,
-      strokeWeight: 4
-    }
-  });
-
-  let waypoints = [];
-  if (coordinates_array.length > 2) {
-    waypoints = coordinates_array.slice(1, -1).map(coord => ({
-      location: { lat: parseFloat(coord.lat), lng: parseFloat(coord.lng) },
-      stopover: true
-    }));
-  }
-
-  const request = {
-    origin: { lat: parseFloat(coordinates_array[0].lat), lng: parseFloat(coordinates_array[0].lng) },
-    destination: { lat: parseFloat(coordinates_array[coordinates_array.length - 1].lat), lng: parseFloat(coordinates_array[coordinates_array.length - 1].lng) },
-    waypoints: waypoints,
-    travelMode: google.maps.TravelMode.DRIVING
-  };
-
-  directionsService.route(request, function (result, status) {
-    if (status === google.maps.DirectionsStatus.OK) {
-      directionsRenderer.setDirections(result);
-    } else {
-      console.error("Directions request failed due to " + status);
-    }
-  });
-}
-
-   }function drawLine(coordinates_array, map, color) {
-  if (coordinates_array.length < 2) return;
-
-  const directionsService = new google.maps.DirectionsService();
-  const directionsRenderer = new google.maps.DirectionsRenderer({
-    map: map,
-    suppressMarkers: true, // keep your custom markers
-    polylineOptions: {
-      strokeColor: color,
-      strokeWeight: 4
-    }
-  });
-
-  let waypoints = [];
-  if (coordinates_array.length > 2) {
-    waypoints = coordinates_array.slice(1, -1).map(coord => ({
-      location: { lat: parseFloat(coord.lat), lng: parseFloat(coord.lng) },
-      stopover: true
-    }));
-  }
-
-  const request = {
-    origin: { lat: parseFloat(coordinates_array[0].lat), lng: parseFloat(coordinates_array[0].lng) },
-    destination: { lat: parseFloat(coordinates_array[coordinates_array.length - 1].lat), lng: parseFloat(coordinates_array[coordinates_array.length - 1].lng) },
-    waypoints: waypoints,
-    travelMode: google.maps.TravelMode.DRIVING
-  };
-
-  directionsService.route(request, function (result, status) {
-    if (status === google.maps.DirectionsStatus.OK) {
-      directionsRenderer.setDirections(result);
-    } else {
-      console.error("Directions request failed due to " + status);
-    }
-  });
-}
-
-    function drawLine(coordinates_array, map, color) {
-  if (coordinates_array.length < 2) return;
-
-  const directionsService = new google.maps.DirectionsService();
-  const directionsRenderer = new google.maps.DirectionsRenderer({
-    map: map,
-    suppressMarkers: true, // keep your custom markers
-    polylineOptions: {
-      strokeColor: color,
-      strokeWeight: 4
-    }
-  });
-
-  let waypoints = [];
-  if (coordinates_array.length > 2) {
-    waypoints = coordinates_array.slice(1, -1).map(coord => ({
-      location: { lat: parseFloat(coord.lat), lng: parseFloat(coord.lng) },
-      stopover: true
-    }));
-  }
-
-  const request = {
-    origin: { lat: parseFloat(coordinates_array[0].lat), lng: parseFloat(coordinates_array[0].lng) },
-    destination: { lat: parseFloat(coordinates_array[coordinates_array.length - 1].lat), lng: parseFloat(coordinates_array[coordinates_array.length - 1].lng) },
-    waypoints: waypoints,
-    travelMode: google.maps.TravelMode.DRIVING
-  };
-
-  directionsService.route(request, function (result, status) {
-    if (status === google.maps.DirectionsStatus.OK) {
-      directionsRenderer.setDirections(result);
-    } else {
-      console.error("Directions request failed due to " + status);
-    }
-  });
-}
-
-    function drawLine(coordinates_array, map, color) {
-  if (coordinates_array.length < 2) return;
-
-  const directionsService = new google.maps.DirectionsService();
-  const directionsRenderer = new google.maps.DirectionsRenderer({
-    map: map,
-    suppressMarkers: true, // keep your custom markers
-    polylineOptions: {
-      strokeColor: color,
-      strokeWeight: 4
-    }
-  });
-
-  let waypoints = [];
-  if (coordinates_array.length > 2) {
-    waypoints = coordinates_array.slice(1, -1).map(coord => ({
-      location: { lat: parseFloat(coord.lat), lng: parseFloat(coord.lng) },
-      stopover: true
-    }));
-  }
-
-  const request = {
-    origin: { lat: parseFloat(coordinates_array[0].lat), lng: parseFloat(coordinates_array[0].lng) },
-    destination: { lat: parseFloat(coordinates_array[coordinates_array.length - 1].lat), lng: parseFloat(coordinates_array[coordinates_array.length - 1].lng) },
-    waypoints: waypoints,
-    travelMode: google.maps.TravelMode.DRIVING
-  };
-
-  directionsService.route(request, function (result, status) {
-    if (status === google.maps.DirectionsStatus.OK) {
-      directionsRenderer.setDirections(result);
-    } else {
-      console.error("Directions request failed due to " + status);
-    }
-  });
-}
-
-    function drawLine(coordinates_array, map, color) {
-  if (coordinates_array.length < 2) return;
-
-  const directionsService = new google.maps.DirectionsService();
-  const directionsRenderer = new google.maps.DirectionsRenderer({
-    map: map,
-    suppressMarkers: true, // keep your custom markers
-    polylineOptions: {
-      strokeColor: color,
-      strokeWeight: 4
-    }
-  });
-
-  let waypoints = [];
-  if (coordinates_array.length > 2) {
-    waypoints = coordinates_array.slice(1, -1).map(coord => ({
-      location: { lat: parseFloat(coord.lat), lng: parseFloat(coord.lng) },
-      stopover: true
-    }));
-  }
-
-  const request = {
-    origin: { lat: parseFloat(coordinates_array[0].lat), lng: parseFloat(coordinates_array[0].lng) },
-    destination: { lat: parseFloat(coordinates_array[coordinates_array.length - 1].lat), lng: parseFloat(coordinates_array[coordinates_array.length - 1].lng) },
-    waypoints: waypoints,
-    travelMode: google.maps.TravelMode.DRIVING
-  };
-
-  directionsService.route(request, function (result, status) {
-    if (status === google.maps.DirectionsStatus.OK) {
-      directionsRenderer.setDirections(result);
-    } else {
-      console.error("Directions request failed due to " + status);
-    }
-  });
-}
-
-    function drawLine(coordinates_array, map, color) {
-  if (coordinates_array.length < 2) return;
-
-  const directionsService = new google.maps.DirectionsService();
-  const directionsRenderer = new google.maps.DirectionsRenderer({
-    map: map,
-    suppressMarkers: true, // keep your custom markers
-    polylineOptions: {
-      strokeColor: color,
-      strokeWeight: 4
-    }
-  });
-
-  let waypoints = [];
-  if (coordinates_array.length > 2) {
-    waypoints = coordinates_array.slice(1, -1).map(coord => ({
-      location: { lat: parseFloat(coord.lat), lng: parseFloat(coord.lng) },
-      stopover: true
-    }));
-  }
-
-  const request = {
-    origin: { lat: parseFloat(coordinates_array[0].lat), lng: parseFloat(coordinates_array[0].lng) },
-    destination: { lat: parseFloat(coordinates_array[coordinates_array.length - 1].lat), lng: parseFloat(coordinates_array[coordinates_array.length - 1].lng) },
-    waypoints: waypoints,
-    travelMode: google.maps.TravelMode.DRIVING
-  };
-
-  directionsService.route(request, function (result, status) {
-    if (status === google.maps.DirectionsStatus.OK) {
-      directionsRenderer.setDirections(result);
-    } else {
-      console.error("Directions request failed due to " + status);
-    }
-  });
-}
-
-    function drawLine(coordinates_array, map, color) {
-  if (coordinates_array.length < 2) return;
-
-  const directionsService = new google.maps.DirectionsService();
-  const directionsRenderer = new google.maps.DirectionsRenderer({
-    map: map,
-    suppressMarkers: true, // keep your custom markers
-    polylineOptions: {
-      strokeColor: color,
-      strokeWeight: 4
-    }
-  });
-
-  let waypoints = [];
-  if (coordinates_array.length > 2) {
-    waypoints = coordinates_array.slice(1, -1).map(coord => ({
-      location: { lat: parseFloat(coord.lat), lng: parseFloat(coord.lng) },
-      stopover: true
-    }));
-  }
-
-  const request = {
-    origin: { lat: parseFloat(coordinates_array[0].lat), lng: parseFloat(coordinates_array[0].lng) },
-    destination: { lat: parseFloat(coordinates_array[coordinates_array.length - 1].lat), lng: parseFloat(coordinates_array[coordinates_array.length - 1].lng) },
-    waypoints: waypoints,
-    travelMode: google.maps.TravelMode.DRIVING
-  };
-
-  directionsService.route(request, function (result, status) {
-    if (status === google.maps.DirectionsStatus.OK) {
-      directionsRenderer.setDirections(result);
-    } else {
-      console.error("Directions request failed due to " + status);
-    }
-  });
-}
-
-    function drawLine(coordinates_array, map, color) {
-  if (coordinates_array.length < 2) return;
-
-  const directionsService = new google.maps.DirectionsService();
-  const directionsRenderer = new google.maps.DirectionsRenderer({
-    map: map,
-    suppressMarkers: true, // keep your custom markers
-    polylineOptions: {
-      strokeColor: color,
-      strokeWeight: 4
-    }
-  });
-
-  let waypoints = [];
-  if (coordinates_array.length > 2) {
-    waypoints = coordinates_array.slice(1, -1).map(coord => ({
-      location: { lat: parseFloat(coord.lat), lng: parseFloat(coord.lng) },
-      stopover: true
-    }));
-  }
-
-  const request = {
-    origin: { lat: parseFloat(coordinates_array[0].lat), lng: parseFloat(coordinates_array[0].lng) },
-    destination: { lat: parseFloat(coordinates_array[coordinates_array.length - 1].lat), lng: parseFloat(coordinates_array[coordinates_array.length - 1].lng) },
-    waypoints: waypoints,
-    travelMode: google.maps.TravelMode.DRIVING
-  };
-
-  directionsService.route(request, function (result, status) {
-    if (status === google.maps.DirectionsStatus.OK) {
-      directionsRenderer.setDirections(result);
-    } else {
-      console.error("Directions request failed due to " + status);
-    }
-  });
-}
-
-    function drawLine(coordinates_array, map, color) {
-  if (coordinates_array.length < 2) return;
-
-  const directionsService = new google.maps.DirectionsService();
-  const directionsRenderer = new google.maps.DirectionsRenderer({
-    map: map,
-    suppressMarkers: true, // keep your custom markers
-    polylineOptions: {
-      strokeColor: color,
-      strokeWeight: 4
-    }
-  });
-
-  let waypoints = [];
-  if (coordinates_array.length > 2) {
-    waypoints = coordinates_array.slice(1, -1).map(coord => ({
-      location: { lat: parseFloat(coord.lat), lng: parseFloat(coord.lng) },
-      stopover: true
-    }));
-  }
-
-  const request = {
-    origin: { lat: parseFloat(coordinates_array[0].lat), lng: parseFloat(coordinates_array[0].lng) },
-    destination: { lat: parseFloat(coordinates_array[coordinates_array.length - 1].lat), lng: parseFloat(coordinates_array[coordinates_array.length - 1].lng) },
-    waypoints: waypoints,
-    travelMode: google.maps.TravelMode.DRIVING
-  };
-
-  directionsService.route(request, function (result, status) {
-    if (status === google.maps.DirectionsStatus.OK) {
-      directionsRenderer.setDirections(result);
-    } else {
-      console.error("Directions request failed due to " + status);
-    }
-  });
-}
-
-    function drawLine(coordinates_array, map, color) {
-  if (coordinates_array.length < 2) return;
-
-  const directionsService = new google.maps.DirectionsService();
-  const directionsRenderer = new google.maps.DirectionsRenderer({
-    map: map,
-    suppressMarkers: true, // keep your custom markers
-    polylineOptions: {
-      strokeColor: color,
-      strokeWeight: 4
-    }
-  });
-
-  let waypoints = [];
-  if (coordinates_array.length > 2) {
-    waypoints = coordinates_array.slice(1, -1).map(coord => ({
-      location: { lat: parseFloat(coord.lat), lng: parseFloat(coord.lng) },
-      stopover: true
-    }));
-  }
-
-  const request = {
-    origin: { lat: parseFloat(coordinates_array[0].lat), lng: parseFloat(coordinates_array[0].lng) },
-    destination: { lat: parseFloat(coordinates_array[coordinates_array.length - 1].lat), lng: parseFloat(coordinates_array[coordinates_array.length - 1].lng) },
-    waypoints: waypoints,
-    travelMode: google.maps.TravelMode.DRIVING
-  };
-
-  directionsService.route(request, function (result, status) {
-    if (status === google.maps.DirectionsStatus.OK) {
-      directionsRenderer.setDirections(result);
-    } else {
-      console.error("Directions request failed due to " + status);
-    }
-  });
-}
-
-    function drawLine(coordinates_array, map, color) {
-  if (coordinates_array.length < 2) return;
-
-  const directionsService = new google.maps.DirectionsService();
-  const directionsRenderer = new google.maps.DirectionsRenderer({
-    map: map,
-    suppressMarkers: true, // keep your custom markers
-    polylineOptions: {
-      strokeColor: color,
-      strokeWeight: 4
-    }
-  });
-
-  let waypoints = [];
-  if (coordinates_array.length > 2) {
-    waypoints = coordinates_array.slice(1, -1).map(coord => ({
-      location: { lat: parseFloat(coord.lat), lng: parseFloat(coord.lng) },
-      stopover: true
-    }));
-  }
-
-  const request = {
-    origin: { lat: parseFloat(coordinates_array[0].lat), lng: parseFloat(coordinates_array[0].lng) },
-    destination: { lat: parseFloat(coordinates_array[coordinates_array.length - 1].lat), lng: parseFloat(coordinates_array[coordinates_array.length - 1].lng) },
-    waypoints: waypoints,
-    travelMode: google.maps.TravelMode.DRIVING
-  };
-
-  directionsService.route(request, function (result, status) {
-    if (status === google.maps.DirectionsStatus.OK) {
-      directionsRenderer.setDirections(result);
-    } else {
-      console.error("Directions request failed due to " + status);
-    }
-  });
-}
-
-    function drawLine(coordinates_array, map, color) {
-  if (coordinates_array.length < 2) return;
-
-  const directionsService = new google.maps.DirectionsService();
-  const directionsRenderer = new google.maps.DirectionsRenderer({
-    map: map,
-    suppressMarkers: true, // keep your custom markers
-    polylineOptions: {
-      strokeColor: color,
-      strokeWeight: 4
-    }
-  });
-
-  let waypoints = [];
-  if (coordinates_array.length > 2) {
-    waypoints = coordinates_array.slice(1, -1).map(coord => ({
-      location: { lat: parseFloat(coord.lat), lng: parseFloat(coord.lng) },
-      stopover: true
-    }));
-  }
-
-  const request = {
-    origin: { lat: parseFloat(coordinates_array[0].lat), lng: parseFloat(coordinates_array[0].lng) },
-    destination: { lat: parseFloat(coordinates_array[coordinates_array.length - 1].lat), lng: parseFloat(coordinates_array[coordinates_array.length - 1].lng) },
-    waypoints: waypoints,
-    travelMode: google.maps.TravelMode.DRIVING
-  };
-
-  directionsService.route(request, function (result, status) {
-    if (status === google.maps.DirectionsStatus.OK) {
-      directionsRenderer.setDirections(result);
-    } else {
-      console.error("Directions request failed due to " + status);
-    }
-  });
-}
-
-    function drawLine(coordinates_array, map, color) {
-  if (coordinates_array.length < 2) return;
-
-  const directionsService = new google.maps.DirectionsService();
-  const directionsRenderer = new google.maps.DirectionsRenderer({
-    map: map,
-    suppressMarkers: true, // keep your custom markers
-    polylineOptions: {
-      strokeColor: color,
-      strokeWeight: 4
-    }
-  });
-
-  let waypoints = [];
-  if (coordinates_array.length > 2) {
-    waypoints = coordinates_array.slice(1, -1).map(coord => ({
-      location: { lat: parseFloat(coord.lat), lng: parseFloat(coord.lng) },
-      stopover: true
-    }));
-  }
-
-  const request = {
-    origin: { lat: parseFloat(coordinates_array[0].lat), lng: parseFloat(coordinates_array[0].lng) },
-    destination: { lat: parseFloat(coordinates_array[coordinates_array.length - 1].lat), lng: parseFloat(coordinates_array[coordinates_array.length - 1].lng) },
-    waypoints: waypoints,
-    travelMode: google.maps.TravelMode.DRIVING
-  };
-
-  directionsService.route(request, function (result, status) {
-    if (status === google.maps.DirectionsStatus.OK) {
-      directionsRenderer.setDirections(result);
-    } else {
-      console.error("Directions request failed due to " + status);
-    }
-  });
-}
-
-    function drawLine(coordinates_array, map, color) {
-  if (coordinates_array.length < 2) return;
-
-  const directionsService = new google.maps.DirectionsService();
-  const directionsRenderer = new google.maps.DirectionsRenderer({
-    map: map,
-    suppressMarkers: true, // keep your custom markers
-    polylineOptions: {
-      strokeColor: color,
-      strokeWeight: 4
-    }
-  });
-
-  let waypoints = [];
-  if (coordinates_array.length > 2) {
-    waypoints = coordinates_array.slice(1, -1).map(coord => ({
-      location: { lat: parseFloat(coord.lat), lng: parseFloat(coord.lng) },
-      stopover: true
-    }));
-  }
-
-  const request = {
-    origin: { lat: parseFloat(coordinates_array[0].lat), lng: parseFloat(coordinates_array[0].lng) },
-    destination: { lat: parseFloat(coordinates_array[coordinates_array.length - 1].lat), lng: parseFloat(coordinates_array[coordinates_array.length - 1].lng) },
-    waypoints: waypoints,
-    travelMode: google.maps.TravelMode.DRIVING
-  };
-
-  directionsService.route(request, function (result, status) {
-    if (status === google.maps.DirectionsStatus.OK) {
-      directionsRenderer.setDirections(result);
-    } else {
-      console.error("Directions request failed due to " + status);
-    }
-  });
-}
-
-    function drawLine(coordinates_array, map, color) {
-  if (coordinates_array.length < 2) return;
-
-  const directionsService = new google.maps.DirectionsService();
-  const directionsRenderer = new google.maps.DirectionsRenderer({
-    map: map,
-    suppressMarkers: true, // keep your custom markers
-    polylineOptions: {
-      strokeColor: color,
-      strokeWeight: 4
-    }
-  });
-
-  let waypoints = [];
-  if (coordinates_array.length > 2) {
-    waypoints = coordinates_array.slice(1, -1).map(coord => ({
-      location: { lat: parseFloat(coord.lat), lng: parseFloat(coord.lng) },
-      stopover: true
-    }));
-  }
-
-  const request = {
-    origin: { lat: parseFloat(coordinates_array[0].lat), lng: parseFloat(coordinates_array[0].lng) },
-    destination: { lat: parseFloat(coordinates_array[coordinates_array.length - 1].lat), lng: parseFloat(coordinates_array[coordinates_array.length - 1].lng) },
-    waypoints: waypoints,
-    travelMode: google.maps.TravelMode.DRIVING
-  };
-
-  directionsService.route(request, function (result, status) {
-    if (status === google.maps.DirectionsStatus.OK) {
-      directionsRenderer.setDirections(result);
-    } else {
-      console.error("Directions request failed due to " + status);
-    }
-  });
-}
-
-    function drawLine(coordinates_array, map, color) {
-  if (coordinates_array.length < 2) return;
-
-  const directionsService = new google.maps.DirectionsService();
-  const directionsRenderer = new google.maps.DirectionsRenderer({
-    map: map,
-    suppressMarkers: true, // keep your custom markers
-    polylineOptions: {
-      strokeColor: color,
-      strokeWeight: 4
-    }
-  });
-
-  let waypoints = [];
-  if (coordinates_array.length > 2) {
-    waypoints = coordinates_array.slice(1, -1).map(coord => ({
-      location: { lat: parseFloat(coord.lat), lng: parseFloat(coord.lng) },
-      stopover: true
-    }));
-  }
-
-  const request = {
-    origin: { lat: parseFloat(coordinates_array[0].lat), lng: parseFloat(coordinates_array[0].lng) },
-    destination: { lat: parseFloat(coordinates_array[coordinates_array.length - 1].lat), lng: parseFloat(coordinates_array[coordinates_array.length - 1].lng) },
-    waypoints: waypoints,
-    travelMode: google.maps.TravelMode.DRIVING
-  };
-
-  directionsService.route(request, function (result, status) {
-    if (status === google.maps.DirectionsStatus.OK) {
-      directionsRenderer.setDirections(result);
-    } else {
-      console.error("Directions request failed due to " + status);
-    }
-  });
-}
-
-    function drawLine(coordinates_array, map, color) {
-  if (coordinates_array.length < 2) return;
-
-  const directionsService = new google.maps.DirectionsService();
-  const directionsRenderer = new google.maps.DirectionsRenderer({
-    map: map,
-    suppressMarkers: true, // keep your custom markers
-    polylineOptions: {
-      strokeColor: color,
-      strokeWeight: 4
-    }
-  });
-
-  let waypoints = [];
-  if (coordinates_array.length > 2) {
-    waypoints = coordinates_array.slice(1, -1).map(coord => ({
-      location: { lat: parseFloat(coord.lat), lng: parseFloat(coord.lng) },
-      stopover: true
-    }));
-  }
-
-  const request = {
-    origin: { lat: parseFloat(coordinates_array[0].lat), lng: parseFloat(coordinates_array[0].lng) },
-    destination: { lat: parseFloat(coordinates_array[coordinates_array.length - 1].lat), lng: parseFloat(coordinates_array[coordinates_array.length - 1].lng) },
-    waypoints: waypoints,
-    travelMode: google.maps.TravelMode.DRIVING
-  };
-
-  directionsService.route(request, function (result, status) {
-    if (status === google.maps.DirectionsStatus.OK) {
-      directionsRenderer.setDirections(result);
-    } else {
-      console.error("Directions request failed due to " + status);
-    }
-  });
-}
-
-    function drawLine(coordinates_array, map, color) {
-  if (coordinates_array.length < 2) return;
-
-  const directionsService = new google.maps.DirectionsService();
-  const directionsRenderer = new google.maps.DirectionsRenderer({
-    map: map,
-    suppressMarkers: true, // keep your custom markers
-    polylineOptions: {
-      strokeColor: color,
-      strokeWeight: 4
-    }
-  });
-
-  let waypoints = [];
-  if (coordinates_array.length > 2) {
-    waypoints = coordinates_array.slice(1, -1).map(coord => ({
-      location: { lat: parseFloat(coord.lat), lng: parseFloat(coord.lng) },
-      stopover: true
-    }));
-  }
-
-  const request = {
-    origin: { lat: parseFloat(coordinates_array[0].lat), lng: parseFloat(coordinates_array[0].lng) },
-    destination: { lat: parseFloat(coordinates_array[coordinates_array.length - 1].lat), lng: parseFloat(coordinates_array[coordinates_array.length - 1].lng) },
-    waypoints: waypoints,
-    travelMode: google.maps.TravelMode.DRIVING
-  };
-
-  directionsService.route(request, function (result, status) {
-    if (status === google.maps.DirectionsStatus.OK) {
-      directionsRenderer.setDirections(result);
-    } else {
-      console.error("Directions request failed due to " + status);
-    }
-  });
-}
-
-    function drawLine(coordinates_array, map, color) {
-  if (coordinates_array.length < 2) return;
-
-  const directionsService = new google.maps.DirectionsService();
-  const directionsRenderer = new google.maps.DirectionsRenderer({
-    map: map,
-    suppressMarkers: true, // keep your custom markers
-    polylineOptions: {
-      strokeColor: color,
-      strokeWeight: 4
-    }
-  });
-
-  let waypoints = [];
-  if (coordinates_array.length > 2) {
-    waypoints = coordinates_array.slice(1, -1).map(coord => ({
-      location: { lat: parseFloat(coord.lat), lng: parseFloat(coord.lng) },
-      stopover: true
-    }));
-  }
-
-  const request = {
-    origin: { lat: parseFloat(coordinates_array[0].lat), lng: parseFloat(coordinates_array[0].lng) },
-    destination: { lat: parseFloat(coordinates_array[coordinates_array.length - 1].lat), lng: parseFloat(coordinates_array[coordinates_array.length - 1].lng) },
-    waypoints: waypoints,
-    travelMode: google.maps.TravelMode.DRIVING
-  };
-
-  directionsService.route(request, function (result, status) {
-    if (status === google.maps.DirectionsStatus.OK) {
+  directionsService.route(request, function(result, status) {
+    if (status === google.maps.DirectionsStatus.OK || status === "OK") {
       directionsRenderer.setDirections(result);
     } else {
       console.error("Directions request failed due to " + status);
@@ -1070,32 +152,50 @@
 }
 
 
-      function get_data_map_fillter(){
-      	var data = {};
-      	data.staff = $('[name="staff_fillter[]"]').val();
-      	data.date = $('[name="date_fillter"]').val();
-      	data.route_point = $('[name="route_point_fillter[]"]').val();
-      	$.post(admin_url+'timesheets/get_data_map',data).done(function(response){
-            response = JSON.parse(response);
-            if(response.length > 0){
-              showData(response);
-            }
-            else{
-              var map = new google.maps.Map(document.getElementById("map"), {
-                zoom: 17,
-                center: {lat:0.0, lng: 0.0},
-              });        
-            }
-        });
-      }
+function get_data_map_fillter() {
+    var staff = $('#staff_fillter').val();
+    var date = $('#date_fillter').val();
+    var route_point = $('#route_point_fillter').val();
 
+    $.ajax({
+        url: '<?= admin_url("timesheets/get_map_data") ?>', // CI controller function
+        method: 'POST',
+        data: { staff: staff, date: date, route_point: route_point },
+        dataType: 'json',
+        success: function(response) {
+            if (!response || response.length === 0) return;
 
-/**
- * show default map
- */
- function showDefaultMap(position) {
-  'use strict';
+            // Reinitialize map for new data
+            initMap();
+
+            // Add markers
+            response.forEach((point, idx) => {
+                const label = idx === 0 ? "Start" :
+                              idx === response.length - 1 ? "End" :
+                              "Stop " + idx;
+
+                const marker = new google.maps.Marker({
+                    position: { lat: parseFloat(point.latitude), lng: parseFloat(point.longitude) },
+                    map: map,
+                    title: label
+                });
+
+                const infowindow = new google.maps.InfoWindow({
+                    content: `<b>${label}</b><br>${point.address}`
+                });
+
+                marker.addListener("click", () => infowindow.open(map, marker));
+            });
+
+            // Draw driving route along roads
+            drawLine(response, map, 'blue');
+        },
+        error: function(err) {
+            console.error("Error fetching map data:", err);
+        }
+    });
 }
+
 
 
 function get_default_location() {
