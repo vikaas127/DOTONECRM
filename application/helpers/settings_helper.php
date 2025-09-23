@@ -147,7 +147,18 @@ function app_init_settings_tabs()
         'position' => 15,
         'icon'     => 'fa-solid fa-globe',
     ]);
-
+$CI->app_tabs->add_settings_tab('essl', [
+     'name'     => _l('essl'),
+     'view'     => 'admin/settings/includes/essl',
+     'position' => 6,
+     'icon'     => 'fa fa-google',
+ ]);
+ $CI->app_tabs->add_settings_tab('wNotification', [
+     'name'     => _l('W Notification'),
+     'view'     => 'admin/settings/includes/wnotification',
+     'position' => 6,
+     'icon'     => 'fa fa-whatsapp',
+ ]);
     $CI->app_tabs->add_settings_tab('email', [
         'name'     => _l('settings_group_email'),
         'view'     => 'admin/settings/includes/email',
