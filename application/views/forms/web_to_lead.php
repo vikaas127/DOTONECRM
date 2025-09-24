@@ -1,5 +1,155 @@
 <?php
 // ================= OCR HANDLER =================
+$CI =& get_instance();
+// $helpers_to_try = ['wnotication', 'wnotification', 'whatsapp', 'wn_whatsapp'];
+// $found = null;
+
+// // Find and load helper
+// foreach ($helpers_to_try as $h) {
+//     if (file_exists(APPPATH . 'helpers/' . $h . '_helper.php')) {
+//         $found = $h;
+//         break;
+//     }
+// }
+
+// if ($found) {
+//     log_message('info', "Loading helper: $found");
+//     $CI->load->helper($found);
+// } else {
+//     log_message('error', "No helper file found. Checked: " . implode(', ', $helpers_to_try));
+// }
+
+// // Ensure phone and msg are set
+// $phone = $_POST['phonenumber'] ?? $_POST['phone'] ?? '';
+// $name  = $_POST['name'] ?? '';
+// $msg   = $name ? "✅ Thanks $name, we received your enquiry successfully." : "✅ Thanks, we received your enquiry successfully.";
+
+
+// if ($phone === '') {
+//     log_message('error', "Phone number is empty. Cannot send WhatsApp.");
+// } elseif (function_exists('wn_send_whatsapp_text')) {
+//     log_message('info', "wn_send_whatsapp_text exists, sending message…");
+//     $result = wn_send_whatsapp_text($phone, $msg);
+//     log_message('info', "WhatsApp result: " . json_encode($result));
+// } else {
+//     log_message('error', "wn_send_whatsapp_text function not found");
+// }
+
+
+ // =============== HANDLE NORMAL FORM SUBMIT + WHATSAPP ===============
+// if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_GET['ocr']) && !isset($_GET['whatsapp_test'])) {
+
+//     $CI =& get_instance();
+
+//     // Load your WhatsApp helper dynamically
+//     $helpers_to_try = ['wnotication', 'wnotification', 'whatsapp', 'wn_whatsapp'];
+//     $found = null;
+//     foreach ($helpers_to_try as $h) {
+//         if (file_exists(APPPATH . 'helpers/' . $h . '_helper.php')) {
+//             $found = $h;
+//             break;
+//         }
+//     }
+
+//     if ($found) {
+//         $CI->load->helper($found);
+//         log_message('info', "WhatsApp helper loaded: {$found}");
+//     } else {
+//         log_message('error', "No WhatsApp helper found. Checked: " . implode(', ', $helpers_to_try));
+//     }
+
+//     // Get phone & name from posted form fields
+//     $phone = $_POST['phonenumber'] ?? '';
+//     $name  = $_POST['name'] ?? '';
+
+//     log_message('info', "Form submission detected. Phone: '{$phone}', Name: '{$name}', Helper loaded: " . ($found ?? 'none'));
+
+//     if ($phone === '') {
+//         log_message('error', "Phone number missing in POST data.");
+//     }
+
+//     if (function_exists('wn_send_whatsapp_text')) {
+//         log_message('info', "wn_send_whatsapp_text() function exists, attempting to send WhatsApp.");
+
+//         $msg = "✅ Thanks $name, we received your enquiry successfully.";
+
+//         // Log before sending
+//         log_message('info', "Attempting to send WhatsApp to {$phone}: {$msg}");
+
+//         $result = wn_send_whatsapp_text($phone, $msg);
+
+//         // Log the result
+//         if ($result['success']) {
+//             log_message('info', "WhatsApp sent successfully to {$phone}. Response: " . json_encode($result['response']));
+//         } else {
+//             log_message('error', "WhatsApp failed to {$phone}. Error: " . ($result['error'] ?? 'Unknown') . "; Response: " . json_encode($result['response']));
+//         }
+//     } else {
+//         log_message('error', "wn_send_whatsapp_text() function does not exist. Helper loaded: " . ($found ?? 'none'));
+//     }
+
+//     // Continue normal lead-processing or JSON response if needed
+// }
+
+
+// list helper basenames you *might* have (update to the names you expect)
+// $helpers_to_try = ['wnotication', 'wnotification', 'whatsapp', 'wn_whatsapp'];
+
+// $found = null;
+// foreach ($helpers_to_try as $h) {
+//     if (file_exists(APPPATH . 'helpers/' . $h . '_helper.php')) {
+//         $found = $h;
+//         break;
+//     }
+// }
+
+// if (isset($_GET['whatsapp_test']) && $_GET['whatsapp_test'] === '1') {
+//     if ($found === null) {
+//         header('Content-Type: application/json; charset=utf-8', true, 500);
+//         echo json_encode([
+//             'success' => false,
+//             'error' => 'No helper file found.',
+//             'helpers_checked' => $helpers_to_try,
+//             'hint' => 'Place your helper file in application/helpers/ or update $helpers_to_try with the correct basename.'
+//         ]);
+//         exit;
+//     }
+
+//     // load the actual helper
+//     $CI->load->helper($found);
+
+//     if (!function_exists('wn_send_whatsapp_text')) {
+//         header('Content-Type: application/json; charset=utf-8', true, 500);
+//         echo json_encode([
+//             'success' => false,
+//             'error' => "Helper loaded ({$found}) but function wn_send_whatsapp_text() was not found.",
+//             'loaded_helper' => $found
+//         ]);
+//         exit;
+//     }
+
+//     // Call function
+//     $phone = '918233081931';
+//     $message = "✅ Test WhatsApp message\nWe received your query successfully.";
+//     $result = wn_send_whatsapp_text($phone, $message);
+
+//     header('Content-Type: application/json; charset=utf-8');
+//     echo json_encode($result);
+//     exit;
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
 if (isset($_GET['ocr']) && $_GET['ocr'] == '1') {
     // log_message('info', '$_FILES dump: ' . print_r($_FILES, true));
 
@@ -133,6 +283,10 @@ Return JSON only. If a field is missing, use null."
     }
     exit; //  Stop further HTML rendering
 }
+
+
+
+
 // =============== END OCR HANDLER ===============
 ?>
 
@@ -151,6 +305,57 @@ Return JSON only. If a field is missing, use null."
     #form_submit:hover {
         background-color: <?php echo adjust_color_brightness($form->submit_btn_bg_color, -30) ?> !important;
     }
+    /* skeleton shimmer style */
+.shimmer {
+  position: relative;
+  background: #f6f7f8;
+  background-image: linear-gradient(90deg, #f6f7f8 0px, #edeef1 40px, #f6f7f8 80px);
+  background-size: 600px;
+  animation: shimmer 1.2s infinite linear;
+  /* removed color: transparent */
+}
+
+@keyframes shimmer {
+  0% { background-position: -600px 0; }
+  100% { background-position: 600px 0; }
+}
+/* Scan Card button with your theme colors */
+.scan-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, #002A46, #39c529);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+}
+
+.scan-btn:hover {
+  background: linear-gradient(135deg, #00375f, #45d935); /* slightly lighter on hover */
+  transform: translateY(-1px);
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
+}
+
+.scan-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+}
+
+.scan-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+body.styled .form-col{
+    margin-top: 20px;
+}
+
     </style>
 </head>
 
@@ -165,9 +370,10 @@ Return JSON only. If a field is missing, use null."
 <img style="max-width:300px"; src="<?php echo base_url('assets/images/Dotonecrm3.png'); ?>" alt="">
                 </div>
                 <?php } ?>
-                 <button type="button" id="scanCardBtn" style="margin-bottom: 10px;">
-    📷 Scan Card
+       <button type="button" id="scanCardBtn" class="scan-btn">
+  📷 Scan Card
 </button>
+
 <input type="file"  name="image"  accept="image/*" capture="environment" id="cardImageInput" style="display: none;">
 <!-- Loader -->
 <div id="loader" style="display: none; margin: 10px 0;">🔄 Processing...</div>
@@ -211,7 +417,7 @@ Return JSON only. If a field is missing, use null."
   
   <button class="btn" id="form_submit" type="submit"
           style="color: <?php echo $form->submit_btn_text_color ?>;
-                 background-color: <?php echo $form->submit_btn_bg_color ?>;">
+                 background-color:#39c529;">
     <i class="fa fa-spinner fa-spin hide" style="margin-right: 2px;"></i>
     <?php echo ($form->submit_btn_name); ?>
   </button>
@@ -339,7 +545,32 @@ Return JSON only. If a field is missing, use null."
         </script>
       <script>
 document.getElementById('scanCardBtn').addEventListener('click', function () {
-    document.getElementById('cardImageInput').click();
+   document.getElementById('cardImageInput').click();
+  /* var url = window.location.origin + window.location.pathname + '?whatsapp_test=1';
+
+    fetch(url, { cache: 'no-store' })
+        .then(res => res.text())
+        .then(txt => {
+            try {
+                var data = JSON.parse(txt);
+                console.log('WhatsApp test JSON response:', data);
+                alert('WhatsApp test response: ' + JSON.stringify(data));
+            } catch (e) {
+                console.error('Raw non-JSON response:', txt);
+                // show snippet for debugging
+                alert('Not JSON — check console. Raw starts:\n' + txt.slice(0, 1200));
+            }
+        })
+        .catch(err => {
+            console.error('Fetch failed:', err);
+            alert('Fetch failed: ' + err.message);
+        });
+   
+   
+   */
+   
+   
+   // document.getElementById('cardImageInput').click();
 });
 
 // document.getElementById('cardImageInput').addEventListener('change', function () {
@@ -488,6 +719,21 @@ document.getElementById('cardImageInput').addEventListener('change', function ()
 
                 document.getElementById('loader').style.display = 'block';
                 document.getElementById('scanCardBtn').disabled = true;
+// get the form ID from PHP
+const formId = '<?php echo addslashes($form->form_key); ?>';
+// escape it for CSS selector
+const formSelector = '#' + CSS.escape(formId);
+
+// then safely select inputs & textareas
+const formEls = document.querySelectorAll(formSelector + ' input, ' + formSelector + ' textarea');
+
+
+formEls.forEach(el => {
+  if (el.type !== 'hidden' && el.type !== 'file' && !el.disabled) {
+    el.classList.add('shimmer');
+  }
+});
+
 
                 const url = new URL(window.location.href);
                 url.searchParams.set('ocr', '1');
@@ -545,6 +791,7 @@ document.getElementById('cardImageInput').addEventListener('change', function ()
                 .finally(() => {
                     document.getElementById('loader').style.display = 'none';
                     document.getElementById('scanCardBtn').disabled = false;
+                     formEls.forEach(el => el.classList.remove('shimmer'));
                 });
 
             }, 'image/jpeg', 0.7); // compress 70%
