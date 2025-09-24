@@ -4,6 +4,13 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 class Forms extends ClientsController
 {
+     public function __construct()
+    {
+        parent::__construct(); // call parent constructor if needed
+
+        $CI =& get_instance();
+        $CI->load->helper('wnotication'); // helper name should be in quotes
+    }
     public function index()
     {
         show_404();
@@ -661,7 +668,8 @@ if ($lead_id) {
                      . "📧 no-reply@techdotbit.in\n"
                      . "🌐 http://www.techdotbit.in";
 
-                            $phone_number_raw = isset($regular_fields['phone_number']) ? $regular_fields['phone_number'] : null;
+ $phone_number_raw = isset($regular_fields['phonenumber']) ? $regular_fields['phonenumber'] : null;
+ log_message('debug', 'Raw phone number: ' . $phone_number_raw); // e.
 $phone_number = $this->normalize_indian_phone($phone_number_raw);
 
 if ($phone_number) {
