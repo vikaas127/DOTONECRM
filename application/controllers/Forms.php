@@ -809,7 +809,7 @@ private function _send_whatsapp_lead_message($lead_id, $regular_fields = [], $co
     // 1) Fetch template (id=53 or slug)
     $this->db->where('emailtemplateid', 53);
     $this->db->or_where('slug', 'new-web-to-lead-form-submitted');
-    $q = $this->db->get('tblemailtemplates');
+    $q = $this->db->get(db_prefix().'emailtemplates');
 
     $raw_message = '';
     if ($q && $q->num_rows() > 0) {
