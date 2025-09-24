@@ -415,6 +415,7 @@ body.styled .form-col{
 </div>
 
                         </div>
+                        
                         <div class="modal fade" id="reminderModal" tabindex="-1" role="dialog">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -795,6 +796,11 @@ formEls.forEach(el => {
 
 
 
+<?php if ($this->session->flashdata('form_error')): ?>
+    <div class="alert alert-danger">
+        <?= $this->session->flashdata('form_error'); ?>
+    </div>
+<?php endif; ?>
 
 
 

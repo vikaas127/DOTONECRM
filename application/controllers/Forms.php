@@ -518,7 +518,16 @@ class Forms extends ClientsController
                                     hooks()->do_action('after_add_task', $task_id);
                                     if ($duplicateLead && $duplicateLead->email != '') {
                                         send_mail_template('lead_web_form_submitted', $duplicateLead);
-                                        die();
+                                        echo json_encode([
+                'success' => false,
+                'message' => 'This email already exists in our system.'
+            ]);
+            $this->session->set_flashdata('form_error', 'This email already exists in our system.');
+
+        // Redirect back to the form page
+        redirect($_SERVER['HTTP_REFERER'] ?? site_url('forms/web_to_lead'));
+        return;
+                                      //  die();
                                     }
                                 }
                             }

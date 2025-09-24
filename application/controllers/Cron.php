@@ -24,7 +24,6 @@ class Cron extends App_Controller
     public function process_whatsapp_single($queue_id = 0)
 {
     $this->load->helper('wnotication');
-
     // Allow CLI always. For HTTP calls validate token + loopback IP.
     $is_cli = $this->input->is_cli_request();
 
