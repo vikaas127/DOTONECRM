@@ -2,13 +2,13 @@ body .navbar a.navbar-brand {
     padding: 23px 0 5px 0;
 }
 
-.btn-primary, .available_time_info.hwp {
-    background-color: #5d78ff;
+.btn-primary, .available_time_info.hwp,.border-color {
+    background-color: #002A46;
 }
 
 body #wrapper .btn-primary,
 body .btn-pfxcbsubmit {
-    background-color: #5d78ff;
+    background-color: #002A46;
 }
 
 body .btn-pfxcbsubmit:focus,

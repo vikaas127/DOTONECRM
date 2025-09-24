@@ -791,6 +791,7 @@ public function save_checkin()
 
         // If user paste with styling eq from some editor word and the Codeigniter XSS feature remove and apply xss=remove, may break the json.
         $data['formData'] = preg_replace('/=\\\\/m', "=''", $data['formData']);
+       
 
         $this->db->where('id', $data['id']);
         $this->db->update(db_prefix() . 'web_to_lead', [

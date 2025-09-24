@@ -5469,6 +5469,33 @@ public function save_location()
 	/**
 	 * add new root
 	 */
+public function get_map_data()
+{
+    $staff = $this->input->post('staff');
+    $date = $this->input->post('date');
+    $route_points = $this->input->post('route_point');
+
+    $this->db->select('latitude, longitude, address');
+    $this->db->from('tblcheckout_history');
+
+    if(!empty($staff)) {
+        $this->db->where_in('staff_id', $staff);
+    }
+
+    if(!empty($date)) {
+        $this->db->where('DATE(recorded_at)', $date);
+    }
+
+    if(!empty($route_points)) {
+        $this->db->where_in('route_point_id', $route_points);
+    }
+
+    $this->db->order_by('recorded_at', 'ASC');
+    $query = $this->db->get();
+
+    echo json_encode($query->result());
+}
+
 	public function add_new_root() {
 		$data['title'] = _l('route_management');
 		$this->load->model('staff_model');

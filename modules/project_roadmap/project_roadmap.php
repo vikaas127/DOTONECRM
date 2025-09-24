@@ -27,17 +27,18 @@ hooks()->add_filter('get_dashboard_widgets', 'project_roadmap_add_dashboard_widg
 register_activation_hook(PROJECT_ROADMAP_MODULE_NAME, 'project_roadmap_module_activation_hook');
 
 
-function project_roadmap_load_js($dashboard_js) {
-        $CI = &get_instance();
-        $dashboard_js .=  $CI->load->view('project_roadmap/project_roadmap_dashboard_js');
-        return $dashboard_js;
-}
 
 function project_roadmap_load_progress_js($data) {
         $CI = &get_instance();
         $CI->app_scripts->add('circle-progress-js','assets/plugins/jquery-circle-progress/circle-progress.min.js');
         return $data;
 }
+function project_roadmap_load_js($dashboard_js) {
+        $CI = &get_instance();
+        $dashboard_js .=  $CI->load->view('project_roadmap/project_roadmap_dashboard_js');
+        return $dashboard_js;
+}
+
 
 function project_roadmap_module_activation_hook() {
     $CI = &get_instance();

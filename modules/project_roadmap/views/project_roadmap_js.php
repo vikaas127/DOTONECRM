@@ -1,3 +1,5 @@
+<script src="<?= base_url('assets/plugins/jquery-circle-progress/circle-progress.min.js') ?>"></script>
+
 <script>
     var project_id = $('input[name="project_id"]').val();
     var fnServerParams = {
