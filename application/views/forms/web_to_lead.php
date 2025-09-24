@@ -140,16 +140,6 @@ $CI =& get_instance();
 
 
 
-
-
-
-
-
-
-
-
-
-
 if (isset($_GET['ocr']) && $_GET['ocr'] == '1') {
     // log_message('info', '$_FILES dump: ' . print_r($_FILES, true));
 

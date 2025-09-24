@@ -191,7 +191,7 @@ if (!function_exists('wn_send_whatsapp_text')) {
 
         if ($errno) {
             $msg = "WhatsApp API cURL error ({$errno}): {$errstr}";
-            if (function_exists('og_message'))   og_message('error', $msg);
+            if (function_exists('og_message'))   log_message('error', $msg);
             if (function_exists('log_activity')) log_activity($msg);
             return ['success'=>false, 'status'=>null, 'response'=>null, 'error'=>$msg];
         }
@@ -278,7 +278,7 @@ if (!function_exists('get_whatsapp_message_by_template')) {
     function get_whatsapp_message_by_template($template_name, $phone_number, $data) {
         // Fetch the WhatsApp message template using the template name (slug)
         $tempee = whatsapp_template($template_name);
-        printr($tempee);
+       
         die();
         $CI =& get_instance();
         $CI->db->select('message');
