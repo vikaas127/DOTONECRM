@@ -690,7 +690,7 @@ class Forms extends ClientsController
                             // 1) Fetch template row (id=53 or slug)
                             $this->db->where('emailtemplateid', 53);
                             $this->db->or_where('slug', 'new-web-to-lead-form-submitted');
-                            $q = $this->db->get('tblemailtemplates');
+                            $q = $this->db->get(db_prefix().'emailtemplates');
 
                             $raw_subject = '';
                             $raw_message = '';
@@ -731,9 +731,71 @@ class Forms extends ClientsController
 
                             // 3) Replace placeholders and convert HTML to plaintext
                             $final_message = strtr($raw_message, $replacements);
-                            $final_message = preg_replace('/\<br(\s*)?\/?\>/i', "\n", $final_message);
-                            $final_message = strip_tags($final_message);
-                            $final_message = html_entity_decode($final_message, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                            // ... your existing code up to $final_message = strtr($raw_message, $replacements);
+$final_message = strtr($raw_message, $replacements);
+
+// Convert some common HTML constructs to newlines (use lowercase-insensitive regex)
+$replace_blocks = [
+    // closing block tags and list items -> add newline
+    '~</(p|div|h[1-6]|li|tr|table|blockquote|section|article|header|footer|aside|nav)[^>]*>~i' => "\n",
+    // opening/closing list/table tags -> newline
+    '~<(br|br\s*/|/p|/div|/li|/tr|/table)[^>]*>~i' => "\n",
+    // replace <li> with a dash + space (optional)
+    '~<li[^>]*>~i' => "- ",
+];
+
+// run replacements
+$final_message = preg_replace(array_keys($replace_blocks), array_values($replace_blocks), $final_message);
+
+// replace non-breaking spaces and other unicode spaces with normal space
+$final_message = str_replace(["\xc2\xa0", "&nbsp;"], ' ', $final_message);
+
+// replace any remaining <br> forms just in case
+$final_message = preg_replace('/\<br(\s*)?\/?\>/i', "\n", $final_message);
+
+// remove all tags now
+$final_message = strip_tags($final_message);
+
+// decode HTML entities
+$final_message = html_entity_decode($final_message, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+// normalize CRLF to LF
+$final_message = str_replace(["\r\n", "\r"], "\n", $final_message);
+
+// trim each line and remove trailing spaces
+$lines = explode("\n", $final_message);
+$lines = array_map('trim', $lines);
+
+// remove empty lines at start/end
+while (!empty($lines) && $lines[0] === '') { array_shift($lines); }
+while (!empty($lines) && end($lines) === '') { array_pop($lines); }
+
+// collapse multiple consecutive empty lines into a single empty line
+$clean_lines = [];
+$prev_empty = false;
+foreach ($lines as $ln) {
+    $is_empty = ($ln === '');
+    if ($is_empty && $prev_empty) {
+        // skip extra empty line
+        continue;
+    }
+    $clean_lines[] = $ln;
+    $prev_empty = $is_empty;
+}
+
+$final_message = implode("\n", $clean_lines);
+
+// Optionally, limit to maximum 2 consecutive newlines instead:
+// $final_message = preg_replace("/\n{3,}/", "\n\n", $final_message);
+
+// final trim
+$final_message = trim($final_message);
+
+// now $final_message is ready to send to WhatsApp
+
+                      //      $final_message = preg_replace('/\<br(\s*)?\/?\>/i', "\n", $final_message);
+                       //     $final_message = strip_tags($final_message);
+                       //     $final_message = html_entity_decode($final_message, ENT_QUOTES | ENT_HTML5, 'UTF-8');
 
 
                             //     $data['form'] = $form;
