@@ -824,7 +824,7 @@ $final_message = trim($final_message);
                                   log_message('error', 'WhatsApp send error after response: ' . $e->getMessage());
                            }
                         }
-                     //   $this->_send_whatsapp_lead_message($lead_id, $regular_fields, $company_number ?? null);
+                       $this->_send_whatsapp_lead_message($lead_id, $regular_fields, $company_number ?? null);
 
 }
                 } // end insert_to_db
@@ -911,9 +911,9 @@ private function _send_whatsapp_lead_message($lead_id, $regular_fields = [], $co
     }
 
     // 4) Ensure table exists
-    if (!$this->db->table_exists('tblwhatsapp_queue')) {
+    if (!$this->db->table_exists(db_prefix().'whatsapp_queue')) {
         $sql = "
-            CREATE TABLE `tblwhatsapp_queue` (
+            CREATE TABLE `".db_prefix()."whatsapp_queue` (
               `id` INT AUTO_INCREMENT PRIMARY KEY,
               `lead_id` INT NULL,
               `phone` VARCHAR(32) NOT NULL,
@@ -940,14 +940,15 @@ private function _send_whatsapp_lead_message($lead_id, $regular_fields = [], $co
         'created_at'  => date('Y-m-d H:i:s'),
         'updated_at'  => date('Y-m-d H:i:s'),
     ];
-    $this->db->insert('tblwhatsapp_queue', $queueData);
+    $this->db->insert(db_prefix().'whatsapp_queue', $queueData);
     $queue_id = (int)$this->db->insert_id();
-
+ $tenant_db     = $this->db->database;
+    $tenant_prefix = $this->db->dbprefix;
     // 6) Spawn worker
     $php_bin = '/usr/bin/php';               // VPS php cli path
     $index_php = '/var/www/html/index.php';  // project index.php path
-    $cmd = escapeshellcmd($php_bin . ' ' . $index_php . ' cron process_whatsapp_single ' . $queue_id);
-
+   // $cmd = escapeshellcmd($php_bin . ' ' . $index_php . ' cron process_whatsapp_single ' . $queue_id);
+ $cmd = escapeshellcmd($php_bin . ' ' . $index_php . ' cron process_whatsapp_single ' .  $queue_id . ' ' . escapeshellarg($tenant_db) . ' ' . escapeshellarg($tenant_prefix));
     $disabled = array_map('trim', explode(',', ini_get('disable_functions')));
     $exec_allowed = function_exists('exec') && !in_array('exec', $disabled);
 
