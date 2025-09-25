@@ -468,6 +468,10 @@ body.styled .form-col{
                         }
                     });
                     $('#form_submit .fa-spin').removeClass('hide');
+                    // Add shimmer to all inputs/textareas/selects (excluding hidden/file/disabled)
+const formEls = $(form).find('input, textarea, select').not('[type=hidden],[type=file]:disabled');
+formEls.addClass('shimmer');
+
 
                     var formURL = $(form).attr("action");
                     var formData = new FormData($(form)[0]);
@@ -483,6 +487,8 @@ body.styled .form-col{
                     }).always(function() {
                         $('#form_submit').prop('disabled', false);
                         $('#form_submit .fa-spin').addClass('hide');
+                        formEls.removeClass('shimmer');
+
                     }).done(function(response) {
                         response = JSON.parse(response);
                         if (form_redirect_url !== '0') {
