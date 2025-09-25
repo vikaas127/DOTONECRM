@@ -458,7 +458,7 @@ function protected_file_url_by_path($path, $preview = false)
 function project_file_url($file, $preview = false)
 {
     $path     = 'uploads/projects/' . $file['project_id'] . '/';
-    $fullPath = perfex_saas_get_upload_path_by_type('project') . $file['file_name'];
+    $fullPath = FCPATH . $path . $file['file_name'];
     $url      = base_url($path . $file['file_name']);
 
     if (!empty($file['external']) && !empty($file['thumbnail_link'])) {

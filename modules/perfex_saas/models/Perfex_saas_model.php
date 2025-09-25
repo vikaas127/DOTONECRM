@@ -730,6 +730,7 @@ class Perfex_saas_model extends App_Model
 
                     $dbname = perfex_saas_db($data['slug']);
                     $create_db = $this->create_database($dbname);
+                    
                     if ($create_db !== true) {
                         throw new \Exception(_l('Error creating database: ' . $create_db), 1);
                     }

@@ -1,39 +1,39 @@
 <?php
 // ================= OCR HANDLER =================
 $CI =& get_instance();
-// $helpers_to_try = ['wnotication', 'wnotification', 'whatsapp', 'wn_whatsapp'];
-// $found = null;
+$helpers_to_try = ['wnotication', 'wnotification', 'whatsapp', 'wn_whatsapp'];
+$found = null;
 
-// // Find and load helper
-// foreach ($helpers_to_try as $h) {
-//     if (file_exists(APPPATH . 'helpers/' . $h . '_helper.php')) {
-//         $found = $h;
-//         break;
-//     }
-// }
+// Find and load helper
+foreach ($helpers_to_try as $h) {
+    if (file_exists(APPPATH . 'helpers/' . $h . '_helper.php')) {
+        $found = $h;
+        break;
+    }
+}
 
-// if ($found) {
-//     log_message('info', "Loading helper: $found");
-//     $CI->load->helper($found);
-// } else {
-//     log_message('error', "No helper file found. Checked: " . implode(', ', $helpers_to_try));
-// }
+if ($found) {
+    log_message('info', "Loading helper: $found");
+    $CI->load->helper($found);
+} else {
+    log_message('error', "No helper file found. Checked: " . implode(', ', $helpers_to_try));
+}
 
-// // Ensure phone and msg are set
-// $phone = $_POST['phonenumber'] ?? $_POST['phone'] ?? '';
-// $name  = $_POST['name'] ?? '';
-// $msg   = $name ? "✅ Thanks $name, we received your enquiry successfully." : "✅ Thanks, we received your enquiry successfully.";
+// Ensure phone and msg are set
+$phone = $_POST['phonenumber'] ?? $_POST['phone'] ?? '';
+$name  = $_POST['name'] ?? '';
+$msg   = $name ? "✅ Thanks $name, we received your enquiry successfully." : "✅ Thanks, we received your enquiry successfully.";
 
 
-// if ($phone === '') {
-//     log_message('error', "Phone number is empty. Cannot send WhatsApp.");
-// } elseif (function_exists('wn_send_whatsapp_text')) {
-//     log_message('info', "wn_send_whatsapp_text exists, sending message…");
-//     $result = wn_send_whatsapp_text($phone, $msg);
-//     log_message('info', "WhatsApp result: " . json_encode($result));
-// } else {
-//     log_message('error', "wn_send_whatsapp_text function not found");
-// }
+if ($phone === '') {
+    log_message('error', "Phone number is empty. Cannot send WhatsApp.");
+} elseif (function_exists('wn_send_whatsapp_text')) {
+    log_message('info', "wn_send_whatsapp_text exists, sending message…");
+    $result = wn_send_whatsapp_text($phone, $msg);
+    log_message('info', "WhatsApp result: " . json_encode($result));
+} else {
+    log_message('error', "wn_send_whatsapp_text function not found");
+}
 
 
  // =============== HANDLE NORMAL FORM SUBMIT + WHATSAPP ===============
@@ -137,6 +137,16 @@ $CI =& get_instance();
 //     echo json_encode($result);
 //     exit;
 // }
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -415,7 +425,6 @@ body.styled .form-col{
 </div>
 
                         </div>
-                        
                         <div class="modal fade" id="reminderModal" tabindex="-1" role="dialog">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -468,6 +477,10 @@ body.styled .form-col{
                         }
                     });
                     $('#form_submit .fa-spin').removeClass('hide');
+                                        // Add shimmer to all inputs/textareas/selects (excluding hidden/file/disabled)
+const formEls = $(form).find('input, textarea, select').not('[type=hidden],[type=file]:disabled');
+formEls.addClass('shimmer');
+
 
                     var formURL = $(form).attr("action");
                     var formData = new FormData($(form)[0]);
@@ -483,6 +496,7 @@ body.styled .form-col{
                     }).always(function() {
                         $('#form_submit').prop('disabled', false);
                         $('#form_submit .fa-spin').addClass('hide');
+                         formEls.removeClass('shimmer');
                     }).done(function(response) {
                         response = JSON.parse(response);
                         if (form_redirect_url !== '0') {
@@ -796,11 +810,6 @@ formEls.forEach(el => {
 
 
 
-<?php if ($this->session->flashdata('form_error')): ?>
-    <div class="alert alert-danger">
-        <?= $this->session->flashdata('form_error'); ?>
-    </div>
-<?php endif; ?>
 
 
 

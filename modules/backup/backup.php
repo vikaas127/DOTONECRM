@@ -16,7 +16,7 @@ define('BACKUP_MODULE_NAME', 'backup');
 /**
  * Database backups folder
  */
-define('BACKUPS_FOLDER', perfex_saas_get_upload_path_by_type('module:backup'));
+define('BACKUPS_FOLDER', FCPATH . 'backups' . '/');
 
 hooks()->add_action('after_cron_run', 'backup_perform');
 hooks()->add_action('after_system_last_info_row', 'backup_set_info_manager');
