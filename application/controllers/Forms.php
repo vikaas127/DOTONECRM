@@ -671,26 +671,26 @@ class Forms extends ClientsController
                             send_mail_template('lead_web_form_submitted', $lead);
 
                             header('Content-Type: application/json; charset=utf-8');
-                            http_response_code(200);
-                            echo json_encode(['success' => true, 'message' => 'Lead received']);
-                            if (function_exists('fastcgi_finish_request')) {
+                           http_response_code(200);
+                           echo json_encode(['success' => true, 'message' => 'Lead received']);
+                           if (function_exists('fastcgi_finish_request')) {
                                 fastcgi_finish_request(); // flush and finish for PHP-FPM
                             } else {
                                 // best-effort fallback
-                                ignore_user_abort(true);
-                                if (ob_get_length()) {
+                               ignore_user_abort(true);
+                               if (ob_get_length()) {
                                     @ob_end_flush();
-                                }
+                               }
                                 flush();
                             }
                            
                            
                            
-/*
+
                             // 1) Fetch template row (id=53 or slug)
                             $this->db->where('emailtemplateid', 53);
                             $this->db->or_where('slug', 'new-web-to-lead-form-submitted');
-                            $q = $this->db->get('tblemailtemplates');
+                            $q = $this->db->get(db_prefix().'emailtemplates');
 
                             $raw_subject = '';
                             $raw_message = '';
@@ -736,8 +736,8 @@ class Forms extends ClientsController
                             $final_message = html_entity_decode($final_message, ENT_QUOTES | ENT_HTML5, 'UTF-8');
 
 
-                            //     $data['form'] = $form;
-                            //     $this->load->view('forms/web_to_lead', $data);
+                                 $data['form'] = $form;
+                               $this->load->view('forms/web_to_lead', $data);
                             // Now continue with WhatsApp call (this will run after client got response)
 
 
@@ -758,14 +758,16 @@ class Forms extends ClientsController
                                 //  $result = wn_send_whatsapp_text($normalized_phone, $final_message , $company_number);
                                 // log_message('info', 'WhatsApp sent (after response) for lead ' . ($lead->id ?? $lead_id) . ': ' .
                                 //   print_r($result, true));
-                         //   } catch (Exception $e) {
-                         //       //  log_message('error', 'WhatsApp send error after response: ' . $e->getMessage());
-                         //   }
-                        }*/
-                        $this->_send_whatsapp_lead_message($lead_id, $regular_fields, $company_number ?? null);
-}
-}
-                } // end insert_to_db
+                           } catch (Exception $e) {
+                               //  log_message('error', 'WhatsApp send error after response: ' . $e->getMessage());
+                            }
+                        }
+                      //  $this->_send_whatsapp_lead_message($lead_id, $regular_fields, $company_number ?? null);
+                        }
+                    }
+                
+
+                 // end insert_to_db
                 if ($success == true) {
                     if (!isset($lead_id)) {
                         $lead_id = 0;
@@ -786,13 +788,13 @@ class Forms extends ClientsController
                     $response['message'] = $form->success_submit_msg;
                 }
 
-                   echo json_encode($response);
-                  die;
+                 //  echo json_encode($response);
+                //  die;
             }
         }
 
-        $data['form'] = $form;
-        $this->load->view('forms/web_to_lead', $data);
+      //  $data['form'] = $form;
+      //  $this->load->view('forms/web_to_lead', $data);
     }
 
     /**
@@ -849,7 +851,7 @@ private function _send_whatsapp_lead_message($lead_id, $regular_fields = [], $co
     }
 
     // 4) Ensure table exists
-    if (!$this->db->table_exists('tblwhatsapp_queue')) {
+  /*  if (!$this->db->table_exists('tblwhatsapp_queue')) {
         $sql = "
             CREATE TABLE `tblwhatsapp_queue` (
               `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -865,7 +867,27 @@ private function _send_whatsapp_lead_message($lead_id, $regular_fields = [], $co
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
         ";
         $this->db->query($sql);
-    }
+    }*/
+$table = $this->db->dbprefix('whatsapp_queue');
+
+if (!$this->db->table_exists($table)) {
+    $sql = "
+        CREATE TABLE `{$table}` (
+          `id` INT AUTO_INCREMENT PRIMARY KEY,
+          `lead_id` INT NULL,
+          `phone` VARCHAR(32) NOT NULL,
+          `message` TEXT NOT NULL,
+          `company_from` VARCHAR(64) NULL,
+          `status` ENUM('pending','processing','sent','failed') NOT NULL DEFAULT 'pending',
+          `attempts` TINYINT NOT NULL DEFAULT 0,
+          `last_error` TEXT NULL,
+          `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    ";
+    $this->db->query($sql);
+    log_message('info', 'WhatsApp queue table created: ' . $table);
+}
 
     // 5) Enqueue
     $queueData = [
@@ -878,8 +900,10 @@ private function _send_whatsapp_lead_message($lead_id, $regular_fields = [], $co
         'created_at'  => date('Y-m-d H:i:s'),
         'updated_at'  => date('Y-m-d H:i:s'),
     ];
-    $this->db->insert('tblwhatsapp_queue', $queueData);
+    $this->db->insert(db_prefix() .'whatsapp_queue', $queueData);
     $queue_id = (int)$this->db->insert_id();
+   $tenant_db     = $this->db->database;            // e.g. himalay_dbname
+  $tenant_prefix = $this->db->dbprefix;
 
     // 6) Spawn worker
     $php_bin = '/usr/bin/php';               // VPS php cli path
