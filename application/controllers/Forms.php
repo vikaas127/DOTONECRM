@@ -4,6 +4,13 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 class Forms extends ClientsController
 {
+    public function __construct()
+    {
+        parent::__construct(); // call parent constructor if needed
+
+        $CI = &get_instance();
+        $CI->load->helper('wnotication'); // helper name should be in quotes
+    }
     public function index()
     {
         show_404();
@@ -46,9 +53,9 @@ class Forms extends ClientsController
                     if (isset($field->name)) {
                         if ($field->name == 'file-input') {
                             $submission[] = [
-                            'label' => $field->label,
-                            'name'  => $field->name,
-                            'value' => null,
+                                'label' => $field->label,
+                                'name'  => $field->name,
+                                'value' => null,
                             ];
 
                             continue;
@@ -56,9 +63,9 @@ class Forms extends ClientsController
 
                         if (!isset($post_data[$field->name])) {
                             $submission[] = [
-                            'label' => property_exists($field, 'label') ? $field->label : $field->name,
-                            'name'  => $field->name,
-                            'value' => '',
+                                'label' => property_exists($field, 'label') ? $field->label : $field->name,
+                                'name'  => $field->name,
+                                'value' => '',
                             ];
 
                             continue;
@@ -145,7 +152,8 @@ class Forms extends ClientsController
 
                 if (show_recaptcha() && $form->recaptcha == 1) {
                     if (!do_recaptcha_validation($post_data['g-recaptcha-response'])) {
-                        echo json_encode(['success' => false,
+                        echo json_encode([
+                            'success' => false,
                             'message'               => _l('recaptcha_error'),
                         ]);
                         die;
@@ -192,7 +200,7 @@ class Forms extends ClientsController
 
                             if (is_array($ids) && count($ids) > 0) {
                                 $this->db->where('active', 1)
-                                ->where_in($form->notify_type == 'specific_staff' ? 'staffid' : 'role', $ids);
+                                    ->where_in($form->notify_type == 'specific_staff' ? 'staffid' : 'role', $ids);
 
                                 $staff = $this->db->get(db_prefix() . 'staff')->result_array();
                             }
@@ -209,15 +217,15 @@ class Forms extends ClientsController
 
                         foreach ($staff as $member) {
                             if (add_notification([
-                                    'description' => 'new_estimate_request_submitted_from_form',
-                                    'touserid' => $member['staffid'],
-                                    'fromcompany' => 1,
-                                    'fromuserid' => 0,
-                                    'additional_data' => serialize([
-                                        $form->name,
-                                    ]),
-                                    'link' => 'estimate_request/view/' . $estimate_request_id,
-                                ])) {
+                                'description' => 'new_estimate_request_submitted_from_form',
+                                'touserid' => $member['staffid'],
+                                'fromcompany' => 1,
+                                'fromuserid' => 0,
+                                'additional_data' => serialize([
+                                    $form->name,
+                                ]),
+                                'link' => 'estimate_request/view/' . $estimate_request_id,
+                            ])) {
                                 array_push($notifiedUsers, $member['staffid']);
                             }
 
@@ -260,7 +268,54 @@ class Forms extends ClientsController
      * User no need to see anything like LEAD in the url, this is the reason the method is named wtl
      * @param  string $key web to lead form key identifier
      * @return mixed
+
      */
+    /**
+     * Ensure Indian phone number has '91' prefix before 10-digit number.
+     * Returns normalized number like: 91XXXXXXXXXX or null if invalid.
+     *
+     * @param string|null $rawPhone
+     * @return string|null
+     */
+    function normalize_indian_phone($rawPhone)
+    {
+        if (empty($rawPhone)) {
+            return null;
+        }
+
+        // Remove everything except digits
+        $digits = preg_replace('/\D+/', '', $rawPhone);
+
+        // If number starts with '0' and then 10 digits (01123456789 -> remove leading 0)
+        if (strlen($digits) === 11 && $digits[0] === '0') {
+            $digits = substr($digits, 1); // now 10 digits
+        }
+
+        // If exactly 10 digits -> add '91'
+        if (strlen($digits) === 10) {
+            return '91' . $digits;
+        }
+
+        // If already starts with '91' and followed by 10 digits -> ok
+        if (preg_match('/^91\d{10}$/', $digits)) {
+            return $digits;
+        }
+
+        // If starts with '0091' (international dialing) -> convert 0091XXXXXXXXXX -> 91XXXXXXXXXX
+        if (preg_match('/^0091\d{10}$/', $digits)) {
+            return substr($digits, 2); // drop leading '00'
+        }
+
+        // If starts with '+' was stripped to digits already; handle '+91...' case above because + removed
+        // Fallback: if length > 12 but ends with last 10 digits look valid, you could attempt to take last 10:
+        if (strlen($digits) > 12 && preg_match('/(\d{10})$/', $digits, $m)) {
+            return '91' . $m[1];
+        }
+
+        // Otherwise invalid / unsupported format
+        return null;
+    }
+
     public function wtl($key)
     {
         $this->load->model('leads_model');
@@ -277,10 +332,10 @@ class Forms extends ClientsController
         $GLOBALS['locale'] = get_locale_key($form->language);
 
         $data['form_fields'] = $form->form_data ? json_decode($form->form_data) : [];
- $data['members'] = $this->staff_model->get('', [
-        'active'       => 1,
-        'is_not_staff' => 0,
-    ]);
+        $data['members'] = $this->staff_model->get('', [
+            'active'       => 1,
+            'is_not_staff' => 0,
+        ]);
 
         if ($this->input->post('key')) {
             if ($this->input->post('key') == $key) {
@@ -463,6 +518,16 @@ class Forms extends ClientsController
                                     hooks()->do_action('after_add_task', $task_id);
                                     if ($duplicateLead && $duplicateLead->email != '') {
                                         send_mail_template('lead_web_form_submitted', $duplicateLead);
+                                        echo json_encode([
+                'success' => false,
+                'message' => 'This email already exists in our system.'
+            ]);
+            $this->session->set_flashdata('form_error', 'This email already exists in our system.');
+
+        // Redirect back to the form page
+        redirect($_SERVER['HTTP_REFERER'] ?? site_url('forms/web_to_lead'));
+        return;
+                                      //  die();
                                     }
                                 }
                             }
@@ -485,58 +550,58 @@ class Forms extends ClientsController
                     $regular_fields['is_public']    = $form->mark_public;
                     $this->db->insert(db_prefix() . 'leads', $regular_fields);
                     $lead_id = $this->db->insert_id();
-if ($lead_id) {
-    $reminder_date        = $this->input->post('reminder_date');
-    $reminder_description = $this->input->post('reminder_description');
-    $reminder_staff       = $this->input->post('reminder_staff');
-    $notify_by_email      = $this->input->post('notify_by_email') ? 1 : 0;
+                    if ($lead_id) {
+                        $reminder_date        = $this->input->post('reminder_date');
+                        $reminder_description = $this->input->post('reminder_description');
+                        $reminder_staff       = $this->input->post('reminder_staff');
+                        $notify_by_email      = $this->input->post('notify_by_email') ? 1 : 0;
 
-    // Log received POST values
-    log_message('info', 'Received Reminder Data: ' . print_r([
-        'reminder_date'        => $reminder_date,
-        'reminder_description' => $reminder_description,
-        'reminder_staff'       => $reminder_staff,
-        'notify_by_email'      => $notify_by_email,
-    ], true));
+                        // Log received POST values
+                        log_message('info', 'Received Reminder Data: ' . print_r([
+                            'reminder_date'        => $reminder_date,
+                            'reminder_description' => $reminder_description,
+                            'reminder_staff'       => $reminder_staff,
+                            'notify_by_email'      => $notify_by_email,
+                        ], true));
 
-    if ($reminder_date && $reminder_staff) {
-        $this->load->model('misc_model');
+                        if ($reminder_date && $reminder_staff) {
+                            $this->load->model('misc_model');
 
-        // Prepare reminder data
-        $reminder_data = [
-            'description'      => nl2br($reminder_description),
-            'date'             => to_sql_date($reminder_date, true), // convert to SQL datetime
-            'staff'            => $reminder_staff,
-            'rel_type'         => 'lead',
-            'notify_by_email'  => $notify_by_email,
-        ];
+                            // Prepare reminder data
+                            $reminder_data = [
+                                'description'      => nl2br($reminder_description),
+                                'date'             => to_sql_date($reminder_date, true), // convert to SQL datetime
+                                'staff'            => $reminder_staff,
+                                'rel_type'         => 'lead',
+                                'notify_by_email'  => $notify_by_email,
+                            ];
 
-        // Insert reminder into DB
-        $this->db->insert(db_prefix() . 'reminders', array_merge($reminder_data, [
-            'rel_id'  => $lead_id,
-            'creator' => get_staff_user_id(),
-        ]));
+                            // Insert reminder into DB
+                            $this->db->insert(db_prefix() . 'reminders', array_merge($reminder_data, [
+                                'rel_id'  => $lead_id,
+                                'creator' => get_staff_user_id(),
+                            ]));
 
-        $reminder_id = $this->db->insert_id();
+                            $reminder_id = $this->db->insert_id();
 
-        if ($reminder_id) {
-            log_message('info', 'Reminder added for Lead ID ' . $lead_id . ' on ' . $reminder_data['date'] . ' (Reminder ID: ' . $reminder_id . ')');
+                            if ($reminder_id) {
+                                log_message('info', 'Reminder added for Lead ID ' . $lead_id . ' on ' . $reminder_data['date'] . ' (Reminder ID: ' . $reminder_id . ')');
 
-            // Log lead activity (Perfex CRM style)
-            $this->leads_model->log_lead_activity(
-                $lead_id,
-                'not_activity_new_reminder_created',
-                false,
-                serialize([
-                    get_staff_full_name($reminder_staff),
-                    _dt($reminder_data['date']),
-                ])
-            );
-        } else {
-            log_message('error', 'Failed to add reminder for Lead ID ' . $lead_id);
-        }
-    }
-}
+                                // Log lead activity (Perfex CRM style)
+                                $this->leads_model->log_lead_activity(
+                                    $lead_id,
+                                    'not_activity_new_reminder_created',
+                                    false,
+                                    serialize([
+                                        get_staff_full_name($reminder_staff),
+                                        _dt($reminder_data['date']),
+                                    ])
+                                );
+                            } else {
+                                log_message('error', 'Failed to add reminder for Lead ID ' . $lead_id);
+                            }
+                        }
+                    }
 
 
 
@@ -572,29 +637,29 @@ if ($lead_id) {
 
                                 if (is_array($ids) && count($ids) > 0) {
                                     $this->db->where('active', 1)
-                                    ->where_in($form->notify_type == 'specific_staff' ? 'staffid' : 'role', $ids);
+                                        ->where_in($form->notify_type == 'specific_staff' ? 'staffid' : 'role', $ids);
                                     $staff = $this->db->get(db_prefix() . 'staff')->result_array();
                                 }
                             } elseif ($form->responsible) {
                                 $staff = [
-                                [
-                                    'staffid' => $form->responsible,
-                                ],
-                            ];
+                                    [
+                                        'staffid' => $form->responsible,
+                                    ],
+                                ];
                             }
 
                             $notifiedUsers = [];
                             foreach ($staff as $member) {
                                 if (add_notification([
-                                        'description' => 'not_lead_imported_from_form',
-                                        'touserid' => $member['staffid'],
-                                        'fromcompany' => 1,
-                                        'fromuserid' => 0,
-                                        'additional_data' => serialize([
-                                            $form->name,
-                                        ]),
-                                        'link' => '#leadid=' . $lead_id,
-                                    ])) {
+                                    'description' => 'not_lead_imported_from_form',
+                                    'touserid' => $member['staffid'],
+                                    'fromcompany' => 1,
+                                    'fromuserid' => 0,
+                                    'additional_data' => serialize([
+                                        $form->name,
+                                    ]),
+                                    'link' => '#leadid=' . $lead_id,
+                                ])) {
                                     array_push($notifiedUsers, $member['staffid']);
                                 }
                             }
@@ -604,8 +669,102 @@ if ($lead_id) {
                         if (isset($regular_fields['email']) && $regular_fields['email'] != '') {
                             $lead = $this->leads_model->get($lead_id);
                             send_mail_template('lead_web_form_submitted', $lead);
+
+                            header('Content-Type: application/json; charset=utf-8');
+                            http_response_code(200);
+                            echo json_encode(['success' => true, 'message' => 'Lead received']);
+                            if (function_exists('fastcgi_finish_request')) {
+                                fastcgi_finish_request(); // flush and finish for PHP-FPM
+                            } else {
+                                // best-effort fallback
+                                ignore_user_abort(true);
+                                if (ob_get_length()) {
+                                    @ob_end_flush();
+                                }
+                                flush();
+                            }
+                           
+                           
+                           
+
+                            // 1) Fetch template row (id=53 or slug)
+                            $this->db->where('emailtemplateid', 53);
+                            $this->db->or_where('slug', 'new-web-to-lead-form-submitted');
+                            $q = $this->db->get('tblemailtemplates');
+
+                            $raw_subject = '';
+                            $raw_message = '';
+
+                            if ($q && $q->num_rows() > 0) {
+                                $row = $q->row();
+                                // adjust property names if your table uses different columns
+                                $raw_subject = isset($row->subject) ? $row->subject : (isset($row->template_subject) ? $row->template_subject : '');
+                                $raw_message = isset($row->message) ? $row->message : (isset($row->template) ? $row->template : '');
+                            }
+
+                            // fallback message if DB template not present
+                            if (trim($raw_message) === '') {
+                                $raw_message = "Hello {name},\n\nYour request has been received.\n\nWe will contact you soon.\n\n--\nDOT ONE ERP System\nAutomated Notification Service\n📧 no-reply@techdotbit.in\n🌐 http://www.techdotbit.in";
+                            }
+
+                            // 2) Prepare replacements using $regular_fields and $lead
+                            $replacements = [
+                                '{lead_name}'      => !empty($regular_fields['name']) ? $regular_fields['name'] : (!empty($lead->name) ? $lead->name : 'Customer'),
+                                '{firstname}' => $regular_fields['firstname'] ?? ($lead->firstname ?? ''),
+                                '{lastname}'  => $regular_fields['lastname'] ?? ($lead->lastname ?? ''),
+                                '{email}'     => $regular_fields['email'] ?? ($lead->email ?? ''),
+                                '{phone}'     => $regular_fields['phone'] ?? ($lead->phone ?? ($lead->phonenumber ?? ($regular_fields['phone_number'] ?? ''))),
+                                '{company}'   => $regular_fields['company'] ?? ($lead->company ?? ''),
+                                '{lead_id}'   => $lead->id ?? $lead->leadid ?? $lead_id,
+                            ];
+
+                            // flatten replacements to strings
+                            foreach ($replacements as $k => $v) {
+                                if (is_array($v) || is_object($v)) {
+                                    $replacements[$k] = json_encode($v);
+                                } elseif ($v === null) {
+                                    $replacements[$k] = '';
+                                } else {
+                                    $replacements[$k] = (string) $v;
+                                }
+                            }
+
+                            // 3) Replace placeholders and convert HTML to plaintext
+                            $final_message = strtr($raw_message, $replacements);
+                            $final_message = preg_replace('/\<br(\s*)?\/?\>/i', "\n", $final_message);
+                            $final_message = strip_tags($final_message);
+                            $final_message = html_entity_decode($final_message, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+
+                            //     $data['form'] = $form;
+                            //     $this->load->view('forms/web_to_lead', $data);
+                            // Now continue with WhatsApp call (this will run after client got response)
+
+
+                            try {
+                                $phone_number_raw = isset($regular_fields['phonenumber']) ? $regular_fields['phonenumber'] : null;
+                                //   log_message('debug', 'Raw phone number: ' . $phone_number_raw); // e.
+                                $phone_number = $this->normalize_indian_phone($phone_number_raw);
+
+                                if ($phone_number) {
+                                    //   log_message('debug', 'Normalized phone: ' . $phone_number); // e.g. 919876543210
+                                    // send WhatsApp
+                                    $result = wn_send_whatsapp_text($phone_number, $final_message);
+                                    //  log_message('debug', 'WhatsApp send result: ' . print_r($result, true));
+                                } else {
+                                    //  log_message('warning', 'Invalid client phone: ' . $phone_number_raw);
+                                }
+
+                                //  $result = wn_send_whatsapp_text($normalized_phone, $final_message , $company_number);
+                                // log_message('info', 'WhatsApp sent (after response) for lead ' . ($lead->id ?? $lead_id) . ': ' .
+                                //   print_r($result, true));
+                            } catch (Exception $e) {
+                                  log_message('error', 'WhatsApp send error after response: ' . $e->getMessage());
+                           }
                         }
-                    }
+                     //   $this->_send_whatsapp_lead_message($lead_id, $regular_fields, $company_number ?? null);
+
+}
                 } // end insert_to_db
                 if ($success == true) {
                     if (!isset($lead_id)) {
@@ -627,8 +786,8 @@ if ($lead_id) {
                     $response['message'] = $form->success_submit_msg;
                 }
 
-                echo json_encode($response);
-                die;
+                   echo json_encode($response);
+                  die;
             }
         }
 
@@ -642,6 +801,133 @@ if ($lead_id) {
      * @param  string $hash lead unique identifier
      * @return mixed
      */
+
+private function _send_whatsapp_lead_message($lead_id, $regular_fields = [], $company_number = null)
+{
+    $lead = $this->leads_model->get($lead_id);
+
+    // 1) Fetch template (id=53 or slug)
+    $this->db->where('emailtemplateid', 53);
+    $this->db->or_where('slug', 'new-web-to-lead-form-submitted');
+    $q = $this->db->get(db_prefix().'emailtemplates');
+
+    $raw_message = '';
+    if ($q && $q->num_rows() > 0) {
+        $row = $q->row();
+        $raw_message = $row->message ?? $row->template ?? '';
+    }
+    if (trim($raw_message) === '') {
+        $raw_message = "Hello {name},\n\nYour request has been received.\n\nWe will contact you soon.\n\n--\nDOT ONE ERP System\nAutomated Notification Service\n📧 no-reply@techdotbit.in\n🌐 http://www.techdotbit.in";
+    }
+
+    // 2) Replacements
+    $replacements = [
+        '{lead_name}'      => $regular_fields['name'] ?? ($lead->name ?? 'Customer'),
+        '{firstname}' => $regular_fields['firstname'] ?? ($lead->firstname ?? ''),
+        '{lastname}'  => $regular_fields['lastname'] ?? ($lead->lastname ?? ''),
+        '{email}'     => $regular_fields['email'] ?? ($lead->email ?? ''),
+        '{phone}'     => $regular_fields['phone'] ?? ($lead->phone ?? ($lead->phonenumber ?? ($regular_fields['phone_number'] ?? ''))),
+        '{company}'   => $regular_fields['company'] ?? ($lead->company ?? ''),
+        '{lead_id}'   => $lead->id ?? $lead->leadid ?? $lead_id,
+    ];
+    foreach ($replacements as $k => $v) {
+        $replacements[$k] = (string)($v ?? '');
+    }
+
+    $final_message = strtr($raw_message, $replacements);
+    $final_message = preg_replace('/\<br(\s*)?\/?\>/i', "\n", $final_message);
+    $final_message = strip_tags($final_message);
+    $final_message = html_entity_decode($final_message, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+    // 3) Normalize phone
+    $phone_raw = $replacements['{phone}'] ?? '';
+    $normalized_phone = $this->_normalize_indian_phone($phone_raw);
+
+    if (!$normalized_phone || !$final_message) {
+        log_message('warning', 'WhatsApp not enqueued — invalid phone or empty message.');
+        return false;
+    }
+
+    // 4) Ensure table exists
+    if (!$this->db->table_exists('tblwhatsapp_queue')) {
+        $sql = "
+            CREATE TABLE `tblwhatsapp_queue` (
+              `id` INT AUTO_INCREMENT PRIMARY KEY,
+              `lead_id` INT NULL,
+              `phone` VARCHAR(32) NOT NULL,
+              `message` TEXT NOT NULL,
+              `company_from` VARCHAR(64) NULL,
+              `status` ENUM('pending','processing','sent','failed') NOT NULL DEFAULT 'pending',
+              `attempts` TINYINT NOT NULL DEFAULT 0,
+              `last_error` TEXT NULL,
+              `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        ";
+        $this->db->query($sql);
+    }
+
+    // 5) Enqueue
+    $queueData = [
+        'lead_id'     => $lead->id ?? $lead_id,
+        'phone'       => $normalized_phone,
+        'message'     => $final_message,
+        'company_from'=> $company_number,
+        'status'      => 'pending',
+        'attempts'    => 0,
+        'created_at'  => date('Y-m-d H:i:s'),
+        'updated_at'  => date('Y-m-d H:i:s'),
+    ];
+    $this->db->insert('tblwhatsapp_queue', $queueData);
+    $queue_id = (int)$this->db->insert_id();
+
+    // 6) Spawn worker
+    $php_bin = '/usr/bin/php';               // VPS php cli path
+    $index_php = '/var/www/html/index.php';  // project index.php path
+    $cmd = escapeshellcmd($php_bin . ' ' . $index_php . ' cron process_whatsapp_single ' . $queue_id);
+
+    $disabled = array_map('trim', explode(',', ini_get('disable_functions')));
+    $exec_allowed = function_exists('exec') && !in_array('exec', $disabled);
+
+    if ($exec_allowed) {
+        @exec($cmd . ' > /dev/null 2>&1 &');
+        log_message('info', 'Spawned WhatsApp worker queue_id=' . $queue_id);
+    } else {
+        $token = '46f332bac7c63c6dfe88e56dca96ad30792a11b861f2ce8dadb7b21733ed8139';
+        $url = 'http://127.0.0.1/index.php/cron/process_whatsapp_single/' . $queue_id . '?token=' . urlencode($token);
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT_MS, 100);
+        curl_setopt($ch, CURLOPT_TIMEOUT_MS, 200);
+        @curl_exec($ch);
+        @curl_close($ch);
+        log_message('info', 'Curl fallback used for queue_id=' . $queue_id);
+    }
+
+    return true;
+}
+
+private function _normalize_indian_phone($phone_raw)
+{
+    $digits = preg_replace('/\D+/', '', (string)$phone_raw);
+    if (strlen($digits) === 11 && $digits[0] === '0') {
+        $digits = substr($digits, 1);
+    }
+    if (strlen($digits) === 10) {
+        return '91' . $digits;
+    }
+    if (preg_match('/^91\d{10}$/', $digits)) {
+        return $digits;
+    }
+    if (preg_match('/^0091\d{10}$/', $digits)) {
+        return substr($digits, 2);
+    }
+    if (strlen($digits) > 12 && preg_match('/(\d{10})$/', $digits, $m)) {
+        return '91' . $m[1];
+    }
+    return null;
+}
+
     public function l($hash)
     {
         if (get_option('gdpr_enable_lead_public_form') == '0') {
