@@ -4,24 +4,13 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 class Cron extends App_Controller
 {
-    public function __construct()
-    {
-        parent::__construct();
 
-        // Ensure database is loaded for CLI calls (safe even if autoloaded)
-        if (!isset($this->db) || empty($this->db)) {
-            $this->load->database();
-        }
-//log_message('debug', 'Connected database: ' . $this->db->database);
-//log_message('debug', 'DB prefix: ' . $this->db->dbprefix(''));
-//log_message('debug', 'WhatsApp table (full): ' . $this->db->dbprefix('whatsapp_queue'));
-        // Load helper that contains wn_send_whatsapp_text()
-        // Adjust helper name if your helper file is called differently
-        $this->load->helper('wnotication');
 
-        // Optional: load models used by worker
-        $this->load->model('leads_model');
-    }
+    
+
+      
+      
+    
     public function index($key = '')
     {
         update_option('cron_has_run_from_cli', 1);
