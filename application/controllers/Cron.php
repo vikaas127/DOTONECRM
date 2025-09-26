@@ -40,16 +40,16 @@ class Cron extends App_Controller
 public function process_whatsapp_single($queue_id = 0, $tenant_db = '', $tenant_prefix = '')
 {
     // Ensure we have DB loaded for this controller
-    if (!isset($this->db) || empty($this->db)) {
-        $this->load->database();
-    }
+   
+   
+   
 
     // Accept args from CLI or URL segments if not provided as method params
     // (CI passes additional URI segments as method args when called via CLI or HTTP)
     $queue_id = (int)$queue_id;
     $tenant_db = (string)$tenant_db;
     $tenant_prefix = (string)$tenant_prefix;
-
+log_message('debug', 'process_whatsapp_single: prefix '.$tenant_db.' prefix='.$tenant_prefix);
     // If called via HTTP (curl fallback), token is passed in GET
     $is_cli = $this->input->is_cli_request();
     if ($is_cli) {

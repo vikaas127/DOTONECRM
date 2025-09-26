@@ -789,7 +789,7 @@ $final_message = implode("\n", $clean_lines);
 // $final_message = preg_replace("/\n{3,}/", "\n\n", $final_message);
 
 // final trim
-$final_message = trim($final_message);
+ //$final_message = trim($final_message);
 
 // now $final_message is ready to send to WhatsApp
 
@@ -803,27 +803,27 @@ $final_message = trim($final_message);
                             // Now continue with WhatsApp call (this will run after client got response)
 
 
-                            try {
-                                $phone_number_raw = isset($regular_fields['phonenumber']) ? $regular_fields['phonenumber'] : null;
+                        //    try {
+                           //     $phone_number_raw = isset($regular_fields['phonenumber']) ? $regular_fields['phonenumber'] : null;
                                 //   log_message('debug', 'Raw phone number: ' . $phone_number_raw); // e.
-                                $phone_number = $this->normalize_indian_phone($phone_number_raw);
+                            //    $phone_number = $this->normalize_indian_phone($phone_number_raw);
 
-                                if ($phone_number) {
+                              //  if ($phone_number) {
                                     //   log_message('debug', 'Normalized phone: ' . $phone_number); // e.g. 919876543210
                                     // send WhatsApp
-                                    $result = wn_send_whatsapp_text($phone_number, $final_message);
+                           //         $result = wn_send_whatsapp_text($phone_number, $final_message);
                                     //  log_message('debug', 'WhatsApp send result: ' . print_r($result, true));
-                                } else {
+                            //    } else {
                                     //  log_message('warning', 'Invalid client phone: ' . $phone_number_raw);
-                                }
+                             //   }
 
                                 //  $result = wn_send_whatsapp_text($normalized_phone, $final_message , $company_number);
                                 // log_message('info', 'WhatsApp sent (after response) for lead ' . ($lead->id ?? $lead_id) . ': ' .
                                 //   print_r($result, true));
-                            } catch (Exception $e) {
-                                  log_message('error', 'WhatsApp send error after response: ' . $e->getMessage());
-                           }
-                        }
+                         //   } catch (Exception $e) {
+                          //        log_message('error', 'WhatsApp send error after response: ' . $e->getMessage());
+                        //   }
+                      //  }
                        $this->_send_whatsapp_lead_message($lead_id, $regular_fields, $company_number ?? null);
 
 }
@@ -848,11 +848,11 @@ $final_message = trim($final_message);
                     $response['message'] = $form->success_submit_msg;
                 }
 
-                   echo json_encode($response);
+                 //  echo json_encode($response);
                   die;
             }
         }
-
+    }
         $data['form'] = $form;
         $this->load->view('forms/web_to_lead', $data);
     }
