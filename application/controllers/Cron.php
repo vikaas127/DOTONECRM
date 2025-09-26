@@ -42,14 +42,53 @@ public function process_whatsapp_single($queue_id = 0, $tenant_db = '', $tenant_
     // Ensure we have DB loaded for this controller
    
    
-   
+   $queue_id      = (int) $queue_id;
+$tenant_db     = (string) $tenant_db;
+$tenant_prefix = (string) $tenant_prefix;
+
+log_message('debug', 'process_whatsapp_single: db='.$tenant_db.' prefix='.$tenant_prefix.' id='.$queue_id);
+
+$expected_token = '46f332bac7c63c6dfe88e56dca96ad30792a11b861f2ce8dadb7b21733ed8139';
+
+$is_cli = $this->input->is_cli_request();
+if ($is_cli) {
+    // CLI path — token must be the LAST argv
+    $argv = (array) $this->input->server('argv');
+
+    // Expect: 0=index.php 1=cron 2=process_whatsapp_single 3=queue 4=db 5=prefix 6=token
+    if (count($argv) < 7) {
+        log_message('error', 'process_whatsapp_single: missing CLI params. ARGV=' . print_r($argv, true));
+        return;
+    }
+
+    // Safely rebind params from argv (avoid surprises if invoked differently)
+    $queue_id      = (int)($argv[3] ?? $queue_id);
+    $tenant_db     = (string)($argv[4] ?? $tenant_db);
+    $tenant_prefix = (string)($argv[5] ?? $tenant_prefix);
+
+    $possible_token = trim((string) end($argv));
+    if (!hash_equals($expected_token, $possible_token)) {
+        log_message('error', 'process_whatsapp_single: invalid token in CLI. got='.$possible_token.' expected='.$expected_token.' ARGV=' . print_r($argv, true));
+        return;
+    }
+} else {
+    // HTTP fallback — require loopback + token in GET
+    $token     = (string) $this->input->get('token', true);
+    $remote_ip = $this->input->ip_address();
+    if (!hash_equals($expected_token, $token) || !in_array($remote_ip, ['127.0.0.1','::1'], true)) {
+        show_error('Forbidden', 403);
+        return;
+    }
+}
+
 
     // Accept args from CLI or URL segments if not provided as method params
     // (CI passes additional URI segments as method args when called via CLI or HTTP)
+  /*
     $queue_id = (int)$queue_id;
     $tenant_db = (string)$tenant_db;
     $tenant_prefix = (string)$tenant_prefix;
-log_message('debug', 'process_whatsapp_single: prefix '.$tenant_db.' prefix='.$tenant_prefix);
+    log_message('debug', 'process_whatsapp_single: prefix '.$tenant_db.' prefix='.$tenant_prefix .' id='.$queue_id);
     // If called via HTTP (curl fallback), token is passed in GET
     $is_cli = $this->input->is_cli_request();
     if ($is_cli) {
@@ -79,6 +118,7 @@ log_message('debug', 'process_whatsapp_single: prefix '.$tenant_db.' prefix='.$t
             return;
         }
     }
+    */
 
     if ($queue_id <= 0 || $tenant_db === '') {
         log_message('error', 'process_whatsapp_single: invalid args. queue_id=' . $queue_id . ' tenant_db=' . $tenant_db);
