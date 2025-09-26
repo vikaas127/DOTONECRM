@@ -720,6 +720,8 @@ public function get_subgroups_by_groups() {
 		$data['taxes'] = get_taxes();
 		$data['styles'] = $this->warehouse_model->get_style_add_commodity();
 		$data['models'] = $this->warehouse_model->get_body_add_commodity();
+		$data['paperworks'] = $this->warehouse_model->get_paperwork_add_commodity();
+
 		$data['sizes'] = $this->warehouse_model->get_size_add_commodity();
 		$data['customer_groups'] = $this->client_groups_model->get_groups();
 
