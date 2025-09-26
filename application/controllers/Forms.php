@@ -684,13 +684,14 @@ class Forms extends ClientsController
                                 flush();
                             }
                            
-                           
+               /*            
                            
 
                             // 1) Fetch template row (id=53 or slug)
+
                             $this->db->where('emailtemplateid', 53);
                             $this->db->or_where('slug', 'new-web-to-lead-form-submitted');
-                            $q = $this->db->get('tblemailtemplates');
+                            $q = $this->db->get(db_prefix().'emailtemplates');
 
                             $raw_subject = '';
                             $raw_message = '';
@@ -731,9 +732,72 @@ class Forms extends ClientsController
 
                             // 3) Replace placeholders and convert HTML to plaintext
                             $final_message = strtr($raw_message, $replacements);
-                            $final_message = preg_replace('/\<br(\s*)?\/?\>/i', "\n", $final_message);
-                            $final_message = strip_tags($final_message);
-                            $final_message = html_entity_decode($final_message, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                            // ... your existing code up to $final_message = strtr($raw_message, $replacements);
+$final_message = strtr($raw_message, $replacements);
+
+// Convert some common HTML constructs to newlines (use lowercase-insensitive regex)
+$replace_blocks = [
+    // closing block tags and list items -> add newline
+    '~</(p|div|h[1-6]|li|tr|table|blockquote|section|article|header|footer|aside|nav)[^>]*>~i' => "\n",
+    // opening/closing list/table tags -> newline
+    '~<(br|br\s
+  //  |/p|/div|/li|/tr|/table)[^>]*>~i' => "\n",
+    // replace <li> with a dash + space (optional)
+    '~<li[^>]*>~i' => "- ",
+];
+
+// run replacements
+$final_message = preg_replace(array_keys($replace_blocks), array_values($replace_blocks), $final_message);
+
+// replace non-breaking spaces and other unicode spaces with normal space
+$final_message = str_replace(["\xc2\xa0", "&nbsp;"], ' ', $final_message);
+
+// replace any remaining <br> forms just in case
+$final_message = preg_replace('/\<br(\s*)?\/?\>/i', "\n", $final_message);
+
+// remove all tags now
+$final_message = strip_tags($final_message);
+
+// decode HTML entities
+$final_message = html_entity_decode($final_message, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+// normalize CRLF to LF
+$final_message = str_replace(["\r\n", "\r"], "\n", $final_message);
+
+// trim each line and remove trailing spaces
+$lines = explode("\n", $final_message);
+$lines = array_map('trim', $lines);
+
+// remove empty lines at start/end
+while (!empty($lines) && $lines[0] === '') { array_shift($lines); }
+while (!empty($lines) && end($lines) === '') { array_pop($lines); }
+
+// collapse multiple consecutive empty lines into a single empty line
+$clean_lines = [];
+$prev_empty = false;
+foreach ($lines as $ln) {
+    $is_empty = ($ln === '');
+    if ($is_empty && $prev_empty) {
+        // skip extra empty line
+        continue;
+    }
+    $clean_lines[] = $ln;
+    $prev_empty = $is_empty;
+}
+
+$final_message = implode("\n", $clean_lines);
+*/
+// Optionally, limit to maximum 2 consecutive newlines instead:
+// $final_message = preg_replace("/\n{3,}/", "\n\n", $final_message);
+
+// final trim
+ //$final_message = trim($final_message);
+
+// now $final_message is ready to send to WhatsApp
+
+                      //      $final_message = preg_replace('/\<br(\s*)?\/?\>/i', "\n", $final_message);
+                       //     $final_message = strip_tags($final_message);
+                       //     $final_message = html_entity_decode($final_message, ENT_QUOTES | ENT_HTML5, 'UTF-8');
 
 
                             //     $data['form'] = $form;
@@ -741,28 +805,28 @@ class Forms extends ClientsController
                             // Now continue with WhatsApp call (this will run after client got response)
 
 
-                            try {
-                                $phone_number_raw = isset($regular_fields['phonenumber']) ? $regular_fields['phonenumber'] : null;
+                        //    try {
+                           //     $phone_number_raw = isset($regular_fields['phonenumber']) ? $regular_fields['phonenumber'] : null;
                                 //   log_message('debug', 'Raw phone number: ' . $phone_number_raw); // e.
-                                $phone_number = $this->normalize_indian_phone($phone_number_raw);
+                            //    $phone_number = $this->normalize_indian_phone($phone_number_raw);
 
-                                if ($phone_number) {
+                              //  if ($phone_number) {
                                     //   log_message('debug', 'Normalized phone: ' . $phone_number); // e.g. 919876543210
                                     // send WhatsApp
-                                    $result = wn_send_whatsapp_text($phone_number, $final_message);
+                           //         $result = wn_send_whatsapp_text($phone_number, $final_message);
                                     //  log_message('debug', 'WhatsApp send result: ' . print_r($result, true));
-                                } else {
+                            //    } else {
                                     //  log_message('warning', 'Invalid client phone: ' . $phone_number_raw);
-                                }
+                             //   }
 
                                 //  $result = wn_send_whatsapp_text($normalized_phone, $final_message , $company_number);
                                 // log_message('info', 'WhatsApp sent (after response) for lead ' . ($lead->id ?? $lead_id) . ': ' .
                                 //   print_r($result, true));
-                            } catch (Exception $e) {
-                                  log_message('error', 'WhatsApp send error after response: ' . $e->getMessage());
-                           }
-                        }
-                     //   $this->_send_whatsapp_lead_message($lead_id, $regular_fields, $company_number ?? null);
+                         //   } catch (Exception $e) {
+                          //        log_message('error', 'WhatsApp send error after response: ' . $e->getMessage());
+                        //   }
+                      //  }
+                       $this->_send_whatsapp_lead_message($lead_id, $regular_fields, $company_number ?? null);
 
 }
                 } // end insert_to_db
@@ -786,11 +850,11 @@ class Forms extends ClientsController
                     $response['message'] = $form->success_submit_msg;
                 }
 
-                   echo json_encode($response);
+                 //  echo json_encode($response);
                   die;
             }
         }
-
+    }
         $data['form'] = $form;
         $this->load->view('forms/web_to_lead', $data);
     }
@@ -801,7 +865,7 @@ class Forms extends ClientsController
      * @param  string $hash lead unique identifier
      * @return mixed
      */
-
+/*
 private function _send_whatsapp_lead_message($lead_id, $regular_fields = [], $company_number = null)
 {
     $lead = $this->leads_model->get($lead_id);
@@ -849,9 +913,9 @@ private function _send_whatsapp_lead_message($lead_id, $regular_fields = [], $co
     }
 
     // 4) Ensure table exists
-    if (!$this->db->table_exists('tblwhatsapp_queue')) {
+    if (!$this->db->table_exists(db_prefix().'whatsapp_queue')) {
         $sql = "
-            CREATE TABLE `tblwhatsapp_queue` (
+            CREATE TABLE `".db_prefix()."whatsapp_queue` (
               `id` INT AUTO_INCREMENT PRIMARY KEY,
               `lead_id` INT NULL,
               `phone` VARCHAR(32) NOT NULL,
@@ -878,14 +942,15 @@ private function _send_whatsapp_lead_message($lead_id, $regular_fields = [], $co
         'created_at'  => date('Y-m-d H:i:s'),
         'updated_at'  => date('Y-m-d H:i:s'),
     ];
-    $this->db->insert('tblwhatsapp_queue', $queueData);
+    $this->db->insert(db_prefix().'whatsapp_queue', $queueData);
     $queue_id = (int)$this->db->insert_id();
-
+ $tenant_db     = $this->db->database;
+    $tenant_prefix = $this->db->dbprefix;
     // 6) Spawn worker
     $php_bin = '/usr/bin/php';               // VPS php cli path
     $index_php = '/var/www/html/index.php';  // project index.php path
-    $cmd = escapeshellcmd($php_bin . ' ' . $index_php . ' cron process_whatsapp_single ' . $queue_id);
-
+   // $cmd = escapeshellcmd($php_bin . ' ' . $index_php . ' cron process_whatsapp_single ' . $queue_id);
+ $cmd = escapeshellcmd($php_bin . ' ' . $index_php . ' cron process_whatsapp_single ' .  $queue_id . ' ' . escapeshellarg($tenant_db) . ' ' . escapeshellarg($tenant_prefix));
     $disabled = array_map('trim', explode(',', ini_get('disable_functions')));
     $exec_allowed = function_exists('exec') && !in_array('exec', $disabled);
 
@@ -902,6 +967,138 @@ private function _send_whatsapp_lead_message($lead_id, $regular_fields = [], $co
         @curl_exec($ch);
         @curl_close($ch);
         log_message('info', 'Curl fallback used for queue_id=' . $queue_id);
+    }
+
+    return true;
+}*/
+private function _send_whatsapp_lead_message($lead_id, $regular_fields = [], $company_number = null)
+{
+    $lead = $this->leads_model->get($lead_id);
+
+    // 1) Fetch template (id=53 or slug)
+    $this->db->group_start()
+        ->where('emailtemplateid', 53)
+        ->or_where('slug', 'new-web-to-lead-form-submitted')
+    ->group_end();
+    $q = $this->db->get(db_prefix().'emailtemplates');
+
+    $raw_message = '';
+    if ($q && $q->num_rows() > 0) {
+        $row = $q->row();
+        $raw_message = (string)($row->message ?? $row->template ?? '');
+    }
+    if (trim($raw_message) === '') {
+        $raw_message = "Hello {lead_name},\n\nYour request has been received.\n\nWe will contact you soon.\n\n--\nDOT ONE ERP System\nAutomated Notification";
+    }
+
+    // 2) Replacements
+    $replacements = [
+        '{lead_name}' => $regular_fields['name'] ?? ($lead->name ?? 'Customer'),
+        '{firstname}' => $regular_fields['firstname'] ?? ($lead->firstname ?? ''),
+        '{lastname}'  => $regular_fields['lastname']  ?? ($lead->lastname  ?? ''),
+        '{email}'     => $regular_fields['email']     ?? ($lead->email     ?? ''),
+        '{phone}'     => $regular_fields['phone']
+                          ?? ($lead->phone ?? ($lead->phonenumber ?? ($regular_fields['phone_number'] ?? ''))),
+        '{company}'   => $regular_fields['company']   ?? ($lead->company   ?? ''),
+        '{lead_id}'   => $lead->id ?? $lead->leadid ?? $lead_id,
+    ];
+    foreach ($replacements as $k => $v) {
+        $replacements[$k] = (string)($v ?? '');
+    }
+
+    $final_message = strtr($raw_message, $replacements);
+    $final_message = preg_replace('/<br\s*\/?>/i', "\n", $final_message);
+    $final_message = strip_tags($final_message);
+    $final_message = html_entity_decode($final_message, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+    // 3) Normalize phone
+    $phone_raw        = $replacements['{phone}'] ?? '';
+    $normalized_phone = $this->_normalize_indian_phone($phone_raw);
+
+    if (!$normalized_phone || $final_message === '') {
+        log_message('warning', 'WhatsApp not enqueued — invalid phone or empty message. phone_raw='.$phone_raw);
+        return false;
+    }
+
+    // 4) Ensure table exists
+    if (!$this->db->table_exists(db_prefix().'whatsapp_queue')) {
+        $sql = "
+            CREATE TABLE `".db_prefix()."whatsapp_queue` (
+              `id` INT AUTO_INCREMENT PRIMARY KEY,
+              `lead_id` INT NULL,
+              `phone` VARCHAR(32) NOT NULL,
+              `message` TEXT NOT NULL,
+              `company_from` VARCHAR(64) NULL,
+              `status` ENUM('pending','processing','sent','failed') NOT NULL DEFAULT 'pending',
+              `attempts` TINYINT NOT NULL DEFAULT 0,
+              `last_error` TEXT NULL,
+              `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        ";
+        $this->db->query($sql);
+    }
+
+    // 5) Enqueue
+    $now = date('Y-m-d H:i:s');
+    $this->db->insert(db_prefix().'whatsapp_queue', [
+        'lead_id'      => $lead->id ?? $lead_id,
+        'phone'        => $normalized_phone,
+        'message'      => $final_message,
+        'company_from' => $company_number,
+        'status'       => 'pending',
+        'attempts'     => 0,
+        'created_at'   => $now,
+        'updated_at'   => $now,
+    ]);
+    $queue_id = (int)$this->db->insert_id();
+
+    // 6) Spawn worker (CLI preferred; curl fallback)
+    $tenant_db     = $this->db->database;   // e.g. 'dotonecrm'
+    $tenant_prefix = $this->db->dbprefix;   // e.g. 'tbl' or 'tbl_'
+    $expected_token = '46f332bac7c63c6dfe88e56dca96ad30792a11b861f2ce8dadb7b21733ed8139';
+
+    $php_bin   = '/usr/bin/php';               // adjust if needed
+    $index_php = '/var/www/html/index.php';    // adjust if needed
+
+    // Build command SAFELY: escape each argument; token LAST
+    $cmd_parts = [
+        escapeshellarg($php_bin),
+        escapeshellarg($index_php),
+        escapeshellarg('cron'),
+        escapeshellarg('process_whatsapp_single'),
+        escapeshellarg((string)$queue_id),
+        escapeshellarg((string)$tenant_db),
+        escapeshellarg((string)$tenant_prefix),
+        escapeshellarg($expected_token),
+    ];
+    $full_cmd = implode(' ', $cmd_parts) . ' > /dev/null 2>&1 &';
+
+    $disabled_list = ini_get('disable_functions');
+    $disabled = $disabled_list ? array_map('trim', explode(',', $disabled_list)) : [];
+    $exec_allowed = function_exists('exec') && !in_array('exec', $disabled, true);
+
+    if ($exec_allowed) {
+        @exec('/bin/sh -c ' . escapeshellarg($full_cmd));
+        log_message('info', 'Spawned WhatsApp worker queue_id='.$queue_id.' db='.$tenant_db.' prefix='.$tenant_prefix);
+    } else {
+        // Curl fallback: include db + prefix + token
+        $url = 'http://127.0.0.1/index.php/cron/process_whatsapp_single/'
+             . rawurlencode((string)$queue_id) . '/'
+             . rawurlencode((string)$tenant_db) . '/'
+             . rawurlencode((string)$tenant_prefix)
+             . '?token=' . urlencode($expected_token);
+
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER    => true,
+            CURLOPT_CONNECTTIMEOUT_MS => 150,
+            CURLOPT_TIMEOUT_MS        => 300,
+        ]);
+        @curl_exec($ch);
+        @curl_close($ch);
+
+        log_message('info', 'Curl fallback used for queue_id='.$queue_id.' db='.$tenant_db.' prefix='.$tenant_prefix);
     }
 
     return true;
