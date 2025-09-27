@@ -1,63 +1,34 @@
 <?php
-
-defined('BASEPATH') or exit('No direct script access allowed');
-$dimensions = $pdf->getPageDimensions();
+include_once(APPPATH . 'libraries/App_items_table.php');
 
 $pdf_logo_url = pdf_logo_url();
-$pdf->writeHTMLCell(($dimensions['wk'] - ($dimensions['rm'] + $dimensions['lm'])), '', '', '', $pdf_logo_url, 0, 1, false, true, 'L', true);
+$formatted_proposal_id = 'PRO-' . str_pad($proposal->id, 6, '0', STR_PAD_LEFT);
 
-$pdf->ln(4);
-// Get Y position for the separation
-$y = $pdf->getY();
+// Organisation info
+$org_info = format_organization_info();
 
-$proposal_info = '<div style="color:#424242;">';
-    $proposal_info .= format_organization_info();
-$proposal_info .= '</div>';
-
-$pdf->writeHTMLCell(($swap == '0' ? (($dimensions['wk'] / 2) - $dimensions['rm']) : ''), '', '', ($swap == '0' ? $y : ''), $proposal_info, 0, 0, false, true, ($swap == '1' ? 'R' : 'J'), true);
-
-$rowcount = max([$pdf->getNumLines($proposal_info, 80)]);
-
-// Proposal to
-$client_details = '<b>' . _l('proposal_to') . '</b>';
-$client_details .= '<div style="color:#424242;">';
-    $client_details .= format_proposal_info($proposal, 'pdf');
-$client_details .= '</div>';
-
-$pdf->writeHTMLCell(($dimensions['wk'] / 2) - $dimensions['lm'], $rowcount * 7, '', ($swap == '1' ? $y : ''), $client_details, 0, 1, false, true, ($swap == '1' ? 'J' : 'R'), true);
-
-$pdf->ln(6);
-
-$proposal_date = _l('proposal_date') . ': ' . _d($proposal->date);
-$open_till     = '';
-
+// Proposal details
+$leftContent  = '<span style="color:#999;">' . _l('proposal') . ':</span> <b>' . $formatted_proposal_id . '</b><br>';
+$leftContent .= '<span style="color:#999;">' . _l('proposal_date') . ':</span> ' . _d($proposal->date) . '<br>';
 if (!empty($proposal->open_till)) {
-    $open_till = _l('proposal_open_till') . ': ' . _d($proposal->open_till) . '<br />';
+    $leftContent .= '<span style="color:#999;">' . _l('proposal_open_till') . ':</span> ' . _d($proposal->open_till);
 }
 
+$rightContent  = '<span style="color:#999;">City:</span> ' . $proposal->city . '<br>';
+$rightContent .= '<span style="color:#999;">Address:</span> ' . $proposal->state;
 
-$project = '';
-if ($proposal->project_id != '' && get_option('show_project_on_proposal') == 1) {
-    $project .= _l('project') . ': ' . get_project_name_by_id($proposal->project_id) . '<br />';
-}
+// Client info
+$client_details  = format_proposal_info($proposal, 'pdf');
 
-$qty_heading = _l('estimate_table_quantity_heading', '', false);
-
-if ($proposal->show_quantity_as == 2) {
-    $qty_heading = _l($this->type . '_table_hours_heading', '', false);
-} elseif ($proposal->show_quantity_as == 3) {
-    $qty_heading = _l('estimate_table_quantity_heading', '', false) . '/' . _l('estimate_table_hours_heading', '', false);
-}
-
-// The items table
-$items = get_items_table_data($proposal, 'proposal', 'pdf')
-        ->set_headings('estimate');
-
+// Build items table HTML using existing function
+// $items = get_items_table_data($proposal, 'proposal', 'pdf');
+$items = new App_items_table($proposal, 'proposal');
+$items->set_heading_type('pdf'); // forces PDF headings
 $items_html = $items->table();
 
-$items_html .= '<br /><br />';
-$items_html .= '';
-$items_html .= '<table cellpadding="6" style="font-size:' . ($font_size + 4) . 'px">';
+
+
+$items_html .= '<table width="100%" cellspacing="0" cellpadding="4" style=" border-collapse:collapse; table-layout: fixed;">';
 
 $items_html .= '
 <tr>
@@ -72,15 +43,14 @@ if (is_sale_discount_applied($proposal)) {
     if (is_sale_discount($proposal, 'percent')) {
         $items_html .= ' (' . app_format_number($proposal->discount_percent, true) . '%)';
     }
-    $items_html .= '</strong>';
-    $items_html .= '</td>';
+    $items_html .= '</strong></td>';
     $items_html .= '<td align="right" width="15%">-' . app_format_money($proposal->discount_total, $proposal->currency_name) . '</td>
     </tr>';
 }
 
 foreach ($items->taxes() as $tax) {
     $items_html .= '<tr>
-    <td align="right" width="85%"><strong>' . $tax['taxname'] . ' (' . app_format_number($tax['taxrate']) . '%)' . '</strong></td>
+    <td align="right" width="85%"><strong>' . $tax['taxname'] . ' (' . app_format_number($tax['taxrate']) . '%)</strong></td>
     <td align="right" width="15%">' . app_format_money($tax['total_tax'], $proposal->currency_name) . '</td>
 </tr>';
 }
@@ -91,11 +61,13 @@ if ((int)$proposal->adjustment != 0) {
     <td align="right" width="15%">' . app_format_money($proposal->adjustment, $proposal->currency_name) . '</td>
 </tr>';
 }
+
 $items_html .= '
-<tr style="background-color:#f0f0f0;">
+<tr>
     <td align="right" width="85%"><strong>' . _l('estimate_total') . '</strong></td>
     <td align="right" width="15%">' . app_format_money($proposal->total, $proposal->currency_name) . '</td>
 </tr>';
+
 $items_html .= '</table>';
 
 if (get_option('total_to_words_enabled') == 1) {
@@ -103,21 +75,44 @@ if (get_option('total_to_words_enabled') == 1) {
     $items_html .= '<strong style="text-align:center;">' . _l('num_word') . ': ' . $CI->numberword->convert($proposal->total, $proposal->currency_name) . '</strong>';
 }
 
-$proposal->content = str_replace('{proposal_items}', $items_html, $proposal->content);
+// Now build one big HTML block
+$html = '
+<table border="1" cellpadding="5" cellspacing="0" width="100%">
+  <tr>
+    <td border="0" width="30%">' . $pdf_logo_url . '</td>
+    <td border="0" width="40%">' . $org_info . '</td>
+    <td border="0" width="30%" style="font-size:20px;">Proforma Proposal</td>
+  </tr>
+</table>
 
-// Get the proposals css
-// Theese lines should aways at the end of the document left side. Dont indent these lines
-$html = <<<EOF
-<p style="font-size:20px;"># $number
-<br /><span style="font-size:15px;">$proposal->subject</span>
-</p>
-$proposal_date
-<br />
-$open_till
-$project
-<div style="width:675px !important;">
-$proposal->content
-</div>
-EOF;
 
+<br>
+
+<table border="1" cellpadding="5" cellspacing="0" width="100%">
+  <tr>
+    <td width="50%">' . $leftContent . '</td>
+    <td width="50%">' . $rightContent . '</td>
+  </tr>
+</table>
+
+
+
+<table border="1" cellpadding="5" cellspacing="0" width="100%">
+  <tr style="background-color:#eee;">
+    <th width="50%">' . _l('bill_to') . '</th>
+    <th width="50%">' . _l('ship_to') . '</th>
+  </tr>
+  <tr>
+    <td>' . $client_details . '</td>
+    <td>&nbsp;</td>
+  </tr>
+</table>
+
+
+
+
+<div style="margin:0; padding:0;">' . $items_html . '</div>';
+
+// write everything at once
 $pdf->writeHTML($html, true, false, true, false, '');
+?>
