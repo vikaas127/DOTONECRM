@@ -23,6 +23,11 @@ $lang['load_more']            = 'Load More';
 $lang['cant_delete_default']  = 'Cant delete default %s';
 $lang['sector']='Sector';
 $lang['industry']='Industry';
+$lang['proposal_table_item_heading'] = 'Item Description';
+$lang['proposal_table_quantity_heading'] = 'Quantity';
+$lang['proposal_table_rate_heading'] = 'Rate';
+$lang['proposal_table_amount_heading'] = 'Amount';
+
 
 # Invoice General
 $lang['invoice_status_paid']                   = 'Paid';
