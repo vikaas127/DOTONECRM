@@ -644,6 +644,22 @@ function perfex_saas_master_default_tables($folder_path = '')
  * @param string $goldPrefix     Golden table prefix (default 'ehsan_')
  * @return array                 ['created'=>[...], 'skipped'=>[...], 'errors'=>[...]]
  */
+if (!function_exists('perfex_saas_raw_query_all')) {
+    /**
+     * Run raw query and return all rows as array.
+     *
+     * @param string $sql
+     * @param array $dsn
+     * @param bool $escape
+     * @return array
+     */
+    function perfex_saas_raw_query_all($sql, $dsn = [], $escape = true): array
+    {
+        $rows = perfex_saas_raw_query($sql, $dsn, $escape, true);
+        return is_array($rows) ? $rows : [];
+    }
+}
+
 function perfex_saas_ensure_tenant_schema_from_golden(
     array $dsn,
     string $tenantDb,
@@ -741,6 +757,7 @@ function perfex_saas_ensure_tenant_schema_from_golden(
     return ['created'=>$creates, 'skipped'=>$skipped, 'errors'=>$errors];
 }
 
+
 /**
  * Sets up tables on a dsn from a given data source name (DSN).
  * The data source table should start with master db prefix i.e 'tbl'
@@ -751,6 +768,21 @@ function perfex_saas_ensure_tenant_schema_from_golden(
  * @param bool $return_queries_only Optional . Will return the queries only and will not run
  * @return void
  */
+
+if (!function_exists('perfex_saas_tenant_db_name')) {
+    /**
+     * Resolve tenant database name from company slug.
+     * Adjust this if your DB naming convention is different.
+     *
+     * @param string $slug
+     * @return string
+     */
+    function perfex_saas_tenant_db_name(string $slug): string
+    {
+        // Example: slug = "demo" => "ps_demo"
+        return 'ps_' . strtolower($slug);
+    }
+}
 function perfex_saas_setup_dsn($dsn, $slug, $source_dsn = [], $return_queries_only = false)
 {
     $dbprefix = perfex_saas_master_db_prefix();
@@ -763,7 +795,7 @@ function perfex_saas_setup_dsn($dsn, $slug, $source_dsn = [], $return_queries_on
 
     $show_create_queries = [];
  // ── Just CALL the ensure function here (no extra logic inline) ──
-   /* $tenantDb   = isset($dsn['database']) ? $dsn['database'] : perfex_saas_tenant_db_name($slug);
+    $tenantDb   = isset($dsn['database']) ? $dsn['database'] : perfex_saas_tenant_db_name($slug);
     $tenantPref = perfex_saas_tenant_db_prefix($slug);
 
     // Ensure missing tables exist in tenant by copying structure from golden DB
@@ -785,7 +817,7 @@ function perfex_saas_setup_dsn($dsn, $slug, $source_dsn = [], $return_queries_on
             ' skipped=' . (isset($ensure['skipped']) ? count($ensure['skipped']) : 0));
     } else {
         log_message('debug', '[SAAS] perfex_saas_ensure_tenant_schema_from_golden() not found; skipping schema ensure');
-    }*/
+    }
     $hooks_payload = ['dsn' => $dsn, 'source_dsn' => $source_dsn, 'slug' => $slug, 'tables' => $master_tables, 'queries' => $show_create_queries];
     $filter = hooks()->apply_filters('perfex_saas_dsn_setup_source_dsn_queries', $hooks_payload);
     $show_create_queries = (array)($filter['queries'] ?? []);
