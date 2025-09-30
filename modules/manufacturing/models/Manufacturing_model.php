@@ -22,6 +22,27 @@ class Manufacturing_model extends App_Model
 			return $this->db->query('select * from ' . db_prefix() . 'mrp_routings')->result_array();
 		}
 	}
+	public function get_commodity_codes()
+{
+    $this->db->select('DISTINCT(commodity_code)');
+    $this->db->from(db_prefix() . 'items');
+    $this->db->where('commodity_code IS NOT NULL');
+    $this->db->where('commodity_code != ""');
+    $query = $this->db->get();
+    return $query->result_array();
+}
+public function get_item_ids_by_commodity($commodity_codes)
+{
+    if(empty($commodity_codes)) return [];
+
+    $this->db->select('id');
+    $this->db->from(db_prefix().'items');
+    $this->db->where_in('commodity_code', $commodity_codes);
+    $result = $this->db->get()->result_array();
+
+    return array_column($result, 'id');
+}
+
 
  public function get_vendor($id = '', $where = [])
     {

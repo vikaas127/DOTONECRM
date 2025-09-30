@@ -42,6 +42,24 @@
 									</select>
 								</div>
 							</div> 
+								<div  class="col-md-4 leads-filter-column">
+								<div class="form-group">
+	<select name="commodity_code_filter[]" id="commodity_code_filter" 
+        data-live-search="true" 
+        class="selectpicker" 
+        multiple="true" 
+        data-actions-box="true" 
+        data-width="100%" 
+        data-none-selected-text="<?php echo _l('commodity_code'); ?>">
+    <?php foreach($commodity_codes as $cc) { ?>
+        <option value="<?php echo $cc['commodity_code']; ?>">
+            <?php echo $cc['commodity_code']; ?>
+        </option>
+    <?php } ?>
+</select>
+	</div>
+							</div> 
+
 							<div  class="col-md-4 leads-filter-column">
 								<div class="form-group">
 									<select name="bom_type_filter[]" id="bom_type_filter" data-live-search="true" class="selectpicker" multiple="true" data-actions-box="true" data-width="100%" data-none-selected-text="<?php echo _l('bom_type'); ?>">
@@ -106,6 +124,7 @@
 							_l('product_qty'),
 							_l('unit_id'),
 							_l('routing_label'),
+							_l('commodity_code'),
 						),'bill_of_material_table',
 
 						array('customizable-table'),
