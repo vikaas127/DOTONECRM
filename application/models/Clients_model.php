@@ -11,7 +11,8 @@ class Clients_model extends App_Model
     public function __construct()
     {
         parent::__construct();
-
+      $CI = &get_instance();
+      $CI->load->helper('wnotication');
         $this->contact_columns = hooks()->apply_filters('contact_columns', ['firstname', 'lastname', 'email', 'phonenumber', 'title', 'password', 'send_set_password_email', 'donotsendwelcomeemail', 'permissions', 'direction', 'invoice_emails', 'estimate_emails', 'credit_note_emails', 'contract_emails', 'task_emails', 'project_emails', 'ticket_emails', 'is_primary']);
 
         $this->load->model(['client_vault_entries_model', 'client_groups_model', 'statement_model']);
@@ -681,6 +682,25 @@ class Clients_model extends App_Model
                     $password_before_hash
                 );
             }
+            $final_message='Welcome to '.get_option('companyname').', Your account has been created successfully. Your login details are as follows:';
+         
+           
+           
+            
+
+                if (!empty($data['phonenumber'])) {
+    $result = wn_send_whatsapp_text($data['phonenumber'], $final_message);
+
+    // Log attempt
+    log_message('info', 'WhatsApp send attempt to: ' . $data['phonenumber'] . ' | Message: ' . $final_message);
+
+    // Log result
+    if ($result) {
+        log_message('info', 'WhatsApp sent successfully to: ' . $data['phonenumber']);
+    } else {
+        log_message('error', 'WhatsApp failed to send to: ' . $data['phonenumber']);
+    }
+}
 
             if ($send_set_password_email === true) {
                 $this->authentication_model->set_password_email($data['email'], 0);
