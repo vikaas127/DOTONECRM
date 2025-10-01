@@ -25,69 +25,62 @@ $join[] = 'LEFT JOIN ' . db_prefix() . 'items ON ' . db_prefix() . 'items.id = '
 $products_filter = $this->ci->input->post('products_filter');
 $bom_type_filter = $this->ci->input->post('bom_type_filter');
 $routing_filter = $this->ci->input->post('routing_filter');
+$commodity_code_filter = $this->ci->input->post('commodity_code_filter');
+
 
 // Product filter
-if (isset($products_filter)) {
+if (!empty($products_filter)) {
     $products = $this->ci->manufacturing_model->bom_get_product_filter($products_filter);
-    $where_products_filter = '';
-
+    $product_where = [];
     foreach ($products as $product) {
-        if ($where_products_filter == '') {
-            if (isset($product['parent_id']) && $product['parent_id'] != 0) {
-                $where_products_filter .= "AND ( ( (" . db_prefix() . "mrp_bill_of_materials.product_id = " . $product['parent_id'] . " AND " . db_prefix() . "mrp_bill_of_materials.product_variant_id = " . $product['id'] . ") OR (" . db_prefix() . "mrp_bill_of_materials.product_id = " . $product['parent_id'] . " AND (" . db_prefix() . "mrp_bill_of_materials.product_variant_id = 0 OR " . db_prefix() . "mrp_bill_of_materials.product_variant_id IS NULL)) )";
-            } else {
-                $where_products_filter .= "AND (" . db_prefix() . "mrp_bill_of_materials.product_id = " . $product['id'];
-            }
+        if (isset($product['parent_id']) && $product['parent_id'] != 0) {
+            $product_where[] = "(" . db_prefix() . "mrp_bill_of_materials.product_id = " . $product['parent_id'] .
+                               " AND " . db_prefix() . "mrp_bill_of_materials.product_variant_id = " . $product['id'] . ")";
+            $product_where[] = "(" . db_prefix() . "mrp_bill_of_materials.product_id = " . $product['parent_id'] .
+                               " AND (" . db_prefix() . "mrp_bill_of_materials.product_variant_id = 0 OR " .
+                               db_prefix() . "mrp_bill_of_materials.product_variant_id IS NULL))";
         } else {
-            if (isset($product['parent_id']) && $product['parent_id'] != 0) {
-                $where_products_filter .= " OR ( (" . db_prefix() . "mrp_bill_of_materials.product_id = " . $product['parent_id'] . " AND " . db_prefix() . "mrp_bill_of_materials.product_variant_id = " . $product['id'] . ") OR (" . db_prefix() . "mrp_bill_of_materials.product_id = " . $product['parent_id'] . " AND (" . db_prefix() . "mrp_bill_of_materials.product_variant_id = 0 OR " . db_prefix() . "mrp_bill_of_materials.product_variant_id IS NULL)) )";
-            } else {
-                $where_products_filter .= " OR " . db_prefix() . "mrp_bill_of_materials.product_id = " . $product['id'];
-            }
+            $product_where[] = "(" . db_prefix() . "mrp_bill_of_materials.product_id = " . $product['id'] . ")";
         }
     }
-
-    if ($where_products_filter != '') {
-        $where_products_filter .= ')';
-        array_push($where, $where_products_filter);
+    if (!empty($product_where)) {
+        array_push($where, 'AND (' . implode(' OR ', $product_where) . ')');
     }
 }
 
 // BOM type filter
-if (isset($bom_type_filter)) {
-    $where_bom_type_filter = '';
+if (!empty($bom_type_filter)) {
+    $bom_where = [];
     foreach ($bom_type_filter as $bom_type) {
-        if ($bom_type != '') {
-            if ($where_bom_type_filter == '') {
-                $where_bom_type_filter .= 'AND (' . db_prefix() . 'mrp_bill_of_materials.bom_type = "' . $bom_type . '"';
-            } else {
-                $where_bom_type_filter .= ' OR ' . db_prefix() . 'mrp_bill_of_materials.bom_type = "' . $bom_type . '"';
-            }
-        }
+        $bom_where[] = db_prefix() . 'mrp_bill_of_materials.bom_type = "' . $bom_type . '"';
     }
-    if ($where_bom_type_filter != '') {
-        $where_bom_type_filter .= ')';
-        array_push($where, $where_bom_type_filter);
+    if (!empty($bom_where)) {
+        array_push($where, 'AND (' . implode(' OR ', $bom_where) . ')');
+    }
+}
+
+// Commodity Code filter
+if (!empty($commodity_code_filter)) {
+    $commodity_where = [];
+    foreach ($commodity_code_filter as $commodity_code) {
+        $commodity_where[] = db_prefix() . 'items.commodity_code = "' . trim($commodity_code) . '"';
+    }
+    if (!empty($commodity_where)) {
+        array_push($where, 'AND (' . implode(' OR ', $commodity_where) . ')');
     }
 }
 
 // Routing filter
-if (isset($routing_filter)) {
-    $where_routing_filter = '';
+if (!empty($routing_filter)) {
+    $routing_where = [];
     foreach ($routing_filter as $routing_id) {
-        if ($routing_id != '') {
-            if ($where_routing_filter == '') {
-                $where_routing_filter .= 'AND (' . db_prefix() . 'mrp_bill_of_materials.routing_id = "' . $routing_id . '"';
-            } else {
-                $where_routing_filter .= ' OR ' . db_prefix() . 'mrp_bill_of_materials.routing_id = "' . $routing_id . '"';
-            }
-        }
+        $routing_where[] = db_prefix() . 'mrp_bill_of_materials.routing_id = "' . $routing_id . '"';
     }
-    if ($where_routing_filter != '') {
-        $where_routing_filter .= ')';
-        array_push($where, $where_routing_filter);
+    if (!empty($routing_where)) {
+        array_push($where, 'AND (' . implode(' OR ', $routing_where) . ')');
     }
 }
+
 
 // DataTables init
 $result = data_tables_init($aColumns, $sIndexColumn, $sTable, $join, $where, [db_prefix() . 'mrp_bill_of_materials.id']);
