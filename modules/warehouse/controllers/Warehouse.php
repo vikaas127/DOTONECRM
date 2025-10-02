@@ -2715,6 +2715,8 @@ public function get_item_description()
 							_l('model_id')          =>'string',
 							_l('size_id')          =>'string',
 						    _l('thickness')          =>'string',
+							_l('hs_code')=>'string',
+							_l('paperwork_id')=>'string',
 
 							_l('_color')          =>'string',
 							_l('guarantee_month')          =>'string',
@@ -2729,7 +2731,7 @@ public function get_item_description()
 
                         $writer = new XLSXWriter();
 
-                        $col_style1 =[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23];
+                        $col_style1 =[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25];
                         $style1 = ['widths'=> $widths_arr, 'fill' => '#ff9800',  'font-style'=>'bold', 'color' => '#0a0a0a', 'border'=>'left,right,top,bottom', 'border-color' => '#0a0a0a', 'font-size' => 13 ];
 
                         $writer->writeSheetHeader_v2('Sheet1', $writer_header,  $col_options = ['widths'=> $widths_arr, 'fill' => '#f44336',  'font-style'=>'bold', 'color' => '#0a0a0a', 'border'=>'left,right,top,bottom', 'border-color' => '#0a0a0a', 'font-size' => 13 ], $col_style1, $style1);
@@ -2770,6 +2772,8 @@ public function get_item_description()
 								$flag_id_style_id;
 								$flag_id_model_id;
 								$flag_id_size_id;
+								$flag_id_paperwork_id;
+
 
 								$flag_id_color_id;
 
@@ -2796,10 +2800,12 @@ public function get_item_description()
 								$value_cell_model_id = isset($data[$row][18]) ? $data[$row][18] : '';
 								$value_cell_size_id = isset($data[$row][19]) ? $data[$row][19] : '';
 								$value_cell_thickness = isset($data[$row][20]) ? $data[$row][20] : '';
+								$value_cell_hs_code = isset($data[$row][21]) ? $data[$row][21] : '';
+								$value_cell_paperwork_id = isset($data[$row][22]) ? $data[$row][22] : '';
 
-								$value_cell_color_id = isset($data[$row][21]) ? (int)$data[$row][21] : '';
-								$value_cell_warranty = isset($data[$row][22]) ? $data[$row][22] : null;
-								$value_cell_minimum_inventory = isset($data[$row][23]) ? $data[$row][23] : '';
+								$value_cell_color_id = isset($data[$row][23]) ? (int)$data[$row][23] : '';
+								$value_cell_warranty = isset($data[$row][24]) ? $data[$row][24] : null;
+								$value_cell_minimum_inventory = isset($data[$row][25]) ? $data[$row][25] : '';
 
 								$pattern = '#^[a-z][a-z0-9\._]{2,31}@[a-z0-9\-]{3,}(\.[a-z]{2,4}){1,2}$#';
 
@@ -2957,6 +2963,21 @@ public function get_item_description()
 									}
 								}
 
+								if (!is_null($value_cell_paperwork_id) && $value_cell_paperwork_id != '0' && $value_cell_paperwork_id != '') {
+									// Case: always match by style_code
+									$this->db->like(db_prefix() . 'paperwork.paperwork_code', $value_cell_paperwork_id);
+									$paperwork_id_value = $this->db->get(db_prefix() . 'paperwork')->result_array();
+
+									if (count($paperwork_id_value) == 0) {
+										$string_error .= _l('paperwork_code') . _l('does_not_exist');
+										$flag2 = 1;
+									} else {
+										// Get style_type_id from matched record
+										$flag_id_paperwork_id = $paperwork_id_value[0]['paperwork_id'];
+									}
+								}
+
+
 
 								// check model_code exists
 								if (!is_null($value_cell_model_id) && $value_cell_model_id != '0' && $value_cell_model_id != '') {
@@ -3048,7 +3069,7 @@ public function get_item_description()
 									$rd['unit_id'] = isset($flag_id_unit_id) ? $flag_id_unit_id : '';
 									$rd['group_id'] = isset($flag_id_commodity_group) ? $flag_id_commodity_group : '';
 									$rd['sub_group'] = isset($flag_id_sub_group) ? $flag_id_sub_group : '';
-									$rd['guarantee'] = isset($data[$row][22]) ? $data[$row][22] : '';
+									$rd['guarantee'] = isset($data[$row][24]) ? $data[$row][22] : '';
 									$rd['tax'] = isset($flag_id_tax) ? $flag_id_tax : '';
 									$rd['tax2'] = isset($flag_id_tax2) ? $flag_id_tax2 : null;
 
@@ -3057,7 +3078,9 @@ public function get_item_description()
 									$rd['style_id'] = isset($flag_id_style_id) ? $flag_id_style_id : '';
 									$rd['model_id'] = isset($flag_id_model_id) ? $flag_id_model_id : '';
 									$rd['size_id'] = isset($flag_id_size_id) ? $flag_id_size_id : '';
+									$rd['paperwork_id'] = isset($flag_id_paperwork_id) ? $flag_id_paperwork_id : '';
 									$rd['thickness'] = isset($data[$row][20]) ? $data[$row][20] : '';
+									$rd['hs_code'] = isset($data[$row][21]) ? $data[$row][21] : '';
 
 									$rd['color'] = isset($flag_id_color_id) ? $flag_id_color_id : 0;
 									$rd['warehouse_id'] = 0;
@@ -3069,16 +3092,13 @@ public function get_item_description()
 									$rd['minimum_inventory'] = isset($value_cell_minimum_inventory) ? $value_cell_minimum_inventory : 0;
 									$rd['without_checking_warehouse'] =  0;
 									// Generate description dynamically using your naming rules
-									if (!empty($rd['group_id']) && !empty($rd['sub_group'])) {
-										$rd['description'] = $this->warehouse_model->generate_description_from_rule(
-											$rd['group_id'],
-											$rd['sub_group'],
-											$rd
-										);
-									} else {
-										// fallback if no rule exists
-										$rd['description'] = $rd['sort_name'] ?? '';
-									}
+									$description = $this->warehouse_model->generate_description_from_rule(
+		$rd['group_id'],
+		$rd['sub_group'],
+		$rd
+	);
+
+	$rd['description'] = !empty($description) ? $description : ($rd['sort_name'] ?? '');
 
 
 
