@@ -378,6 +378,8 @@ body #wrapper .dataTables_wrapper .table tr th {
                                             _l('commodity_name'),
                                             _l('sku_code'),
                                             _l('group_name'),
+                                                                                                                                    _l('sub_group_name'),
+
                                             _l('warehouse_name'),
                                             _l('tags'),
                                             _l('inventory_number'),

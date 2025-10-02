@@ -1,5 +1,5 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed'); ?>
-<!--<div>
+<div>
 <div class="_buttons">
     <?php if (has_permission('wh_setting', '', 'create') || is_admin() ) { ?>
 
@@ -82,7 +82,7 @@
                 <?php echo form_close(); ?>
             </div>
         </div>
-</div>-->
+</div>
 <?php require 'modules/warehouse/assets/js/commodity_type_js.php';?>
 </body>
 </html>

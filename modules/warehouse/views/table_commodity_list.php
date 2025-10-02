@@ -13,6 +13,8 @@ $aColumns = [
 	'description',
 	'sku_code',
 	db_prefix() . 'items_groups.name as group_name',
+	db_prefix() . 'wh_sub_group.sub_group_name as sub_group_name',
+
 	db_prefix() . 'items.warehouse_id',
 	'(SELECT GROUP_CONCAT(name SEPARATOR ",") FROM ' . db_prefix() . 'taggables JOIN ' . db_prefix() . 'tags ON ' . db_prefix() . 'taggables.tag_id = ' . db_prefix() . 'tags.id WHERE rel_id = ' . db_prefix() . 'items.id and rel_type="item_tags" ORDER by tag_order ASC) as tags',
 	'commodity_barcode',
@@ -59,6 +61,7 @@ $join = [
 	'LEFT JOIN ' . db_prefix() . 'taxes t1 ON t1.id = ' . db_prefix() . 'items.tax',
 	'LEFT JOIN ' . db_prefix() . 'taxes t2 ON t2.id = ' . db_prefix() . 'items.tax2',
 	'LEFT JOIN ' . db_prefix() . 'items_groups ON ' . db_prefix() . 'items_groups.id = ' . db_prefix() . 'items.group_id',
+	'LEFT JOIN ' . db_prefix() . 'wh_sub_group ON ' . db_prefix() . 'wh_sub_group.id = ' . db_prefix() . 'items.sub_group',
 	'LEFT JOIN ' . db_prefix() . 'ware_style_type ON ' . db_prefix() . 'ware_style_type.style_type_id = ' . db_prefix() . 'items.style_id',
 	'LEFT JOIN ' . db_prefix() . 'ware_body_type ON ' . db_prefix() . 'ware_body_type.body_type_id = ' . db_prefix() . 'items.model_id',
 		'LEFT JOIN ' . db_prefix() . 'paperwork ON ' . db_prefix() . 'paperwork.paperwork_id = ' . db_prefix() . 'items.paperwork_id',
@@ -398,6 +401,8 @@ $item_have_variation = $this->ci->warehouse_model->arr_item_have_variation();
 				$_data = '<span class="label label-tag tag-id-1"><span class="tag">' . $aRow['sku_code'] . '</span><span class="hide">, </span></span>&nbsp';
 			} elseif ($aColumns[$i] == 'group_name') {
 				$_data = $aRow['group_name'];
+			}elseif ($aColumns[$i] == 'sub_group_name') {
+				$_data = $aRow['sub_group_name'];
 
 			} elseif ($aColumns[$i] == db_prefix() . 'items.warehouse_id') {
     $_data = '';
