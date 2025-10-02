@@ -763,50 +763,110 @@ class Clients extends AdminController
         $this->app_bulk_pdf_export->export();
     }
 
-    public function import()
-    {
-        if (staff_cant('create', 'customers')) {
-            access_denied('customers');
-        }
+    // public function import()
+    // {
+    //     if (staff_cant('create', 'customers')) {
+    //         access_denied('customers');
+    //     }
 
-        $dbFields = $this->db->list_fields(db_prefix() . 'contacts');
-        foreach ($dbFields as $key => $contactField) {
-            if ($contactField == 'phonenumber') {
-                $dbFields[$key] = 'contact_phonenumber';
-            }
-        }
+    //     $dbFields = $this->db->list_fields(db_prefix() . 'contacts');
+    //     foreach ($dbFields as $key => $contactField) {
+    //         if ($contactField == 'phonenumber') {
+    //             $dbFields[$key] = 'contact_phonenumber';
+    //         }
+    //     }
 
-        $dbFields = array_merge($dbFields, $this->db->list_fields(db_prefix() . 'clients'));
+    //     $dbFields = array_merge($dbFields, $this->db->list_fields(db_prefix() . 'clients'));
 
-        $this->load->library('import/import_customers', [], 'import');
+    //     $this->load->library('import/import_customers', [], 'import');
 
-        $this->import->setDatabaseFields($dbFields)
-                     ->setCustomFields(get_custom_fields('customers'));
+    //     $this->import->setDatabaseFields($dbFields)
+    //                  ->setCustomFields(get_custom_fields('customers'));
 
-        if ($this->input->post('download_sample') === 'true') {
-            $this->import->downloadSample();
-        }
+    //     if ($this->input->post('download_sample') === 'true') {
+    //         $this->import->downloadSample();
+    //     }
 
-        if ($this->input->post()
-            && isset($_FILES['file_csv']['name']) && $_FILES['file_csv']['name'] != '') {
-            $this->import->setSimulation($this->input->post('simulate'))
-                          ->setTemporaryFileLocation($_FILES['file_csv']['tmp_name'])
-                          ->setFilename($_FILES['file_csv']['name'])
-                          ->perform();
+    //     if ($this->input->post()
+    //         && isset($_FILES['file_csv']['name']) && $_FILES['file_csv']['name'] != '') {
+    //         $this->import->setSimulation($this->input->post('simulate'))
+    //                       ->setTemporaryFileLocation($_FILES['file_csv']['tmp_name'])
+    //                       ->setFilename($_FILES['file_csv']['name'])
+    //                       ->perform();
 
 
-            $data['total_rows_post'] = $this->import->totalRows();
+    //         $data['total_rows_post'] = $this->import->totalRows();
 
-            if (!$this->import->isSimulation()) {
-                set_alert('success', _l('import_total_imported', $this->import->totalImported()));
-            }
-        }
+    //         if (!$this->import->isSimulation()) {
+    //             set_alert('success', _l('import_total_imported', $this->import->totalImported()));
+    //         }
+    //     }
 
-        $data['groups']    = $this->clients_model->get_groups();
-        $data['title']     = _l('import');
-        $data['bodyclass'] = 'dynamic-create-groups';
-        $this->load->view('admin/clients/import', $data);
+    //     $data['groups']    = $this->clients_model->get_groups();
+    //     $data['title']     = _l('import');
+    //     $data['bodyclass'] = 'dynamic-create-groups';
+    //     $this->load->view('admin/clients/import', $data);
+    // }
+public function import()
+{
+    if (staff_cant('create', 'customers')) {
+        access_denied('customers');
     }
+
+    $dbFields = $this->db->list_fields(db_prefix() . 'contacts');
+    foreach ($dbFields as $key => $contactField) {
+        if ($contactField == 'phonenumber') {
+            $dbFields[$key] = 'contact_phonenumber';
+        }
+    }
+
+    $dbFields = array_merge($dbFields, $this->db->list_fields(db_prefix() . 'clients'));
+
+    $this->load->library('import/import_customers', [], 'import');
+
+    $this->import->setDatabaseFields($dbFields)
+                 ->setCustomFields(get_custom_fields('customers'));
+
+    if ($this->input->post('download_sample') === 'true') {
+        $this->import->downloadSample();
+    }
+
+    $data['errorFileUrl'] = '';
+    $data['hasErrors'] = false;
+
+    if ($this->input->post() && isset($_FILES['file_csv']['name']) && $_FILES['file_csv']['name'] != '') {
+
+        $this->import->setSimulation($this->input->post('simulate'))
+                     ->setTemporaryFileLocation($_FILES['file_csv']['tmp_name'])
+                     ->setFilename($_FILES['file_csv']['name'])
+                     ->perform();
+
+        // Check if there are errors
+         $data['errorFileUrl'] = $this->import->hasErrors() ? $this->import->generateErrorFile() : '';
+    $data['hasErrors'] = !empty($data['errorFileUrl']);
+        if (!$this->import->isSimulation()) {
+            set_alert('success', _l('import_total_imported', $this->import->totalImported()));
+        }
+    }
+
+    $data['groups']    = $this->clients_model->get_groups();
+    $data['title']     = _l('import');
+    $data['bodyclass'] = 'dynamic-create-groups';
+    $this->load->view('admin/clients/import', $data);
+}
+public function download_import_errors()
+{
+    $this->load->library('import/import_customers', [], 'import');
+
+    if (!$this->import->hasErrors()) {
+        set_alert('warning', _l('no_errors_to_download'));
+        redirect(admin_url('clients/import'));
+    }
+
+    $this->import->generateErrorFile(); // This will force download
+}
+
+
 
     public function groups()
     {
