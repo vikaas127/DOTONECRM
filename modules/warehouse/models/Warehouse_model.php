@@ -1794,6 +1794,7 @@ public function delete_warehouse_permission($id)
 	 */
 	public function add_inventory_manage($data, $status) {
 		// status '1:Goods receipt note 2:Goods delivery note',
+$affected_rows = 0;
 
 		if ($status == 1) {
 
