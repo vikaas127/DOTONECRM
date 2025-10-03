@@ -6,6 +6,8 @@ require_once(APPPATH . 'libraries/import/App_import.php');
 class Import_customers extends App_import
 {
     protected $notImportableFields = [];
+    protected $importErrors = [];
+
 
     private $countryFields = ['country', 'billing_country', 'shipping_country'];
 
@@ -26,110 +28,273 @@ class Import_customers extends App_import
         parent::__construct();
     }
 
-    public function perform()
-    {
-        $this->initialize();
+    // public function perform()
+    // {
+    //     $this->initialize();
 
-        $databaseFields      = $this->getImportableDatabaseFields();
-        $totalDatabaseFields = count($databaseFields);
+    //     $databaseFields      = $this->getImportableDatabaseFields();
+    //     $totalDatabaseFields = count($databaseFields);
 
-        foreach ($this->getRows() as $rowNumber => $row) {
-            $insert    = [];
-            $duplicate = false;
+    //     foreach ($this->getRows() as $rowNumber => $row) {
+    //         $insert    = [];
+    //         $duplicate = false;
 
-            for ($i = 0; $i < $totalDatabaseFields; $i++) {
-                if (!isset($row[$i])) {
-                    continue;
+    //         for ($i = 0; $i < $totalDatabaseFields; $i++) {
+    //             if (!isset($row[$i])) {
+    //                 continue;
+    //             }
+
+    //             $row[$i] = $this->checkNullValueAddedByUser($row[$i]);
+
+    //             if (in_array($databaseFields[$i], $this->requiredFields) &&
+    //                 $row[$i] == '' &&
+    //                 $databaseFields[$i] != 'company'
+    //                 && $databaseFields[$i] != 'email') {
+    //                 $row[$i] = '/';
+    //             } elseif (in_array($databaseFields[$i], $this->countryFields)) {
+    //                 $row[$i] = $this->countryValue($row[$i]);
+    //             } elseif ($databaseFields[$i] == 'email') {
+    //                 $duplicate = $this->isDuplicateContact($row[$i]);
+    //             } elseif ($databaseFields[$i] == 'stripe_id') {
+    //                 if (empty($row[$i]) || (!empty($row[$i]) && !startsWith($row[$i], 'cus_'))) {
+    //                     $row[$i] = null;
+    //                 }
+    //             } elseif ($databaseFields[$i] == 'contact_phonenumber') {
+    //                 if (is_automatic_calling_codes_enabled() && !empty($row[$i])) {
+    //                     $customerCountryIndex = array_search('country', $databaseFields);
+    //                     if (isset($row[$customerCountryIndex]) && !empty($row[$customerCountryIndex])) {
+    //                         $customerCountry = $this->getCountry(null, $this->countryValue($row[$customerCountryIndex]));
+
+    //                         if ($customerCountry) {
+    //                             $callingCode = '+' . ltrim($customerCountry->calling_code, '+');
+
+    //                             if (startsWith($row[$i], $customerCountry->calling_code)) { // with calling code but without the + prefix
+    //                                 $row[$i] = '+' . $row[$i];
+    //                             } elseif (!startsWith($row[$i], $callingCode)) {
+    //                                 $row[$i] = $callingCode . $row[$i];
+    //                             }
+    //                         }
+    //                     }
+    //                 }
+    //             }
+
+    //             $insert[$databaseFields[$i]] = $row[$i];
+    //         }
+
+    //         if ($duplicate) {
+    //             continue;
+    //         }
+
+    //         $insert = $this->trimInsertValues($insert);
+
+    //         if (count($insert) > 0) {
+    //             $this->incrementImported();
+
+    //             $id = null;
+
+    //             if (!$this->isSimulation()) {
+    //                 $insert['datecreated']           = date('Y-m-d H:i:s');
+    //                 $insert['donotsendwelcomeemail'] = true;
+
+    //                 if ($this->ci->input->post('default_pass_all')) {
+    //                     $insert['password'] = $this->ci->input->post('default_pass_all', false);
+    //                 }
+
+    //                 if ($this->shouldAddContactUnderCustomer($insert)) {
+    //                     $this->addContactUnderCustomer($insert);
+
+    //                     continue;
+    //                 }
+
+    //                 $insert['is_primary'] = 1;
+    //                 $id                   = $this->ci->clients_model->add($insert, true);
+
+    //                 if ($id) {
+    //                     if ($this->ci->input->post('groups_in[]')) {
+    //                         $this->insertCustomerGroups($this->ci->input->post('groups_in[]'), $id);
+    //                     }
+
+    //                     if (staff_cant('view', 'customers')) {
+    //                         $assign['customer_admins']   = [];
+    //                         $assign['customer_admins'][] = get_staff_user_id();
+    //                         $this->ci->clients_model->assign_admins($assign, $id);
+    //                     }
+    //                 }
+    //             } else {
+    //                 $this->simulationData[$rowNumber] = $this->formatValuesForSimulation($insert);
+    //             }
+
+    //             $this->handleCustomFieldsInsert($id, $row, $i, $rowNumber, 'customers');
+    //         }
+
+    //         if ($this->isSimulation() && $rowNumber >= $this->maxSimulationRows) {
+    //             break;
+    //         }
+    //     }
+    // }
+
+public function perform()
+{
+    $this->initialize();
+
+    $databaseFields = $this->getImportableDatabaseFields();
+    $totalDatabaseFields = count($databaseFields);
+
+    foreach ($this->getRows() as $rowNumber => $row) {
+        $insert = [];
+
+        // Build insert array
+        for ($i = 0; $i < $totalDatabaseFields; $i++) {
+            if (!isset($row[$i])) {
+                continue;
+            }
+
+            $row[$i] = $this->checkNullValueAddedByUser($row[$i]);
+
+            if (in_array($databaseFields[$i], $this->requiredFields) &&
+                $row[$i] == '' &&
+                $databaseFields[$i] != 'company' &&
+                $databaseFields[$i] != 'email') {
+                $row[$i] = '/';
+            } elseif (in_array($databaseFields[$i], $this->countryFields)) {
+                $row[$i] = $this->countryValue($row[$i]);
+            } elseif ($databaseFields[$i] == 'stripe_id') {
+                if (empty($row[$i]) || (!empty($row[$i]) && !startsWith($row[$i], 'cus_'))) {
+                    $row[$i] = null;
                 }
-
-                $row[$i] = $this->checkNullValueAddedByUser($row[$i]);
-
-                if (in_array($databaseFields[$i], $this->requiredFields) &&
-                    $row[$i] == '' &&
-                    $databaseFields[$i] != 'company'
-                    && $databaseFields[$i] != 'email') {
-                    $row[$i] = '/';
-                } elseif (in_array($databaseFields[$i], $this->countryFields)) {
-                    $row[$i] = $this->countryValue($row[$i]);
-                } elseif ($databaseFields[$i] == 'email') {
-                    $duplicate = $this->isDuplicateContact($row[$i]);
-                } elseif ($databaseFields[$i] == 'stripe_id') {
-                    if (empty($row[$i]) || (!empty($row[$i]) && !startsWith($row[$i], 'cus_'))) {
-                        $row[$i] = null;
-                    }
-                } elseif ($databaseFields[$i] == 'contact_phonenumber') {
-                    if (is_automatic_calling_codes_enabled() && !empty($row[$i])) {
-                        $customerCountryIndex = array_search('country', $databaseFields);
-                        if (isset($row[$customerCountryIndex]) && !empty($row[$customerCountryIndex])) {
-                            $customerCountry = $this->getCountry(null, $this->countryValue($row[$customerCountryIndex]));
-
-                            if ($customerCountry) {
-                                $callingCode = '+' . ltrim($customerCountry->calling_code, '+');
-
-                                if (startsWith($row[$i], $customerCountry->calling_code)) { // with calling code but without the + prefix
-                                    $row[$i] = '+' . $row[$i];
-                                } elseif (!startsWith($row[$i], $callingCode)) {
-                                    $row[$i] = $callingCode . $row[$i];
-                                }
+            } elseif ($databaseFields[$i] == 'contact_phonenumber') {
+                if (is_automatic_calling_codes_enabled() && !empty($row[$i])) {
+                    $customerCountryIndex = array_search('country', $databaseFields);
+                    if (isset($row[$customerCountryIndex]) && !empty($row[$customerCountryIndex])) {
+                        $customerCountry = $this->getCountry(null, $this->countryValue($row[$customerCountryIndex]));
+                        if ($customerCountry) {
+                            $callingCode = '+' . ltrim($customerCountry->calling_code, '+');
+                            if (startsWith($row[$i], $customerCountry->calling_code)) {
+                                $row[$i] = '+' . $row[$i];
+                            } elseif (!startsWith($row[$i], $callingCode)) {
+                                $row[$i] = $callingCode . $row[$i];
                             }
                         }
                     }
                 }
-
-                $insert[$databaseFields[$i]] = $row[$i];
             }
 
-            if ($duplicate) {
-                continue;
+            $insert[$databaseFields[$i]] = $row[$i];
+        }
+
+        $insert = $this->trimInsertValues($insert);
+
+        
+
+        // Skip row if both email and phone number are empty
+        if (empty($insert['email']) && empty($insert['contact_phonenumber'])) {
+            $errorMsg = 'Both email and phone number are missing.';
+            log_message('error', 'Import failed for row #' . $rowNumber . ': ' . $errorMsg);
+            $this->importErrors[] = ['row' => $rowNumber, 'error' => $errorMsg];
+            continue;
+        }
+
+        // Check duplicates
+        $duplicate = false;
+
+        if (!empty($insert['email']) && $this->isDuplicateContact($insert['email'])) {
+            $duplicate = true;
+            $errorMsg = 'Duplicate email "' . $insert['email'] . '"';
+            log_message('error', 'Import failed for row #' . $rowNumber . ': ' . $errorMsg);
+            $this->importErrors[] = ['row' => $rowNumber, 'error' => $errorMsg];
+        }
+
+        if (empty($insert['email']) && !empty($insert['contact_phonenumber']) && $this->isDuplicatePhoneNumber($insert['contact_phonenumber'])) {
+            $duplicate = true;
+            $errorMsg = 'Duplicate phone number "' . $insert['contact_phonenumber'] . '"';
+            log_message('error', 'Import failed for row #' . $rowNumber . ': ' . $errorMsg);
+            $this->importErrors[] = ['row' => $rowNumber, 'error' => $errorMsg];
+        }
+
+        if ($duplicate || count($insert) === 0) {
+            if (count($insert) === 0 && !$duplicate) {
+                $errorMsg = 'No valid data to insert.';
+                log_message('error', 'Import failed for row #' . $rowNumber . ': ' . $errorMsg);
+                $this->importErrors[] = ['row' => $rowNumber, 'error' => $errorMsg];
+            }
+            continue;
+        }
+
+
+        $this->incrementImported();
+
+        $id = null;
+
+        if (!$this->isSimulation()) {
+            $insert['datecreated'] = date('Y-m-d H:i:s');
+            $insert['donotsendwelcomeemail'] = true;
+
+            if ($this->ci->input->post('default_pass_all')) {
+                $insert['password'] = $this->ci->input->post('default_pass_all', false);
             }
 
-            $insert = $this->trimInsertValues($insert);
-
-            if (count($insert) > 0) {
-                $this->incrementImported();
-
-                $id = null;
-
-                if (!$this->isSimulation()) {
-                    $insert['datecreated']           = date('Y-m-d H:i:s');
-                    $insert['donotsendwelcomeemail'] = true;
-
-                    if ($this->ci->input->post('default_pass_all')) {
-                        $insert['password'] = $this->ci->input->post('default_pass_all', false);
-                    }
-
-                    if ($this->shouldAddContactUnderCustomer($insert)) {
-                        $this->addContactUnderCustomer($insert);
-
-                        continue;
-                    }
-
-                    $insert['is_primary'] = 1;
-                    $id                   = $this->ci->clients_model->add($insert, true);
-
-                    if ($id) {
-                        if ($this->ci->input->post('groups_in[]')) {
-                            $this->insertCustomerGroups($this->ci->input->post('groups_in[]'), $id);
-                        }
-
-                        if (staff_cant('view', 'customers')) {
-                            $assign['customer_admins']   = [];
-                            $assign['customer_admins'][] = get_staff_user_id();
-                            $this->ci->clients_model->assign_admins($assign, $id);
-                        }
-                    }
-                } else {
-                    $this->simulationData[$rowNumber] = $this->formatValuesForSimulation($insert);
+            try {
+                if ($this->shouldAddContactUnderCustomer($insert)) {
+                    $this->addContactUnderCustomer($insert);
+                    continue;
                 }
 
-                $this->handleCustomFieldsInsert($id, $row, $i, $rowNumber, 'customers');
-            }
+                $insert['is_primary'] = 1;
+                $id = $this->ci->clients_model->add($insert, true);
 
-            if ($this->isSimulation() && $rowNumber >= $this->maxSimulationRows) {
-                break;
+                if (!$id) {
+                    log_message('error', 'Failed to insert customer for row #' . $rowNumber . ': ' . json_encode($insert));
+                }
+
+                if ($id && $this->ci->input->post('groups_in[]')) {
+                    $this->insertCustomerGroups($this->ci->input->post('groups_in[]'), $id);
+                }
+
+                if ($id && staff_cant('view', 'customers')) {
+                    $assign['customer_admins'] = [];
+                    $assign['customer_admins'][] = get_staff_user_id();
+                    $this->ci->clients_model->assign_admins($assign, $id);
+                }
+
+            } catch (Exception $e) {
+                log_message('error', 'Exception for row #' . $rowNumber . ': ' . $e->getMessage() . ' | Data: ' . json_encode($insert));
             }
+        } else {
+            $this->simulationData[$rowNumber] = $this->formatValuesForSimulation($insert);
+        }
+
+        $this->handleCustomFieldsInsert($id, $row, $i, $rowNumber, 'customers');
+
+        if ($this->isSimulation() && $rowNumber >= $this->maxSimulationRows) {
+            break;
         }
     }
+}
+public function generateErrorFile()
+{
+    if (empty($this->importErrors)) {
+        return null;
+    }
+
+    $filename = 'import_errors_' . date('Y-m-d_H-i-s') . '.csv';
+    $filepath = FCPATH . 'uploads/import_errors/' . $filename;
+
+    if (!is_dir(FCPATH . 'uploads/import_errors')) {
+        mkdir(FCPATH . 'uploads/import_errors', 0755, true);
+    }
+
+    $file = fopen($filepath, 'w');
+    fputcsv($file, ['Row Number', 'Error Message']);
+
+    foreach ($this->importErrors as $error) {
+        fputcsv($file, [$error['row'], $error['error']]);
+    }
+
+    fclose($file);
+
+    return base_url('uploads/import_errors/' . $filename);
+}
+
 
     public function formatFieldNameForHeading($field)
     {
@@ -210,6 +375,11 @@ class Import_customers extends App_import
     {
         return total_rows(db_prefix() . 'contacts', ['email' => $email]);
     }
+    private function isDuplicatePhoneNumber($phone)
+{
+    return total_rows(db_prefix() . 'contacts', ['phonenumber' => $phone]);
+}
+
 
     private function formatValuesForSimulation($values)
     {
@@ -266,6 +436,10 @@ class Import_customers extends App_import
 
         return $country;
     }
+public function hasErrors()
+{
+    return !empty($this->importErrors);
+}
 
     private function countryValue($value)
     {

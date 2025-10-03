@@ -7,18 +7,39 @@
 		"products_filter": "[name='products_filter[]']",
 		"bom_type_filter": "[name='bom_type_filter[]']",
 		"routing_filter": "[name='routing_filter[]']",
+		"commodity_code_filter": "[name='commodity_code_filter[]']",
+
 	};
 
-	var bill_of_material_table = $('.table-bill_of_material_table');
-	initDataTable(bill_of_material_table, admin_url+'manufacturing/bill_of_material_table',[0],[0], InvoiceServerParams, [0,'desc']);
+	// var bill_of_material_table = $('.table-bill_of_material_table');
+	// initDataTable(bill_of_material_table, admin_url+'manufacturing/bill_of_material_table',[0],[0], InvoiceServerParams, [0,'desc']);
 
-	$.each(InvoiceServerParams, function(i, obj) {
-		$('select' + obj).on('change', function() {  
-			bill_of_material_table.DataTable().ajax.reload()
-			.columns.adjust()
-			.responsive.recalc();
-		});
-	});
+	// $.each(InvoiceServerParams, function(i, obj) {
+	// 	$('select' + obj).on('change', function() {  
+	// 		bill_of_material_table.DataTable().ajax.reload()
+	// 		.columns.adjust()
+	// 		.responsive.recalc();
+	// 	});
+	// });
+	// Initialize DataTable and capture the instance
+var bill_of_material_table = initDataTable(
+    $('.table-bill_of_material_table'),
+    admin_url+'manufacturing/bill_of_material_table',
+    [0],
+    [0],
+    InvoiceServerParams,
+    [0,'desc']
+);
+
+// Attach change event for filters
+$.each(InvoiceServerParams, function(i, selector) {
+    $('select' + selector).on('change', function() {
+		     console.log('Filter changed:', i, $(this).val());
+        // Use the DataTable instance directly to reload
+        bill_of_material_table.ajax.reload(null, false); // false = keep pagination
+    });
+});
+
 
 	var hidden_columns = [1];
 	$('.table-bill_of_material_table').DataTable().columns(hidden_columns).visible(false, false);

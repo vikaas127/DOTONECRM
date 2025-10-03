@@ -135,7 +135,7 @@ public function verify_gst()
     }
 
     // Replace with your real token or fetch from session
-    $userGstin = '29AAGCB1286Q000';
+    $userGstin = '08CTAPD2435B1ZA';
     $email = 'vikas@techdotbit.com';
     $ip = '49.36.189.194';
 
@@ -144,9 +144,9 @@ public function verify_gst()
     $headers = [
         'accept: */*',
         'ip_address: ' . $ip,
-        'client_id: EINS6674d356-f9f0-4ce6-a9d0-cd29b32325e8',
-        'client_secret: EINS4923d1a3-3ee2-4421-ada6-0f0c65112014',
-        'username: BVMGSP',
+        'client_id: EINPa8102f21-9b78-449a-800f-4c657d0236b4',
+        'client_secret: EINP85717502-097a-4307-af05-787b0db03b41',
+
         'auth-token: ' . $authToken,
         'gstin: ' . $userGstin
     ];

@@ -630,6 +630,133 @@ function perfex_saas_master_default_tables($folder_path = '')
 
     return $table_names;
 }
+/**
+ * Create any missing tables in a tenant DB by copying structure from the golden DB.
+ * Uses: CREATE TABLE IF NOT EXISTS `<tenant_db>`.`<tenant_prefix><base>` LIKE `<gold_db>`.`<gold_prefix><base>`;
+ *
+ * Call this AFTER perfex_saas_master_default_tables() so you can pass its list in.
+ *
+ * @param array  $dsn            Tenant DSN used by perfex_saas_raw_query (host, user, pass, database, etc.)
+ * @param string $tenantDb       e.g. 'ps_demo'
+ * @param string $tenantPrefix   e.g. 'demo_'
+ * @param array  $seedTables     Table names from perfex_saas_master_default_tables() (can be full names or base names)
+ * @param string $goldDb         Golden DB name (default 'ps_ehsan')
+ * @param string $goldPrefix     Golden table prefix (default 'ehsan_')
+ * @return array                 ['created'=>[...], 'skipped'=>[...], 'errors'=>[...]]
+ */
+if (!function_exists('perfex_saas_raw_query_all')) {
+    /**
+     * Run raw query and return all rows as array.
+     *
+     * @param string $sql
+     * @param array $dsn
+     * @param bool $escape
+     * @return array
+     */
+    function perfex_saas_raw_query_all($sql, $dsn = [], $escape = true): array
+    {
+        $rows = perfex_saas_raw_query($sql, $dsn, $escape, true);
+        return is_array($rows) ? $rows : [];
+    }
+}
+
+function perfex_saas_ensure_tenant_schema_from_golden(
+    array $dsn,
+    string $tenantDb,
+    string $tenantPrefix,
+    array $seedTables,
+    string $goldDb = 'ps_ehsan',
+    string $goldPrefix = 'ehsan_'
+): array {
+    // 1) Normalize the seed table list to BASE names (strip golden prefix if present)
+    $bases = [];
+    $glen  = strlen($goldPrefix);
+    foreach ($seedTables as $t) {
+        $t = trim($t);
+        if ($t === '') continue;
+        if (strncasecmp($t, $goldPrefix, $glen) === 0) {
+            $bases[] = substr($t, $glen);          // e.g. 'ehsan_tbltags' -> 'tbltags'
+        } else {
+            $bases[] = $t;                          // already a base name like 'tbltags'
+        }
+    }
+    $bases = array_values(array_unique($bases));
+
+    if (empty($bases)) {
+        return ['created'=>[], 'skipped'=>[], 'errors'=>['No seed tables provided']];
+    }
+
+    // 2) Find which expected tenant tables already exist
+    $expectedFull = array_map(fn($b) => $tenantPrefix.$b, $bases);
+
+    $existingMap = [];
+    foreach (array_chunk($expectedFull, 200) as $chunk) {
+        $in = "'" . implode("','", array_map('addslashes', $chunk)) . "'";
+        $rows = perfex_saas_raw_query_all("
+            SELECT TABLE_NAME
+            FROM information_schema.TABLES
+            WHERE TABLE_SCHEMA = '{$tenantDb}'
+              AND TABLE_TYPE = 'BASE TABLE'
+              AND TABLE_NAME IN ({$in})
+        ", /*dsn*/ [], /*escape*/ false) ?: [];
+        foreach ($rows as $r) $existingMap[$r['TABLE_NAME']] = true;
+    }
+
+    // 3) Optional: ensure each golden table exists (skip if it doesn't)
+    $goldFull = array_map(fn($b) => $goldPrefix.$b, $bases);
+    $goldMap  = [];
+    foreach (array_chunk($goldFull, 200) as $chunk) {
+        $in = "'" . implode("','", array_map('addslashes', $chunk)) . "'";
+        $rows = perfex_saas_raw_query_all("
+            SELECT TABLE_NAME
+            FROM information_schema.TABLES
+            WHERE TABLE_SCHEMA = '{$goldDb}'
+              AND TABLE_TYPE = 'BASE TABLE'
+              AND TABLE_NAME IN ({$in})
+        ", [], false) ?: [];
+        foreach ($rows as $r) $goldMap[$r['TABLE_NAME']] = true;
+    }
+
+    // 4) Build CREATEs (only for tenant-missing + golden-present)
+    $creates = [];
+    $skipped = [];
+    $errors  = [];
+    foreach ($bases as $base) {
+        $tenantTable = $tenantPrefix.$base;
+        $goldTable   = $goldPrefix.$base;
+
+        if (isset($existingMap[$tenantTable])) {
+            $skipped[] = $tenantTable;
+            continue;
+        }
+        if (!isset($goldMap[$goldTable])) {
+            $errors[] = "Golden table missing: {$goldDb}.{$goldTable}";
+            continue;
+        }
+
+        $creates[] = "CREATE TABLE IF NOT EXISTS `{$tenantDb}`.`{$tenantTable}` LIKE `{$goldDb}`.`{$goldTable}`;";
+    }
+
+    if (empty($creates)) {
+        return ['created'=>[], 'skipped'=>$skipped, 'errors'=>$errors];
+    }
+
+    // 5) Execute in one batch under tenant DSN (idempotent)
+    $sql = array_merge(
+        ["SET FOREIGN_KEY_CHECKS=0;", "SET NAMES utf8mb4;"],
+        $creates,
+        ["SET FOREIGN_KEY_CHECKS=1;"]
+    );
+
+    try {
+        perfex_saas_raw_query($sql, $dsn, false, false, null, true, false);
+    } catch (Throwable $e) {
+        $errors[] = $e->getMessage();
+    }
+
+    return ['created'=>$creates, 'skipped'=>$skipped, 'errors'=>$errors];
+}
+
 
 /**
  * Sets up tables on a dsn from a given data source name (DSN).
@@ -641,6 +768,21 @@ function perfex_saas_master_default_tables($folder_path = '')
  * @param bool $return_queries_only Optional . Will return the queries only and will not run
  * @return void
  */
+
+if (!function_exists('perfex_saas_tenant_db_name')) {
+    /**
+     * Resolve tenant database name from company slug.
+     * Adjust this if your DB naming convention is different.
+     *
+     * @param string $slug
+     * @return string
+     */
+    function perfex_saas_tenant_db_name(string $slug): string
+    {
+        // Example: slug = "demo" => "ps_demo"
+        return 'ps_' . strtolower($slug);
+    }
+}
 function perfex_saas_setup_dsn($dsn, $slug, $source_dsn = [], $return_queries_only = false)
 {
     $dbprefix = perfex_saas_master_db_prefix();
@@ -652,7 +794,30 @@ function perfex_saas_setup_dsn($dsn, $slug, $source_dsn = [], $return_queries_on
     $master_tables = array_unique(array_merge($master_tables, perfex_saas_seed_tables()));
 
     $show_create_queries = [];
+ // ── Just CALL the ensure function here (no extra logic inline) ──
+    $tenantDb   = isset($dsn['database']) ? $dsn['database'] : perfex_saas_tenant_db_name($slug);
+    $tenantPref = perfex_saas_tenant_db_prefix($slug);
 
+    // Ensure missing tables exist in tenant by copying structure from golden DB
+    if (function_exists('perfex_saas_ensure_tenant_schema_from_golden')) {
+        $ensure = perfex_saas_ensure_tenant_schema_from_golden(
+            $dsn,
+            $tenantDb,
+            $tenantPref,
+            $master_tables,    // list from default + seeds (full or base names ok)
+            'ps_ehsan',        // golden DB
+            'ehsan_'           // golden prefix
+        );
+
+        if (!empty($ensure['errors'])) {
+            log_message('error', '[SAAS] Schema ensure errors: ' . json_encode($ensure['errors']));
+        }
+        log_message('debug', '[SAAS] Schema ensured for ' . $tenantDb .
+            ' created=' . (isset($ensure['created']) ? count($ensure['created']) : 0) .
+            ' skipped=' . (isset($ensure['skipped']) ? count($ensure['skipped']) : 0));
+    } else {
+        log_message('debug', '[SAAS] perfex_saas_ensure_tenant_schema_from_golden() not found; skipping schema ensure');
+    }
     $hooks_payload = ['dsn' => $dsn, 'source_dsn' => $source_dsn, 'slug' => $slug, 'tables' => $master_tables, 'queries' => $show_create_queries];
     $filter = hooks()->apply_filters('perfex_saas_dsn_setup_source_dsn_queries', $hooks_payload);
     $show_create_queries = (array)($filter['queries'] ?? []);

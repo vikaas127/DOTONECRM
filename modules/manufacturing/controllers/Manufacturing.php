@@ -1623,6 +1623,7 @@ public function update_scrap_data() {
 		$data['title'] = _l('bill_of_material');
 		$data['products'] = $this->manufacturing_model->get_product();
 		$data['routings'] = $this->manufacturing_model->get_routings();
+		$data['commodity_codes'] = $this->manufacturing_model->get_commodity_codes();
 		$bom_type=[];
 		
 		$bom_type[] = [

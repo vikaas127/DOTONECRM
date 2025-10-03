@@ -43,6 +43,13 @@
                                         class="btn btn-primary simulate btn-import-submit"><?php echo _l('simulate_import'); ?></button>
                                 </div>
                                 <?php echo form_close(); ?>
+<?php if($hasErrors){ ?>
+    <a href="<?= $errorFileUrl ?>" class="btn btn-danger" target="_blank">
+        <?= _l('download_error_file') ?>
+    </a>
+<?php } ?>
+
+
                             </div>
                         </div>
                     </div>

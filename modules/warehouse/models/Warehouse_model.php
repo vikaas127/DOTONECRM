@@ -830,6 +830,11 @@ public function delete_warehouse_permission($id)
 		return $this->db->query('select * from tblware_body_type where display = 1 order by tblware_body_type.order asc')->result_array();
 	}
 
+	public function get_paperwork_add_commodity() {
+
+		return $this->db->query('select * from tblpaperwork where display = 1 order by tblpaperwork.order asc')->result_array();
+	}
+
 	/**
 	 * delete body type
 	 * @param  integer $id
@@ -1789,6 +1794,7 @@ public function delete_warehouse_permission($id)
 	 */
 	public function add_inventory_manage($data, $status) {
 		// status '1:Goods receipt note 2:Goods delivery note',
+$affected_rows = 0;
 
 		if ($status == 1) {
 
@@ -6428,7 +6434,7 @@ public function get_stock_export_pdf_html($goods_delivery_id) {
         $columns = [
             'sort_name', 'thickness', 'long_description', 'group_id', 'sub_group',
             'volume', 'color', 'style_id', 'model_id', 'size_id', 'unit_id',
-            'sku_code',  'paperwork', 'length', 'width'
+            'sku_code',  'paperwork_id', 'length', 'width'
         ];
         $all_fields = $this->db->list_fields('tblitems');
         return array_intersect($columns, $all_fields);

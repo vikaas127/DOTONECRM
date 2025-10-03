@@ -302,7 +302,7 @@ var tblNamingAttrStore = <?php echo json_encode($store_data); ?>;
             width: '100%',
             height: 330,
 
-            rowHeaders: true,
+            rowHeaders: true,           
             autoColumnSize: {
               samplingRatio: 23
             },
@@ -568,6 +568,8 @@ warehouse_type_value = warehouse_type;
     data.origin = $('input[name="origin"]').val();
     data.style_id = $('select[name="style_id"]').val();
     data.model_id = $('select[name="model_id"]').val();
+        data.paperwork_id = $('select[name="paperwork_id"]').val();
+
     data.size_id = $('select[name="size_id"]').val();
     data.color = $('select[name="color"]').val();
     
@@ -872,6 +874,11 @@ function edit_commodity_item(invoker)
       $('#commodity_list-add-edit select[name="model_id"]').val($(invoker).data('model_id')).change();
     }else{
       $('#commodity_list-add-edit select[name="model_id"]').val('').change();
+    }
+       if($(invoker).data('paperwork_id') != 0){
+      $('#commodity_list-add-edit select[name="paperwork_id"]').val($(invoker).data('paperwork_id')).change();
+    }else{
+      $('#commodity_list-add-edit select[name="paperwork_id"]').val('').change();
     }
     if($(invoker).data('size_id') != 0){
       $('#commodity_list-add-edit select[name="size_id"]').val($(invoker).data('size_id')).change();
@@ -1198,6 +1205,8 @@ function new_commodity_item(){
 
     $('#commodity_list-add-edit select[name="style_id"]').val('').change();
     $('#commodity_list-add-edit select[name="model_id"]').val('').change();
+        $('#commodity_list-add-edit select[name="paperwork_id"]').val('').change();
+
     $('#commodity_list-add-edit select[name="size_id"]').val('').change();
 
 
@@ -1775,6 +1784,11 @@ $("body").on('change', 'select[name="parent_id"]', function () {
             $('#commodity_list-add-edit select[name="model_id"]').val(response.parent_value.model_id).change();
           }else{
             $('#commodity_list-add-edit select[name="model_id"]').val('').change();
+          }
+           if(response.parent_value.paperwork_id != 0){
+            $('#commodity_list-add-edit select[name="paperwork_id"]').val(response.parent_value.paperwork_id).change();
+          }else{
+            $('#commodity_list-add-edit select[name="paperwork_id"]').val('').change();
           }
           if(response.parent_value.size_id != 0){
             $('#commodity_list-add-edit select[name="size_id"]').val(response.parent_value.size_id).change();

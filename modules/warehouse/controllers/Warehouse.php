@@ -720,6 +720,8 @@ public function get_subgroups_by_groups() {
 		$data['taxes'] = get_taxes();
 		$data['styles'] = $this->warehouse_model->get_style_add_commodity();
 		$data['models'] = $this->warehouse_model->get_body_add_commodity();
+		$data['paperworks'] = $this->warehouse_model->get_paperwork_add_commodity();
+
 		$data['sizes'] = $this->warehouse_model->get_size_add_commodity();
 		$data['customer_groups'] = $this->client_groups_model->get_groups();
 
@@ -2713,6 +2715,8 @@ public function get_item_description()
 							_l('model_id')          =>'string',
 							_l('size_id')          =>'string',
 						    _l('thickness')          =>'string',
+							_l('hs_code')=>'string',
+							_l('paperwork_id')=>'string',
 
 							_l('_color')          =>'string',
 							_l('guarantee_month')          =>'string',
@@ -2727,7 +2731,7 @@ public function get_item_description()
 
                         $writer = new XLSXWriter();
 
-                        $col_style1 =[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23];
+                        $col_style1 =[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25];
                         $style1 = ['widths'=> $widths_arr, 'fill' => '#ff9800',  'font-style'=>'bold', 'color' => '#0a0a0a', 'border'=>'left,right,top,bottom', 'border-color' => '#0a0a0a', 'font-size' => 13 ];
 
                         $writer->writeSheetHeader_v2('Sheet1', $writer_header,  $col_options = ['widths'=> $widths_arr, 'fill' => '#f44336',  'font-style'=>'bold', 'color' => '#0a0a0a', 'border'=>'left,right,top,bottom', 'border-color' => '#0a0a0a', 'font-size' => 13 ], $col_style1, $style1);
@@ -2768,6 +2772,8 @@ public function get_item_description()
 								$flag_id_style_id;
 								$flag_id_model_id;
 								$flag_id_size_id;
+								$flag_id_paperwork_id;
+
 
 								$flag_id_color_id;
 
@@ -2794,10 +2800,12 @@ public function get_item_description()
 								$value_cell_model_id = isset($data[$row][18]) ? $data[$row][18] : '';
 								$value_cell_size_id = isset($data[$row][19]) ? $data[$row][19] : '';
 								$value_cell_thickness = isset($data[$row][20]) ? $data[$row][20] : '';
+								$value_cell_hs_code = isset($data[$row][21]) ? $data[$row][21] : '';
+								$value_cell_paperwork_id = isset($data[$row][22]) ? $data[$row][22] : '';
 
-								$value_cell_color_id = isset($data[$row][21]) ? (int)$data[$row][21] : '';
-								$value_cell_warranty = isset($data[$row][22]) ? $data[$row][22] : null;
-								$value_cell_minimum_inventory = isset($data[$row][23]) ? $data[$row][23] : '';
+								$value_cell_color_id = isset($data[$row][23]) ? (int)$data[$row][23] : '';
+								$value_cell_warranty = isset($data[$row][24]) ? $data[$row][24] : null;
+								$value_cell_minimum_inventory = isset($data[$row][25]) ? $data[$row][25] : '';
 
 								$pattern = '#^[a-z][a-z0-9\._]{2,31}@[a-z0-9\-]{3,}(\.[a-z]{2,4}){1,2}$#';
 
@@ -2955,6 +2963,21 @@ public function get_item_description()
 									}
 								}
 
+								if (!is_null($value_cell_paperwork_id) && $value_cell_paperwork_id != '0' && $value_cell_paperwork_id != '') {
+									// Case: always match by style_code
+									$this->db->like(db_prefix() . 'paperwork.paperwork_code', $value_cell_paperwork_id);
+									$paperwork_id_value = $this->db->get(db_prefix() . 'paperwork')->result_array();
+
+									if (count($paperwork_id_value) == 0) {
+										$string_error .= _l('paperwork_code') . _l('does_not_exist');
+										$flag2 = 1;
+									} else {
+										// Get style_type_id from matched record
+										$flag_id_paperwork_id = $paperwork_id_value[0]['paperwork_id'];
+									}
+								}
+
+
 
 								// check model_code exists
 								if (!is_null($value_cell_model_id) && $value_cell_model_id != '0' && $value_cell_model_id != '') {
@@ -3046,7 +3069,7 @@ public function get_item_description()
 									$rd['unit_id'] = isset($flag_id_unit_id) ? $flag_id_unit_id : '';
 									$rd['group_id'] = isset($flag_id_commodity_group) ? $flag_id_commodity_group : '';
 									$rd['sub_group'] = isset($flag_id_sub_group) ? $flag_id_sub_group : '';
-									$rd['guarantee'] = isset($data[$row][22]) ? $data[$row][22] : '';
+									$rd['guarantee'] = isset($data[$row][24]) ? $data[$row][22] : '';
 									$rd['tax'] = isset($flag_id_tax) ? $flag_id_tax : '';
 									$rd['tax2'] = isset($flag_id_tax2) ? $flag_id_tax2 : null;
 
@@ -3055,7 +3078,9 @@ public function get_item_description()
 									$rd['style_id'] = isset($flag_id_style_id) ? $flag_id_style_id : '';
 									$rd['model_id'] = isset($flag_id_model_id) ? $flag_id_model_id : '';
 									$rd['size_id'] = isset($flag_id_size_id) ? $flag_id_size_id : '';
+									$rd['paperwork_id'] = isset($flag_id_paperwork_id) ? $flag_id_paperwork_id : '';
 									$rd['thickness'] = isset($data[$row][20]) ? $data[$row][20] : '';
+									$rd['hs_code'] = isset($data[$row][21]) ? $data[$row][21] : '';
 
 									$rd['color'] = isset($flag_id_color_id) ? $flag_id_color_id : 0;
 									$rd['warehouse_id'] = 0;
@@ -3067,16 +3092,13 @@ public function get_item_description()
 									$rd['minimum_inventory'] = isset($value_cell_minimum_inventory) ? $value_cell_minimum_inventory : 0;
 									$rd['without_checking_warehouse'] =  0;
 									// Generate description dynamically using your naming rules
-									if (!empty($rd['group_id']) && !empty($rd['sub_group'])) {
-										$rd['description'] = $this->warehouse_model->generate_description_from_rule(
-											$rd['group_id'],
-											$rd['sub_group'],
-											$rd
-										);
-									} else {
-										// fallback if no rule exists
-										$rd['description'] = $rd['sort_name'] ?? '';
-									}
+									$description = $this->warehouse_model->generate_description_from_rule(
+		$rd['group_id'],
+		$rd['sub_group'],
+		$rd
+	);
+
+	$rd['description'] = !empty($description) ? $description : ($rd['sort_name'] ?? '');
 
 
 
@@ -4740,7 +4762,10 @@ public function delete_paperwork($id) {
 						$writer_header = array(
 							"(*)" ._l('commodity_code')          =>'string',
 							"(*)" ._l('warehouse_code')          =>'string',
-							_l('lot_number')          =>'string',
+							"(*)" ._l('lot')          =>'string',
+							"(*)" ._l('rack')          =>'string',
+							"(*)" ._l('shelf')          =>'string',
+							// _l('lot_number')          =>'string',
 							_l('expiry_date').'(yyyy-mm-dd)'          =>'string',
 							"(*)" ._l('inventory_number')          =>'string',
 							_l('error')                     =>'string',
@@ -4753,7 +4778,7 @@ public function delete_paperwork($id) {
 
                         $writer = new XLSXWriter();
 
-                        $col_style1 =[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21];
+                        $col_style1 =[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24];
                         $style1 = ['widths'=> $widths_arr, 'fill' => '#ff9800',  'font-style'=>'bold', 'color' => '#0a0a0a', 'border'=>'left,right,top,bottom', 'border-color' => '#0a0a0a', 'font-size' => 13 ];
 
                         $writer->writeSheetHeader_v2('Sheet1', $writer_header,  $col_options = ['widths'=> $widths_arr, 'fill' => '#f44336',  'font-style'=>'bold', 'color' => '#0a0a0a', 'border'=>'left,right,top,bottom', 'border-color' => '#0a0a0a', 'font-size' => 13 ], $col_style1, $style1);
@@ -4783,12 +4808,18 @@ public function delete_paperwork($id) {
 
 								$flag_id_commodity_code;
 								$flag_id_warehouse_code;
+								$flag_id_lot;
+								$flag_id_rack;
+								$flag_id_shelf;
 
 								$value_cell_commodity_code = isset($data[$row][0]) ? $data[$row][0] : null ;
 								$value_cell_warehouse_code = isset($data[$row][1]) ? $data[$row][1] : null ;
-								$value_cell_lot_number = isset($data[$row][2]) ? $data[$row][2] : '' ;
-								$value_cell_expiry_date = isset($data[$row][3]) ? $data[$row][3] : '' ;
-								$value_cell_inventory_number = isset($data[$row][4]) ? $data[$row][4] : null ;
+								$value_cell_lot = isset($data[$row][2]) ? $data[$row][2] : null ;
+								$value_cell_rack = isset($data[$row][3]) ? $data[$row][3] : null ;
+								$value_cell_shelf = isset($data[$row][4]) ? $data[$row][4] : null ;
+
+								$value_cell_expiry_date = isset($data[$row][5]) ? $data[$row][5] : '' ;
+								$value_cell_inventory_number = isset($data[$row][6]) ? $data[$row][6] : null ;
 
 								$pattern = '#^[a-z][a-z0-9\._]{2,31}@[a-z0-9\-]{3,}(\.[a-z]{2,4}){1,2}$#';
 
@@ -4810,6 +4841,7 @@ public function delete_paperwork($id) {
 									$flag = 1;
 								}
 								
+
 
 								//check commodity_code exist  (input: code or name item)
 								if (is_null($value_cell_commodity_code) != true && $value_cell_commodity_code != '0' ) {
@@ -4848,6 +4880,63 @@ public function delete_paperwork($id) {
 
 								}
 
+								/*---------------------------------------
+								Check lot, rack, and shelf relations
+								---------------------------------------*/
+
+								// Check lot exists and belongs to warehouse
+								if (!is_null($value_cell_lot) && $value_cell_lot != '0') {
+									$this->db->where('lot_id', trim($value_cell_lot, " "));
+									$lot_value = $this->db->get(db_prefix().'wr_lot')->row();
+
+									if ($lot_value) {
+										if ($lot_value->warehouse_id != $flag_id_warehouse_code) {
+											$string_error .= _l('lot') . ' ' . _l('not_belong_to_warehouse');
+											$flag2 = 1;
+										} else {
+											$flag_id_lot = $lot_value->lot_id;
+										}
+									} else {
+										$string_error .= _l('lot') . _l('does_not_exist');
+										$flag2 = 1;
+									}
+								}
+
+								// Check rack exists and belongs to warehouse
+								if (!is_null($value_cell_rack) && $value_cell_rack != '0') {
+									$this->db->where('rack_id', trim($value_cell_rack, " "));
+									$rack_value = $this->db->get(db_prefix().'wr_rack')->row();
+
+									if ($rack_value) {
+										if ($rack_value->warehouse_id != $flag_id_warehouse_code) {
+											$string_error .= _l('rack') . ' ' . _l('not_belong_to_warehouse');
+											$flag2 = 1;
+										} else {
+											$flag_id_rack = $rack_value->rack_id;
+										}
+									} else {
+										$string_error .= _l('rack') . _l('does_not_exist');
+										$flag2 = 1;
+									}
+								}
+
+								// Check shelf exists and belongs to rack
+								if (!is_null($value_cell_shelf) && $value_cell_shelf != '0') {
+									$this->db->where('shelf_id', trim($value_cell_shelf, " "));
+									$shelf_value = $this->db->get(db_prefix().'wr_shelf')->row();
+
+									if ($shelf_value) {
+										if ($shelf_value->rack_id != $flag_id_rack) {
+											$string_error .= _l('shelf') . ' ' . _l('not_belong_to_rack');
+											$flag2 = 1;
+										} else {
+											$flag_id_shelf = $shelf_value->shelf_id;
+										}
+									} else {
+										$string_error .= _l('shelf') . _l('does_not_exist');
+										$flag2 = 1;
+									}
+								}
 								if (is_null($value_cell_expiry_date) != true && $value_cell_expiry_date != '') {
 
 									if (preg_match("/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$/", trim($value_cell_expiry_date, " "))) {
@@ -4877,7 +4966,10 @@ public function delete_paperwork($id) {
 									$writer->writeSheetRow('Sheet1', [
 										$value_cell_commodity_code,
 										$value_cell_warehouse_code,
-										$value_cell_lot_number,
+										$value_cell_lot,
+										$value_cell_rack,
+										$value_cell_shelf,
+
 										$value_cell_expiry_date,
 										$value_cell_inventory_number,
 										$string_error,
@@ -4892,7 +4984,10 @@ public function delete_paperwork($id) {
 									/*staff id is HR_code, input is HR_CODE, insert => staffid*/
 									$rd['commodity_code'] = $flag_id_commodity_code;
 									$rd['warehouse_id'] = $flag_id_warehouse_code;
-									$rd['lot_number'] 	  = isset($data[$row][2]) ? $data[$row][2] : '' ;
+									$rd['lot_id'] 	  = $flag_id_lot;
+									$rd['rack_id'] 	  = $flag_id_rack;
+									$rd['shelf_id'] 	  = $flag_id_shelf;
+
 
 									$rd['expiry_date'] = (trim($value_cell_expiry_date, " "));
 									if(isset($rd['expiry_date']) && $rd['expiry_date'] !=''){
@@ -4901,48 +4996,90 @@ public function delete_paperwork($id) {
 										$rd['expiry_date'] = null;
 									}
 
-									$rd['quantities'] = isset($data[$row][4]) ? $data[$row][4] : '' ;
+									$rd['quantities'] = isset($data[$row][6]) ? $data[$row][6] : '' ;
 									$rd['date_manufacture'] = null;
 									$rd['serial_number'] = '';
 
 								}
 
+								// if (get_staff_user_id() != '' && $flag == 0 && $flag2 == 0) {
+								// 	$rows[] = $rd;
+								// 	$purchase_price = $this->warehouse_model->get_purchase_price_from_commodity_code($rd['commodity_code']);
+								// 	$rd['unit_price'] = $purchase_price;
+
+								// 	$result_value = $this->warehouse_model->add_inventory_manage($rd, 1);
+								// 	if ($result_value) {
+								// 		//add transaction log
+								// 		$transaction_data=[];
+
+								// 		$transaction_data['goods_receipt_id'] = 0;
+								// 		$transaction_data['purchase_price'] = $purchase_price;
+								// 		$transaction_data['expiry_date'] = $rd['expiry_date'];
+								// 		$transaction_data['lot_number'] = $rd['lot_number'];
+								// 		/*get old quantity by item, warehouse*/
+								// 		$inventory_value = $this->warehouse_model->get_quantity_inventory($rd['warehouse_id'], $rd['commodity_code']);
+								// 		$old_quantity =  null;
+								// 		if($inventory_value){
+								// 			$old_quantity = $inventory_value->inventory_number;
+								// 		}
+
+								// 		$transaction_data['goods_id'] = 0;
+								// 		$transaction_data['old_quantity'] = (float)$old_quantity - (float)$rd['quantities'];
+								// 		$transaction_data['commodity_id'] = $rd['commodity_code'];
+								// 		$transaction_data['quantity'] = (float)$rd['quantities'];
+								// 		$transaction_data['date_add'] = date('Y-m-d H:i:s');
+								// 		$transaction_data['warehouse_id'] = $rd['warehouse_id'];
+								// 		$transaction_data['note'] = _l('import_opening_stock');
+								// 		$transaction_data['status'] = 1;
+
+								// 		$this->db->insert(db_prefix() . 'goods_transaction_detail', $transaction_data);
+
+
+								// 		$total_rows_actualy++;
+								// 	}
+								// }
 								if (get_staff_user_id() != '' && $flag == 0 && $flag2 == 0) {
-									$rows[] = $rd;
-									$purchase_price = $this->warehouse_model->get_purchase_price_from_commodity_code($rd['commodity_code']);
-									$rd['unit_price'] = $purchase_price;
+								$rows[] = $rd;
 
-									$result_value = $this->warehouse_model->add_inventory_manage($rd, 1);
-									if ($result_value) {
-										//add transaction log
-										$transaction_data=[];
+								// Get purchase price
+								$purchase_price   = $this->warehouse_model->get_purchase_price_from_commodity_code($rd['commodity_code']);
+								$rd['unit_price'] = $purchase_price;
 
-										$transaction_data['goods_receipt_id'] = 0;
-										$transaction_data['purchase_price'] = $purchase_price;
-										$transaction_data['expiry_date'] = $rd['expiry_date'];
-										$transaction_data['lot_number'] = $rd['lot_number'];
-										/*get old quantity by item, warehouse*/
-										$inventory_value = $this->warehouse_model->get_quantity_inventory($rd['warehouse_id'], $rd['commodity_code']);
-										$old_quantity =  null;
-										if($inventory_value){
-											$old_quantity = $inventory_value->inventory_number;
-										}
+								// Insert into inventory
+								$result_value = $this->warehouse_model->add_inventory_manage($rd, 1);
 
-										$transaction_data['goods_id'] = 0;
-										$transaction_data['old_quantity'] = (float)$old_quantity - (float)$rd['quantities'];
-										$transaction_data['commodity_id'] = $rd['commodity_code'];
-										$transaction_data['quantity'] = (float)$rd['quantities'];
-										$transaction_data['date_add'] = date('Y-m-d H:i:s');
-										$transaction_data['warehouse_id'] = $rd['warehouse_id'];
-										$transaction_data['note'] = _l('import_opening_stock');
-										$transaction_data['status'] = 1;
+								if ($result_value) {
+									// Add transaction log
+									$transaction_data = [];
 
-										$this->db->insert(db_prefix() . 'goods_transaction_detail', $transaction_data);
+									$transaction_data['goods_receipt_id'] = 0;
+									$transaction_data['purchase_price']   = $purchase_price;
+									$transaction_data['expiry_date']      = $rd['expiry_date'];
 
+									// use IDs instead of text
+									$transaction_data['lot_id']   = isset($rd['lot_id']) ? $rd['lot_id'] : null;
+									$transaction_data['rack_id']  = isset($rd['rack_id']) ? $rd['rack_id'] : null;
+									$transaction_data['shelf_id'] = isset($rd['shelf_id']) ? $rd['shelf_id'] : null;
 
-										$total_rows_actualy++;
-									}
+									// Get old quantity by item, warehouse
+									$inventory_value = $this->warehouse_model->get_quantity_inventory($rd['warehouse_id'], $rd['commodity_code']);
+									$old_quantity    = $inventory_value ? $inventory_value->inventory_number : 0;
+
+									$transaction_data['goods_id']     = 0;
+									$transaction_data['old_quantity'] = (float) $old_quantity;
+									$transaction_data['commodity_id'] = $rd['commodity_code'];
+									$transaction_data['quantity']     = (float) $rd['quantities'];
+									$transaction_data['date_add']     = date('Y-m-d H:i:s');
+									$transaction_data['warehouse_id'] = $rd['warehouse_id'];
+									$transaction_data['note']         = _l('import_opening_stock');
+									$transaction_data['status']       = 1;
+
+									$this->db->insert(db_prefix() . 'goods_transaction_detail', $transaction_data);
+
+									$total_rows_actualy++;
 								}
+							}
+
 
 								$total_rows++;
 								$total_rows_data++;

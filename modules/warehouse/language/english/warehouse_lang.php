@@ -9,6 +9,7 @@ $lang['colors']  = 'Colors';
 $lang['styles']  = 'Styles';
 $lang['warehouse']  = 'Inventory';
 $lang['display']  = 'Display';
+$lang['paperwork_id']='Paperwork';
 $lang['not_display']  = 'Not display';
 $lang['add_warehouse_type']  = 'Add warehouse';
 $lang['add_commodity_type']  = 'Add Item type';
