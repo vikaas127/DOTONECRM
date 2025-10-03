@@ -379,6 +379,7 @@ body #wrapper .dataTables_wrapper .table tr th {
                                             _l('sku_code'),
                                             _l('group_name'),
                                                                                                                                     _l('sub_group_name'),
+                                                                                                                                    _l('commodity_type'),
 
                                             _l('warehouse_name'),
                                             _l('tags'),
@@ -540,11 +541,14 @@ body #wrapper .dataTables_wrapper .table tr th {
                         </div>
                         <div class="row">
                               
-                              <div class="col-md-6">
+                              <div class="col-md-4">
                                    <?php echo render_select('group_id',$commodity_groups,array('id','name'),'commodity_group'); ?>
                               </div>
-                               <div class="col-md-6">
+                               <div class="col-md-4">
                                    <?php echo render_select('sub_group',$sub_groups,array('id','sub_group_name'),'sub_group'); ?>
+                              </div>
+                               <div class="col-md-4">
+                                   <?php echo render_select('commodity_type',$commodity_types,array('commodity_type_id','commondity_name'),'commodity_type'); ?>
                               </div>
                           </div>
 
