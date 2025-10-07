@@ -1176,19 +1176,38 @@ public function get_bill_of_material_for_pdf($id)
 
     foreach ($components as $component) {
         $component = (array) $component;
-        $product = $this->get_product($component['product_id']);
+       $product = $this->get_mrp_custom_product($component['product_id']);
+$view_type = get_mrp_option('view_type') ?: 1;
 
-        $bom->components[] = [
-            'component_name' => $component['name'] ?? 'N/A',
-            'product_id' => $component['product_id'] ?? '',
-            'product_name' => $product->description ?? 'N/A',
-            'price' => (float) ($product->rate ?? 0),
-            'product_qty' => (float) ($component['product_qty'] ?? 0),
-            'product_unit' => $product->unit ?? 'N/A',
-            'subtotal_cost' => isset($product->rate, $component['product_qty']) 
-                ? (float)$product->rate * (float)$component['product_qty'] 
-                : 0,
-        ];
+$product_name = 'N/A';
+if ($product) {
+    switch ($view_type) {
+        case 1:
+            $product_name = $product->commodity_code ?? 'N/A';
+            break;
+        case 2:
+            $product_name = $product->description ?? 'N/A';
+            break;
+        case 3:
+            $product_name = (isset($product->commodity_code) ? $product->commodity_code : '') 
+                          . '_' 
+                          . (isset($product->description) ? $product->description : '');
+            break;
+    }
+}
+
+$bom->components[] = [
+    'component_name' => $component['name'] ?? 'N/A',
+    'product_id' => $component['product_id'] ?? '',
+    'product_name' => $product_name,
+    'price' => (float) ($product->rate ?? 0),
+    'product_qty' => (float) ($component['product_qty'] ?? 0),
+    'product_unit' => $product->unit ?? 'N/A',
+    'subtotal_cost' => isset($product->rate, $component['product_qty']) 
+        ? (float)$product->rate * (float)$component['product_qty'] 
+        : 0,
+];
+
     }
 
     // Add scrap details

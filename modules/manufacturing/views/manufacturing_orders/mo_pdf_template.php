@@ -102,10 +102,8 @@ $basic_details = '
 $pdf->writeHTML($basic_details, true, false, false, false, '');
 $pdf->Ln(5);
 
-
 if (!empty($details)) {
-    // Get column headers dynamically from the first row
-    $columns = array_keys($details[0]);
+    $columns_to_show = ['product_id', 'unit_id', 'qty_to_consume'];
 
     $product_table = '
     <h4>Product Details</h4>
@@ -115,7 +113,7 @@ if (!empty($details)) {
                 <th>#</th>';
 
     // Header row
-    foreach ($columns as $col) {
+    foreach ($columns_to_show as $col) {
         $product_table .= '<th>' . ucwords(str_replace('_', ' ', $col)) . '</th>';
     }
 
@@ -125,10 +123,22 @@ if (!empty($details)) {
     $i = 1;
     foreach ($details as $row) {
         $product_table .= '<tr><td align="center">' . $i++ . '</td>';
-        foreach ($columns as $col) {
-            $value = is_numeric($row[$col]) ? number_format($row[$col], 2) : html_escape($row[$col]);
+
+        foreach ($columns_to_show as $col) {
+            $value = '';
+            if ($col == 'product_id') {
+                // Show product name instead of ID
+                $value = mrp_get_custom_product_name($row[$col] ?? '');
+            } elseif ($col == 'unit_id') {
+                // Show unit name instead of ID
+                $value = mrp_get_unit_name($row[$col] ?? '');
+            } elseif ($col == 'qty_to_consume') {
+                $value = isset($row[$col]) ? number_format($row[$col], 2) : '';
+            }
+
             $product_table .= '<td>' . $value . '</td>';
         }
+
         $product_table .= '</tr>';
     }
 
