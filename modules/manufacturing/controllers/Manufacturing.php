@@ -2120,22 +2120,41 @@ public function view_bill_of_material_detail($id = '')
     $bill_of_material_details = $this->manufacturing_model->get_bill_of_material_details(false, $id);
     log_message('info', 'Fetched bill_of_material_details: ' . print_r($bill_of_material_details, true));
 
-    foreach ($bill_of_material_details as $component) {
-        $component = (array) $component;  // Ensure consistency by casting to array
-        $product_details = $this->manufacturing_model->get_mrp_custom_product($component['product_id']);
-        log_message('info', 'Component product details: ' . print_r($product_details, true));
+   foreach ($bill_of_material_details as $component) {
+    $component = (array) $component;  // Ensure consistency by casting to array
+  $product_details = $this->manufacturing_model->get_mrp_custom_product($component['product_id']);
 
-        $components[] = [
-            'component_name' => isset($component['name']) ? $component['name'] : 'N/A',
-            'product_id' => isset($component['product_id']) ? $component['product_id'] : 'N/A',
-            'product_name' => isset($product_details->description) ? $product_details->description : 'N/A',
-            'price' => isset($product_details->rate) ? (float)$product_details->rate : 0,
-            'product_qty' => isset($component['product_qty']) ? (float)$component['product_qty'] : 0,
-			'product_unit' => isset($product_details->unit) ? $product_details->unit : 'N/A',
+$view_type = get_mrp_option('view_type') ?: 1; // 1=commodity_code, 2=description, 3=both
+$product_name = 'N/A';
 
- 			'subtotal_cost' => isset($product_details->rate) && isset($component['product_qty']) ? (float)$product_details->rate * (float)$component['product_qty'] : 0,
-        ];
+if ($product_details) {
+    switch ($view_type) {
+        case 1:
+            $product_name = $product_details->commodity_code ?? 'N/A';
+            break;
+        case 2:
+            $product_name = $product_details->description ?? 'N/A';
+            break;
+        case 3:
+            $product_name = (isset($product_details->commodity_code) ? $product_details->commodity_code : '') 
+                          . '_' 
+                          . (isset($product_details->description) ? $product_details->description : '');
+            break;
     }
+}
+
+$components[] = [
+    'component_name' => $component['name'] ?? 'N/A',
+    'product_id' => $component['product_id'] ?? 'N/A',
+    'product_name' => $product_name,  // dynamic description
+    'price' => isset($product_details->rate) ? (float)$product_details->rate : 0,
+    'product_qty' => isset($component['product_qty']) ? (float)$component['product_qty'] : 0,
+    'product_unit' => isset($product_details->unit) ? $product_details->unit : 'N/A',
+    'subtotal_cost' => isset($product_details->rate) && isset($component['product_qty']) ? (float)$product_details->rate * (float)$component['product_qty'] : 0,
+];
+
+}
+
     log_message('info', 'Prepared components array: ' . print_r($components, true));
 
     $ready_to_produce_type = [
