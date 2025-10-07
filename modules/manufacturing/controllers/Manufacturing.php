@@ -2122,7 +2122,7 @@ public function view_bill_of_material_detail($id = '')
 
     foreach ($bill_of_material_details as $component) {
         $component = (array) $component;  // Ensure consistency by casting to array
-        $product_details = $this->manufacturing_model->get_product($component['product_id']);
+        $product_details = $this->manufacturing_model->get_mrp_custom_product($component['product_id']);
         log_message('info', 'Component product details: ' . print_r($product_details, true));
 
         $components[] = [
@@ -2263,7 +2263,7 @@ public function bill_of_material_scrap_table()
 		//get operation of routing
 		$data['arr_operations'] = $this->manufacturing_model->get_operation(false, $data['routing_id']);
 
-		$data['products'] = $this->manufacturing_model->get_product();
+		$data['products'] = $this->manufacturing_model->get_mrp_custom_product();
 		$data['product_variants'] = $this->manufacturing_model->get_product_variant();
 		$data['units'] = $this->manufacturing_model->mrp_get_unit();
 

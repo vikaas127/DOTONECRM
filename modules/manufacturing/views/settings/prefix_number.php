@@ -89,6 +89,28 @@
 				<input type="number" id="cost_hour" name="cost_hour" class="form-control" value="<?php echo get_mrp_option('cost_hour'); ?>">
 			</div>
 		</div>
+		<div class="form-group" app-field-wrapper="view_type">
+    <label><?php echo _l('view_type'); ?></label>
+    <select name="view_type" id="view_type" class="form-control">
+        <?php
+        // Hardcoded options
+        $options = [
+            1 => 'Item Code',
+            2 => 'Item Name',
+            3 => 'Both'
+        ];
+
+        // Get saved option or default to first
+        $selected = get_mrp_option('view_type') ?: 1;
+
+        foreach($options as $id => $name){
+            $isSelected = ($id == $selected) ? 'selected' : '';
+            echo "<option value='{$id}' {$isSelected}>{$name}</option>";
+        }
+        ?>
+    </select>
+</div>
+
 
 		<div class="clearfix"></div>
 
