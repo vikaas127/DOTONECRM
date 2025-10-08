@@ -186,17 +186,30 @@
 	}
 
 	// Load Shelves from selected Rack
-	function updateShelfOptions(row, rack_id) {
-		$.ajax({
-			url: admin_url + 'warehouse/get_shelf_by_rack',
-			type: 'POST',
-			data: { rack_id: rack_id },
-			dataType: 'json',
-			success: function (response) {
-				console.log('Shelf response:', response);
-				working_hours.setCellMeta(row, 5, 'chosenOptions', { data: response.shelves }); // shelf_id
-				working_hours.render();
-			}
-		});
-	}
+	// Load Shelves from selected Rack
+function updateShelfOptions(row, rack_id) {
+    $.ajax({
+        url: admin_url + 'warehouse/get_shelf_by_rack',
+        type: 'POST',
+        data: { rack_id: rack_id },
+        dataType: 'json',
+        success: function (response) {
+            console.log('Shelf response:', response);
+
+            // Add a default "Select Shelf" option
+            let shelves = response.shelves || [];
+            shelves.unshift({ id: '', label: 'Select Shelf' });
+
+            // Update Handsontable dropdown options
+            working_hours.setCellMeta(row, 5, 'chosenOptions', { data: shelves });
+
+            // Clear any previously auto-filled value in the shelf column
+            working_hours.setDataAtCell(row, 5, '');
+
+            // Re-render table to show dropdown correctly
+            working_hours.render();
+        }
+    });
+}
+
 </script>
