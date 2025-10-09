@@ -43,7 +43,7 @@
                     <?php
                   $custom_fields = get_custom_fields('items');
                   foreach ($custom_fields as $cf) {
-                      echo '<th width="15%" align="left" class="custom_field">' .($cf['name']) . '</th>';
+                      echo '<th width="15%" align="left" class="custom_field">' . $cf['name'] . '</th>';
                   }
 
                   $qty_heading = _l('estimate_table_quantity_heading');
@@ -53,7 +53,7 @@
                       $qty_heading = _l('estimate_table_quantity_heading') . '/' . _l('estimate_table_hours_heading');
                   }
                   ?>
-                    <th width="10%" class="qty" align="right"><?php echo ($qty_heading); ?></th>
+                    <th width="10%" class="qty" align="right"><?php echo $qty_heading; ?></th>
                     <th width="15%" align="right"><?php echo _l('estimate_table_rate_heading'); ?></th>
                     <th width="20%" align="right"><?php echo _l('estimate_table_tax_heading'); ?></th>
                     <th width="10%" align="right"><?php echo _l('estimate_table_amount_heading'); ?></th>
@@ -63,7 +63,9 @@
             <tbody>
                 <tr class="main">
                     <td></td>
-                        <input type="hidden" name="item_id" class="form-control">
+                                        <td>
+    <input type="hidden" name="item_id" value="">
+</td>
                     <td>
                         <textarea name="description" rows="4" class="form-control"
                             placeholder="<?php echo _l('item_description_placeholder'); ?>"></textarea>
@@ -110,7 +112,7 @@
                      }
                      ?>
                         <button type="button"
-                            onclick="add_item_to_table('undefined','undefined',<?php echo ($new_item); ?>); return false;"
+                            onclick="add_item_to_table('undefined','undefined',<?php echo $new_item; ?>); return false;"
                             class="btn pull-right btn-primary"><i class="fa fa-check"></i></button>
                     </td>
                 </tr>
@@ -119,18 +121,13 @@
                          $items_indicator = 'newitems';
                          if (isset($estimate)) {
                              $add_items       = $estimate->items;
-
-
                              $items_indicator = 'items';
                          }
-                        
 
                          foreach ($add_items as $item) {
                              $manual    = false;
                              $table_row = '<tr class="sortable item">';
                              $table_row .= '<td class="dragger">';
-                         $table_row += `<input type="hidden" name="newitems[${item_key}][item_id]" value="${data.item_id || ''}">`;
-
                              if ($item['qty'] == '' || $item['qty'] == 0) {
                                  $item['qty'] = 1;
                              }
@@ -143,19 +140,14 @@
                                  $estimate_item_taxes = $item['taxname'];
                                  $manual              = true;
                              }
-                             $table_row .= form_hidden('newitems[' . $i . '][itemid]', $item['id']);
+                             $table_row .= form_hidden('' . $items_indicator . '[' . $i . '][itemid]', $item['id']);
+                            $table_row .= form_hidden('' . $items_indicator . '[' . $i . '][item_id]', $item['id']);
 
                              $amount = $item['rate'] * $item['qty'];
                              $amount = app_format_number($amount);
-                             
-
-
                              // order input
                              $table_row .= '<input type="hidden" class="order" name="' . $items_indicator . '[' . $i . '][order]">';
-                         
-                            
-
-
+                             $table_row .= '</td>';
                              $table_row .= '<td class="bold description"><textarea name="' . $items_indicator . '[' . $i . '][description]" class="form-control" rows="5">' . clear_textarea_breaks($item['description']) . '</textarea></td>';
                              $table_row .= '<td><textarea name="' . $items_indicator . '[' . $i . '][long_description]" class="form-control" rows="5">' . clear_textarea_breaks($item['long_description']) . '</textarea></td>';
                              $table_row .= render_custom_fields_items_table_in($item, $items_indicator . '[' . $i . ']');
@@ -247,6 +239,109 @@
                     </td>
                     <td class="discount-total"></td>
                 </tr>
+                <tr id="special_discount_area">
+ 
+
+             <!--   <tr id="promo_code_area">
+    <td colspan="2">
+       <?php
+$sales_object_type = $estimate->type;
+$sales_object_id   = isset($estimate) ? $estimate->id : 0;
+$promo_view = module_dir_path('promo_codes', 'views/hooks/promo_codes_add_input_field.php');
+
+if (file_exists($promo_view)) {
+    // Make your variables available to the included file
+    $data = [
+        'sales_object_type' => $sales_object_type,
+        'sales_object_id'   => $sales_object_id,
+    ];
+    extract($data);
+    include $promo_view;
+}
+?>
+
+    </td>
+</tr>
+<tr id="applied_promo_codes">
+  <td colspan="2">
+    <?php
+    $applied_view = module_dir_path('promo_codes', 'views/hooks/show_applied_promo_codes.php');
+    log_message('debug', '[Promo Codes] Using include view: '.$applied_view);
+
+    $data = [
+        'applied'           => is_array($applied ?? null) ? $applied : [],
+        'currency'          => $currency ?? null,
+        'sales_object_type' => $sales_object_type ?? 'estimate',
+        'sales_object_id'   => $sales_object_id ?? 0,
+    ];
+
+    // 1) Include with output buffering so we can see what was produced
+    ob_start();
+    extract($data, EXTR_SKIP);
+    include $applied_view;
+    $html = ob_get_clean();
+
+    // 2) Log size and first 300 chars
+    log_message('debug', '[Promo Codes] Rendered HTML length: '.strlen($html));
+    log_message('debug', '[Promo Codes] Rendered HTML preview: '.substr(strip_tags($html), 0, 300));
+
+    // 3) If empty, try load->view (CI buffering)
+    if (trim($html) === '') {
+        log_message('error', '[Promo Codes] Include produced empty output. Trying load->view fallback.');
+        $html = $this->load->view(
+            module_views_path('promo_codes', 'hooks/show_applied_promo_codes'),
+            $data,
+            true // return as string
+        );
+        log_message('debug', '[Promo Codes] load->view output length: '.strlen($html));
+    }
+
+    // 4) If still empty, render inline fallback (handles empty $applied)
+    if (trim($html) === '') {
+        log_message('error', '[Promo Codes] Both include and load->view produced empty output. Rendering inline fallback.');
+        ?>
+        <div class="mtop15 pull-right">
+            <strong><?= _l('promo_codes_applied_promo_codes'); ?></strong>
+            <?php if (!empty($data['applied'])): ?>
+                <ul class="promo-codes-list tw-pl-0 tw-mt-1">
+                    <?php foreach ($data['applied'] as $entry): ?>
+                        <li class="tw-flex tw-w-full tw-justify-between">
+                            <span class="badge badge-info"><?= html_escape($entry['code'] ?? ''); ?></span>
+                            <span> - </span>
+                            <span>
+                                <?php
+                                $type   = $entry['type'] ?? '';
+                                $amount = (float)($entry['amount'] ?? 0);
+                                echo $type === 'percentage'
+                                    ? $amount.'%'
+                                    : app_format_money($amount, $data['currency']);
+                                ?>
+                            </span>
+                            <a href="#" class="_delete remove-applied-code text-danger mleft5"
+                               data-code="<?= html_escape($entry['code'] ?? ''); ?>"
+                               title="<?= _l('promo_codes_remove_this_code'); ?>">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            <?php else: ?>
+                <div class="tw-text-neutral-600 tw-text-sm tw-mt-1">
+                    <?= _l('promo_codes_no_codes_applied') ?: 'No promo codes applied.'; ?>
+                </div>
+            <?php endif; ?>
+        </div>
+        <?php
+    } else {
+        // 5) Echo whatever we captured
+        echo $html;
+    }
+    ?>
+  </td>
+</tr>-->
+
+
+
                 <tr>
                     <td>
                         <div class="row">
@@ -276,3 +371,61 @@
     </div>
     <div id="removed-items"></div>
 </div>
+<!--<script>
+(function($) {
+    const originalCalculateTotal = window.calculate_total;
+
+    window.calculate_total = function() {
+        if (typeof originalCalculateTotal === 'function') {
+            originalCalculateTotal();
+        }
+
+        // --- Subtotal ---
+        const subtotalText = $('.subtotal').text().replace(/[₹,]/g, '') || '0';
+        const subtotal = parseFloat(subtotalText) || 0;
+
+        // --- 1. Basic Discount ---
+        const basicRate = parseFloat($('#basic_discount_percent').val()) || 0;
+        const basicType = $('#basic_discount_type').val();
+        let basicAmount = (basicType === 'percent') ? (subtotal * basicRate / 100) : basicRate;
+
+        // --- 2. Quantity Discount ---
+        const afterBasic = subtotal - basicAmount;
+        let qtyRate = 0;
+
+        if (afterBasic > 400000) qtyRate = 4;
+        else if (afterBasic > 300000) qtyRate = 3;
+        else if (afterBasic > 200000) qtyRate = 2;
+        else qtyRate = 0;
+
+        const qtyAmount = afterBasic * qtyRate / 100;
+        $('#quantity_discount_display').text(qtyRate + '%');
+
+        // --- 3. Special Discount ---
+        const specialRate = parseFloat($('#special_discount_percent').val()) || 0;
+        const specialAmount = (afterBasic - qtyAmount) * specialRate / 100;
+
+        // --- 4. Offer Discount ---
+        const offerRate = parseFloat($('#offer_discount_percent').val()) || 0;
+        const offerAmount = (afterBasic - qtyAmount) * offerRate / 100;
+
+        // --- Total Discount ---
+        const totalDiscount = basicAmount + qtyAmount + specialAmount + offerAmount;
+        $('.basic-discount-amount').text('-' + format_money(totalDiscount));
+
+        // --- Update Final Total ---
+        const totalText = $('.total').text().replace(/[₹,]/g, '') || '0';
+        let total = parseFloat(totalText) || 0;
+        total = total - totalDiscount;
+        $('.total').text(format_money(total));
+    };
+
+    // --- Trigger on change ---
+    $('#basic_discount_percent, #basic_discount_type, #special_discount_percent, #offer_discount_percent').on('input change', function () {
+        if (typeof calculate_total === 'function') {
+            calculate_total();
+        }
+    });
+
+})(jQuery);
+</script>-->
