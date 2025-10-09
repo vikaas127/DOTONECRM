@@ -12,5 +12,5 @@ tar -czf $DEST/full-backup_$DATE.tar.gz /var/www/techdotbit.in \
 cd /var/www/techdotbit.in
 git add full_backups/full-backup_$DATE.tar.gz
 git commit -m "Full weekly backup on $DATE"
-git push origin main
+git push origin ayesha
 
