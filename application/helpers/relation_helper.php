@@ -21,7 +21,7 @@ function get_relation_data($type, $rel_id = '', $extra = [])
     $data = [];
     if ($type == 'customer' || $type == 'customers') {
         $where_clients = '';
-        if ($q && ($CI->uri->segment(2) !== 'misc' && $CI->uri->segment(3) !== 'search')) {
+        if ($q && !$rel_id) {
             $where_clients .= '(company LIKE "%' . $CI->db->escape_like_str($q) . '%" ESCAPE \'!\' OR CONCAT(firstname, " ", lastname) LIKE "%' . $CI->db->escape_like_str($q) . '%" ESCAPE \'!\' OR email LIKE "%' . $CI->db->escape_like_str($q) . '%" ESCAPE \'!\') AND ' . db_prefix() . 'clients.active = 1';
         }
 
