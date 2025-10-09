@@ -126,6 +126,7 @@
                         <input type="hidden" name="point_id" value="">
                         <input type="hidden" name="location_user" value="">
                         <input type="hidden" name="ip" value="<?php echo $_SERVER['REMOTE_ADDR']; ?>">
+                        <input type="hidden" name="accuracy_m" value="">
                          <input type="hidden" name="device_type" value="<?php echo $_SERVER['HTTP_USER_AGENT']; ?>">
                         <input type="hidden" name="device_fingerprint" value="">
 
@@ -144,6 +145,8 @@
                         <input type="hidden" name="location_user" value="">
                           <input type="hidden" name="ip" value="<?php echo $_SERVER['REMOTE_ADDR']; ?>">
                           <input type="hidden" name="device_type" value="<?php echo $_SERVER['HTTP_USER_AGENT']; ?>">
+                          <input type="hidden" name="accuracy_m" value="">
+
                            <input type="hidden" name="device_fingerprint" value="">
                         <button class="btn btn-warning check_out"><?php echo _l('check_out'); ?></button>
                       <?php echo form_close();
@@ -185,3 +188,106 @@
       }
       echo form_hidden('enable_get_location', $enable_get_location);
       ?>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -247,7 +247,56 @@ function get_data() {
 
   return false; // prevent default form action
 }
+function getLocation() {
+  "use strict";
 
+  const $locInput = $('#clock_attendance_modal input[name="location_user"]');
+  const $accInput = $('#clock_attendance_modal input[name="accuracy_m"]');
+
+  function fill(lat, lng, acc) {
+    $locInput.val(lat && lng ? lat + ',' + lng : '');
+    if ($accInput.length) {
+      $accInput.val(acc != null ? acc : '');
+    }
+    get_route_point(); // your existing function
+  }
+
+  // --- Success callback ---
+  function success(position) {
+    fill(position.coords.latitude, position.coords.longitude, position.coords.accuracy);
+  }
+
+  // --- Error callback with fallback ---
+  function error(err) {
+    console.warn("Geolocation error:", err);
+    // fallback: IP location (approximate city-level)
+    fetch('https://ipapi.co/json/')
+      .then(r => r.json())
+      .then(data => {
+        if (data && data.latitude && data.longitude) {
+          fill(data.latitude, data.longitude, null);
+        } else {
+          alert('Unable to retrieve your location');
+        }
+      })
+      .catch(() => {
+        alert('Unable to retrieve your location');
+      });
+  }
+
+  if (!navigator.geolocation) {
+    alert('Geolocation is not supported by your browser');
+    return;
+  }
+
+  // Try precise GPS/Wi-Fi first
+  navigator.geolocation.getCurrentPosition(success, error, {
+    enableHighAccuracy: true,
+    timeout: 15000,   // wait max 15s
+    maximumAge: 0     // don’t use cached
+  });
+}
+/*
 function getLocation() {
   "use strict";
   function success(position) {
@@ -267,7 +316,7 @@ function getLocation() {
     navigator.geolocation.getCurrentPosition(success, error);
   }
 }
-
+*/
 /**
 * open check in out
 */
