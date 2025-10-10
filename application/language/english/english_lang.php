@@ -1074,6 +1074,8 @@ $lang['estimate_dt_table_heading_expirydate']     = 'Expiry Date';
 $lang['estimate_dt_table_heading_amount']         = 'Amount';
 $lang['estimate_dt_table_heading_status']         = 'Status';
 $lang['estimate_convert_to_invoice']              = 'Convert to Invoice';
+$lang['estimate_convert_to_mo']                   = 'Convert to MO';
+$lang['estimate_convert_to_mo_model']             = 'Estimate Convert to MO';
 
 # Clients
 $lang['client_payments_tab'] = 'Payments';

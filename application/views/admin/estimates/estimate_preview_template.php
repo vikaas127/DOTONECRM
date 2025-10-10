@@ -246,6 +246,88 @@
                                 </li>
                             </ul>
                         </div>
+                        <div>
+                            <button type="button" class="btn btn-success" data-toggle="modal" data-target="#estimate_convert_to_mo"
+                                aria-haspopup="true" aria-expanded="false">
+                                <?php echo _l('estimate_convert_to_mo'); ?>
+                            </button>
+
+                            <div class="modal fade estimate-convert-to-mo" id="estimate_convert_to_mo" tabindex="-1" role="dialog"
+                                aria-labelledby="convert_to_mo_model">
+                                <div class="modal-dialog modal-lg" role="document">
+
+                                    <?php echo form_open('admin/estimates/convertToMo/' . $estimate->id, ['id' => 'convertToMoForm']); ?>
+                                    <div class="modal-content">
+
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                            <h4 class="modal-title" id="convert_to_mo_model">
+                                                <span class="edit-title text-muted"><?php echo _l('estimate_convert_to_mo_model'); ?></span>
+                                            </h4>
+                                        </div>
+
+                                        <div class="modal-body">
+                                            <table class="table items items-preview estimate-items-preview">
+                                                <thead>
+                                                    <tr>
+                                                        <th class="not-export sorting_disabled">
+                                                            <div class="checkbox mass_select_all_wrap">
+                                                                <input type="checkbox" id="mass_select_all">
+                                                                <label for="mass_select_all">Select All</label>
+                                                            </div>
+                                                        </th>
+                                                        <th align="center">#</th>
+                                                        <th>Item</th>
+                                                        <th>Qty</th>
+                                                        <th class="text-center">Rate</th>
+                                                        <th class="text-center">Discount %</th>
+                                                        <th class="text-center">Tax</th>
+                                                        <th class="text-right">Amount</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <?php $i = 1; foreach ($estimate->items as $item) { ?>
+                                                        <tr>
+                                                            <td>
+                                                                <div class="checkbox">
+                                                                    <input type="checkbox" class="row-checkbox" name="selected_items[]" value="<?php echo $item['item_id']; ?>">
+                                                                    <label></label>
+                                                                </div>
+                                                            </td>
+                                                            <td><?php echo $i++; ?></td>
+                                                            <td><?php echo $item['description']; ?></td>
+                                                            <td><?php echo $item['qty']; ?>&nbsp;<?php echo $item['unit']; ?></td>
+                                                            <td class="text-center"><?php echo $item['rate']; ?></td>
+                                                            <td class="text-center"><?php echo $item['line_discount_rate']; ?></td>
+                                                            <td class="text-center"><?php echo $item['tax']; ?></td>
+                                                            <td class="text-center"></td>
+                                                            <td class="text-right"><?php echo $item['rate']; ?></td>
+                                                        </tr>
+                                                    <?php } ?>
+                                                </tbody>
+                                            </table>
+
+                                            
+                                        </div>
+
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-default" data-dismiss="modal">
+                                                <?php echo _l('close'); ?>
+                                            </button>
+                                            <button type="submit" class="btn btn-success">
+                                                Convert to MO
+                                            </button>
+                                        </div>
+
+                                    </div>
+                                    <?php echo form_close(); ?>
+
+                                </div>
+                            </div>
+                        </div>
+
                         <?php } ?>
                         <?php } else { ?>
                         <a href="<?php echo admin_url('invoices/list_invoices/' . $estimate->invoice->id); ?>"
@@ -622,4 +704,20 @@ init_tabs_scrollable();
 schedule_estimate_send(<?php echo ($estimate->id); ?>);
 <?php } ?>
 </script>
+<script>
+    document.getElementById('mass_select_all').addEventListener('change', function() {
+        let all = document.querySelectorAll('.row-checkbox');
+        all.forEach(cb => cb.checked = this.checked);
+    });
+
+    document.querySelectorAll('.row-checkbox').forEach(cb => {
+        cb.addEventListener('change', function() {
+            if (!this.checked) {
+                document.getElementById('mass_select_all').checked = false;
+            }
+        });
+    });
+</script>
+
+
 <?php $this->load->view('admin/estimates/estimate_send_to_client'); ?>
