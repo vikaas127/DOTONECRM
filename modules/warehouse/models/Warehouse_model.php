@@ -14980,7 +14980,7 @@ public function get_all_shelves() {
 			
 			foreach ($opening_stock_detail as $key => $value) {				
 
-				if($value[1] != '' && $value[1] != null && $value[2] != '' && $value[2] != null && $value[5] !== '' && $value[5] !== null && $value[5] >= 0){
+				if($value[1] != '' && $value[1] != null && $value[2] != '' && $value[2] != null && $value[8] !== '' && $value[8] !== null && $value[8] >= 0){
 					$es_detail[] = array_combine($header, $value);
 				}
 			}
@@ -15002,9 +15002,10 @@ public function get_all_shelves() {
 
 					$insert_temp=[];
 					$insert_temp['warehouse_id']= $in_value['warehouse_id'];
-					$insert_temp['lot_id'] = $in_value['lot_id'] ?? null;
-					$insert_temp['rack_id'] = $in_value['rack_id'] ?? null;
-					$insert_temp['shelf_id'] = $in_value['shelf_id'] ?? null;
+					$insert_temp['lot_id']   = !empty($in_value['lot_id']) ? $in_value['lot_id'] : null;
+					$insert_temp['rack_id']  = !empty($in_value['rack_id']) ? $in_value['rack_id'] : null;
+					$insert_temp['shelf_id'] = !empty($in_value['shelf_id']) ? $in_value['shelf_id'] : null;
+
 
 					$insert_temp['commodity_code']= $in_value['commodity_id'];
 					$insert_temp['quantities']= $in_value['inventory_number'];

@@ -430,7 +430,30 @@ function manufacturing_get_staff_id_dont_permissions()
 
 	    return $name;
 	}
+function mrp_get_custom_product_name($product_id) {
+    $CI =& get_instance();
+    $view_type = get_mrp_option('view_type') ?: 1;
 
+    $CI->db->where('id', $product_id);
+
+    switch ($view_type) {
+        case 1: // commodity_code
+            $CI->db->select('commodity_code AS name');
+            break;
+        case 2: // description
+            $CI->db->select('description AS name');
+            break;
+        case 3: // both
+            $CI->db->select('CONCAT(commodity_code, "_", description) AS name');
+            break;
+        default:
+            $CI->db->select('CONCAT(commodity_code, "_", description) AS name');
+            break;
+    }
+
+    $row = $CI->db->get(db_prefix() . 'items')->row();
+    return $row ? $row->name : '';
+}
 
 	/**
 	 * mrp get unit name

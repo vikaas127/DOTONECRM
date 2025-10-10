@@ -15,11 +15,15 @@
 		<?php echo render_input('settings[whatsapp_access_token]', _l('whatsapp_access_token'), get_option('whatsapp_access_token')); ?>
 	</div>
 </div>
-
-<div class="alert alert-warning">
-	<?php $html = '<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>';
-	$html .= '<h4><b><i class="fa fa-warning"></i> ' . _l('template_edit_note') . '</b>!</h4>
-            <hr class="hr-10">' . _l('whatsapp_settings_access_token_note_description');
-	echo $html;
-	?>
+<div class="row">
+	<div class="col-md-12">
+		<i class="fa fa-question-circle pull-left" data-toggle="tooltip" data-title="<?php echo _l('access_token_description'); ?>"></i>
+		<?php echo render_input('settings[whatsapp_api_token]', _l('whatsapp_api_token'), get_option('whatsapp_api_token')); ?>
+	</div>
 </div>
+<!--<div class="row">
+	<div class="col-md-12">
+		<i class="fa fa-question-circle pull-left" data-toggle="tooltip" data-title="<?php echo _l('access_token_description'); ?>"></i>
+		<?php echo render_input('settings[api_url]', _l('api_url'), get_option('api_url')); ?>
+	</div>
+</div>-->

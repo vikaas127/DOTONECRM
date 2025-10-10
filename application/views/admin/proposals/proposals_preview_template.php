@@ -257,9 +257,9 @@
                 <?php } ?>
                 <?php } else {
                          if ($proposal->estimate_id != null) {
-                             echo '<a href="' . admin_url('estimates/list_estimates/' . $proposal->estimate_id) . '" class="btn btn-primary">' . e(format_estimate_number($proposal->estimate_id)) . '</a>';
+                             echo '<a href="' . admin_url('estimates/list_estimates/' . $proposal->estimate_id) . '" class="btn btn-primary">' . (format_estimate_number($proposal->estimate_id)) . '</a>';
                          } else {
-                             echo '<a href="' . admin_url('invoices/list_invoices/' . $proposal->invoice_id) . '" class="btn btn-primary">' . e(format_invoice_number($proposal->invoice_id)) . '</a>';
+                             echo '<a href="' . admin_url('invoices/list_invoices/' . $proposal->invoice_id) . '" class="btn btn-primary">' . (format_invoice_number($proposal->invoice_id)) . '</a>';
                          }
                      } ?>
             </div>
@@ -297,7 +297,7 @@
                                     <?php
                               $tags = get_tags_in($proposal->id, 'proposal');
                               if (count($tags) > 0) {
-                                  echo '<i class="fa fa-tag" aria-hidden="true" data-toggle="tooltip" data-title="' . e(implode(', ', $tags)) . '"></i>';
+                                  echo '<i class="fa fa-tag" aria-hidden="true" data-toggle="tooltip" data-title="' . (implode(', ', $tags)) . '"></i>';
                               }
                               ?>
                                     <a href="<?php echo admin_url('proposals/proposal/' . $proposal->id); ?>">

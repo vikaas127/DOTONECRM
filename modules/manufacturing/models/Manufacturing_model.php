@@ -1023,6 +1023,44 @@ public function get_item_ids_by_commodity($commodity_codes)
 		}
 
 	}
+public function get_mrp_custom_product($id = false)
+{
+    // Get the selected view_type from tblmrp_option (1=commodity_code, 2=description, 3=both)
+    $view_type = get_mrp_option('view_type') ?: 1;
+
+    // If specific product ID is given
+    if (is_numeric($id)) {
+        $this->db->where('id', $id);
+        return $this->db->get(db_prefix() . 'items')->row();
+    }
+
+    // If no ID, fetch all raw products
+    if ($id === false) {
+        $sql_where = db_prefix() . 'items.id NOT IN (SELECT DISTINCT parent_id FROM ' . db_prefix() . 'items WHERE parent_id IS NOT NULL AND parent_id != "0")';
+        $this->db->where($sql_where);
+        $this->db->where('can_be_manufacturing', 'can_be_manufacturing');
+
+        // Select columns based on view_type
+        switch ($view_type) {
+            case 1: // commodity_code
+                $this->db->select('id, commodity_code AS description');
+                break;
+            case 2: // description
+                $this->db->select('id, description');
+                break;
+            case 3: // both
+                $this->db->select('id, CONCAT(commodity_code, "_", description) AS description');
+                break;
+            default:
+                $this->db->select('id, CONCAT(commodity_code, "_", description) AS description');
+                break;
+        }
+
+        return $this->db->get(db_prefix() . 'items')->result_array();
+    }
+}
+
+
 
 
 	/**
@@ -1138,19 +1176,38 @@ public function get_bill_of_material_for_pdf($id)
 
     foreach ($components as $component) {
         $component = (array) $component;
-        $product = $this->get_product($component['product_id']);
+       $product = $this->get_mrp_custom_product($component['product_id']);
+$view_type = get_mrp_option('view_type') ?: 1;
 
-        $bom->components[] = [
-            'component_name' => $component['name'] ?? 'N/A',
-            'product_id' => $component['product_id'] ?? '',
-            'product_name' => $product->description ?? 'N/A',
-            'price' => (float) ($product->rate ?? 0),
-            'product_qty' => (float) ($component['product_qty'] ?? 0),
-            'product_unit' => $product->unit ?? 'N/A',
-            'subtotal_cost' => isset($product->rate, $component['product_qty']) 
-                ? (float)$product->rate * (float)$component['product_qty'] 
-                : 0,
-        ];
+$product_name = 'N/A';
+if ($product) {
+    switch ($view_type) {
+        case 1:
+            $product_name = $product->commodity_code ?? 'N/A';
+            break;
+        case 2:
+            $product_name = $product->description ?? 'N/A';
+            break;
+        case 3:
+            $product_name = (isset($product->commodity_code) ? $product->commodity_code : '') 
+                          . '_' 
+                          . (isset($product->description) ? $product->description : '');
+            break;
+    }
+}
+
+$bom->components[] = [
+    'component_name' => $component['name'] ?? 'N/A',
+    'product_id' => $component['product_id'] ?? '',
+    'product_name' => $product_name,
+    'price' => (float) ($product->rate ?? 0),
+    'product_qty' => (float) ($component['product_qty'] ?? 0),
+    'product_unit' => $product->unit ?? 'N/A',
+    'subtotal_cost' => isset($product->rate, $component['product_qty']) 
+        ? (float)$product->rate * (float)$component['product_qty'] 
+        : 0,
+];
+
     }
 
     // Add scrap details
@@ -2326,15 +2383,45 @@ public function get_data_create_manufacturing_order($product_id)
 	 * get product for hansometable
 	 * @return [type] 
 	 */
-	public function get_product_for_hansometable()
-	{
-		$sql_where = db_prefix().'items.id not in ( SELECT distinct parent_id from '.db_prefix().'items WHERE parent_id is not null AND parent_id != "0" )';
-		$this->db->select('id, CONCAT(commodity_code,"_",description) as label');
-		$this->db->where($sql_where);
-		return $this->db->get(db_prefix() . 'items')->result_array();
+	// public function get_product_for_hansometable()
+	// {
+	// 	$sql_where = db_prefix().'items.id not in ( SELECT distinct parent_id from '.db_prefix().'items WHERE parent_id is not null AND parent_id != "0" )';
+	// 	$this->db->select('id, CONCAT(commodity_code,"_",description) as label');
+	// 	$this->db->where($sql_where);
+	// 	return $this->db->get(db_prefix() . 'items')->result_array();
 
-	}
-	
+	// }
+	public function get_product_for_hansometable()
+{
+    $sql_where = db_prefix().'items.id NOT IN (
+        SELECT DISTINCT parent_id 
+        FROM '.db_prefix().'items 
+        WHERE parent_id IS NOT NULL AND parent_id != "0"
+    )';
+
+    // Determine the view type: 1 = commodity_code, 2 = description, 3 = both
+    $view_type = get_mrp_option('view_type') ?: 3;
+
+    // Select columns based on view_type
+    switch ($view_type) {
+        case 1: // commodity_code
+            $this->db->select('id, commodity_code AS label');
+            break;
+        case 2: // description
+            $this->db->select('id, description AS label');
+            break;
+        case 3: // both
+            $this->db->select('id, CONCAT(commodity_code,"_",description) AS label');
+            break;
+        default:
+            $this->db->select('id, CONCAT(commodity_code,"_",description) AS label');
+            break;
+    }
+
+    $this->db->where($sql_where);
+    return $this->db->get(db_prefix() . 'items')->result_array();
+}
+
 	
  public function addbom_scrap($data)
 	{

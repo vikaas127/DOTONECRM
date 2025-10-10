@@ -49,11 +49,11 @@ document.addEventListener("DOMContentLoaded", function() {
                 let $list = $li.closest('.promo-codes-list');
                 window.location.reload();
             } else {
-                alert(response.message || '<?= e(_l('promo_codes_failed_to_remove_code')); ?>');
+                alert(response.message || '<?= (_l('promo_codes_failed_to_remove_code')); ?>');
                 $btn.removeClass('disabled').find('i').attr('class', originalIcon);
             }
         }).fail(function() {
-            alert('<?= e(_l('promo_codes_failed_to_remove_code')); ?>');
+            alert('<?= (_l('promo_codes_failed_to_remove_code')); ?>');
             $btn.removeClass('disabled').find('i').attr('class', originalIcon);
         });
     });

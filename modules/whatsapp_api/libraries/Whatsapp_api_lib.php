@@ -21,13 +21,28 @@ class Whatsapp_api_lib
     public $merge_fields;
     public $tableData;
     public $attachmentData;
-    public $send_data = [
+   /* public $send_data = [
         'messaging_product' => 'whatsapp',
         'recipient_type'    => 'individual',
         'type'              => 'template',
         'template'          => [],
         'text'          => '',
-    ];
+    ];*/
+public $send_data = [
+    'messageObject' => [
+        'messaging_product' => 'whatsapp',
+        'recipient_type'    => 'individual',
+        'to'                => '', // will set dynamically
+        'type'              => 'template',
+        'template'          => [
+            'name'     => 'welcome',
+            'language' => [
+                'code' => 'en'
+            ],
+            'components' => []
+        ]
+    ]
+];
 
     public function __construct()
     {
@@ -222,15 +237,116 @@ class Whatsapp_api_lib
         $category_fields    = $this->CI->app_merge_fields->format_feature($merge_field_name, ...$merge_field_data);
         $this->merge_fields = array_merge($category_fields, $this->merge_fields);
     }
+public function send()
+{
+    // ---- setup + basic validations
+    $this->send_data['to'] = $this->to;
+    log_message('debug', 'IB SEND init payload: ' . json_encode($this->send_data));
 
-    public function send()
+    if (empty($this->to)) {
+        $err = ['response_code' => 501, 'response_data' => json_encode(['message' => 'To Number not found'])];
+        log_message('error', 'IB SEND error: ' . json_encode($err));
+        return $err;
+    }
+
+    $apiKey = trim((string) get_option('whatsapp_api_token'));
+    if ($apiKey === '') {
+        $err = [
+            'response_code' => 422,
+            'response_data' => json_encode(['message' => 'InstantBroadcast API key missing'])
+        ];
+        log_message('error', 'IB SEND error: ' . json_encode($err));
+        return $err;
+    }
+
+    // ---- endpoint
+    $endpoint = 'https://instantbroadcast.in/api/v1/send-message?token=' . rawurlencode($apiKey);
+
+    // ---- normalize phone (digits only; include country code, no +)
+    $to = preg_replace('/\D+/', '', $this->to);
+
+    // ---- build payload: fix "to" placement
+    $payload = $this->send_data;
+
+    if (isset($payload['messageObject']) && is_array($payload['messageObject'])) {
+        // Ensure messageObject.to is set
+        $payload['messageObject']['to'] = $to;
+
+        // Optional: if you also had top-level "to", drop it to avoid confusion
+        unset($payload['to']);
+    } else {
+        // Plain structure (no wrapper) – put to at top level
+        $payload['to'] = $to;
+
+        // If sending template, make sure required fields exist
+        if (($payload['type'] ?? '') === 'template' && empty($payload['template']['name'])) {
+            $err = [
+                'response_code' => 422,
+                'response_data' => json_encode(['message' => "The parameter template['name'] is required."])
+            ];
+            log_message('error', 'IB SEND error: ' . json_encode($err) . ' | payload=' . json_encode($payload));
+            return $err;
+        }
+    }
+
+    // ---- headers: token is already in query string, send JSON body
+    $headers = [
+        'Content-Type' => 'application/json',
+    ];
+
+    // (Remove Authorization header unless IB told you to send it as Bearer)
+    // $headers['Authorization'] = 'Bearer ' . get_option('whatsapp_access_token');
+
+    log_message('debug', 'IB SEND request -> endpoint=' . $endpoint .
+        ' | headers=' . json_encode($headers) .
+        ' | body=' . json_encode($payload));
+
+    // ---- perform request
+    try {
+        $request = Requests::post(
+            $endpoint,
+            $headers,
+            json_encode($payload) // send raw JSON
+        );
+
+        $resp = [
+            'response_code' => $request->status_code,
+            'response_data' => $request->body,
+            'api_endpoint'  => $endpoint,
+        ];
+        log_message('debug', 'IB SEND response <- ' . json_encode($resp));
+        return $resp;
+
+    } catch (Exception $e) {
+        $resp = [
+            'response_code' => 'EXCEPTION',
+            'response_data' => json_encode(['message' => $e->getMessage()]),
+            'api_endpoint'  => $endpoint,
+        ];
+        log_message('error', 'IB SEND exception: ' . $e->getMessage());
+        return $resp;
+    }
+}
+
+   /* public function send()
     {
         $this->send_data['to']       = $this->to;
         if (empty($this->to)) {
             return ['response_code' => 501, 'response_data' => json_encode(['message' => 'To Number not found'])];
         }
+        $apiKey = trim((string) get_option('whatsapp_api_token'));
+    if ($apiKey === '') {
+        return [
+            'response_code' => 422,
+            'response_data' => json_encode(['message' => 'InstantBroadcast API key missing'])
+        ];
+    }
+
+    // Endpoint per spec: https://instantbroadcast.in/api/v1/send-message?token=API_KEYS
+    $endpoint = 'https://instantbroadcast.in/api/v1/send-message?token=' . rawurlencode($apiKey);
+
         //\modules\whatsapp_api\core\Apiinit::parse_module_url('whatsapp_api');
-        $endpoint                    = 'https://graph.facebook.com/v14.0/' . get_option('phone_number_id') . '/messages';
+     //   $endpoint                    = 'https://instantbroadcast.in/api/v1/send-message'? . get_option('phone_number_id') . '/send-message';
         $data                        = [];
         $data['api_endpoint']        = $endpoint;
         $data['phone_number_id']     = get_option('phone_number_id');
@@ -249,7 +365,7 @@ class Whatsapp_api_lib
             $data['response_data'] = json_encode(["message" => $e->getMessage()]);
         }
         return $data;
-    }
+    }*/
 
     public function leads($leadsID)
     {

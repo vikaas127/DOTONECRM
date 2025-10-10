@@ -2013,51 +2013,43 @@ $('#commodity_list-add-edit').on('change input', 'select, input', function () {
 });
 */
 function fetchNamingRulesAndGenerateName(groupId, subGroupId) {
-    console.log("Fetching naming rules for:", { groupId, subGroupId });
+    // If no subgroup selected, copy sort_name
+    if (!subGroupId) {
+        let sortName = $('#commodity_list-add-edit input[name="sort_name"]').val()?.trim() || '';
+        $('#commodity_list-add-edit input[name="description"]').val(sortName);
+        $('#commodity_list-add-edit input[name="sku_name"]').val(sortName);
+        return;
+    }
 
+    // Subgroup exists, fetch naming rules
     $.post(admin_url + 'warehouse/get_naming_pref_ajax', {
         group_id: groupId,
         sub_group_id: subGroupId
     }).done(function (response) {
-        console.log("Raw response:", response);
-
         let data = JSON.parse(response);
-
         let finalName = '';
 
         if (data && data.pref && data.attrs && data.attrs.length) {
             let nameParts = [];
-
             data.attrs.forEach((attr, index) => {
                 let inputEl = $('#commodity_list-add-edit [name="' + attr.name + '"]');
                 if (inputEl.length) {
-                    let val;
-                    if (inputEl.is('select')) {
-                        val = inputEl.find("option:selected").text().trim();
-                    } else {
-                        val = inputEl.val()?.trim();
-                    }
+                    let val = inputEl.is('select')
+                        ? inputEl.find("option:selected").text().trim()
+                        : inputEl.val()?.trim();
 
                     if (val) {
-                        // push with attribute-specific separator
                         nameParts.push(val);
-
-                        // if this attr has separator, append it
                         if (attr.separator && index < data.attrs.length - 1) {
                             nameParts.push(attr.separator);
                         }
                     }
                 }
             });
-
             finalName = nameParts.join('');
-            console.log("Generated finalName with per-attr separator:", finalName);
-
         } else {
-            // Fallback: use default sort_name
-            let defaultSortName = $('#commodity_list-add-edit input[name="sort_name"]').val()?.trim();
-            finalName = defaultSortName || '';
-            console.log("No naming rules found, using default sort_name:", finalName);
+            // fallback
+            finalName = $('#commodity_list-add-edit input[name="sort_name"]').val()?.trim() || '';
         }
 
         $('#commodity_list-add-edit input[name="description"]').val(finalName);
@@ -2065,11 +2057,20 @@ function fetchNamingRulesAndGenerateName(groupId, subGroupId) {
     });
 }
 
-$('#commodity_list-add-edit').on('change input', 'select, input', function () {
+// Listener for live updates
+$('#commodity_list-add-edit').on('input change', 'select, input', function () {
     let groupId = $('select[name="group_id"]').val();
     let subGroupId = $('select[name="sub_group"]').val();
-    console.log("Form change detected. groupId:", groupId, "subGroupId:", subGroupId);
 
+    if ($(this).attr('name') === 'sort_name' && !subGroupId) {
+        // Live update from sort_name when no subgroup
+        let sortName = $(this).val()?.trim() || '';
+        $('#commodity_list-add-edit input[name="description"]').val(sortName);
+        $('#commodity_list-add-edit input[name="sku_name"]').val(sortName);
+        return;
+    }
+
+    // Only call naming rules if group exists AND user is not just typing sort_name
     if (groupId && subGroupId) {
         fetchNamingRulesAndGenerateName(groupId, subGroupId);
     }

@@ -56,6 +56,8 @@
                   $CI->load->model('timesheets/timesheets_model');
                   $type_check_in_out = '';
                   $data_check_in_out = $CI->timesheets_model->get_list_check_in_out(date('Y-m-d'), get_staff_user_id());
+                  // var_dump($data_check_in_out); die();
+
                   $html_list = '';
                   foreach ($data_check_in_out as $key => $value) {
                     $alert_type = 'alert-success';
@@ -118,7 +120,7 @@
                   <div class="col-md-12 bottom_co_btn">
                     <div class="bottom_co_btn_item">
                       <?php
-                      if ($type_check_in_out == '' || $type_check_in_out == 2 || $allows_updating_check_in_time == 1 || is_admin()) {
+                      if ($type_check_in_out == '' || $type_check_in_out == 2 ||  is_admin()) {
                         echo form_open(admin_url('timesheets/check_in_ts'), array('id' => 'timesheets-form-check-in')); ?>
                         <input type="hidden" name="staff_id" value="<?php echo get_staff_user_id(); ?>">
                         <input type="hidden" name="type_check" value="1">
@@ -126,6 +128,7 @@
                         <input type="hidden" name="point_id" value="">
                         <input type="hidden" name="location_user" value="">
                         <input type="hidden" name="ip" value="<?php echo $_SERVER['REMOTE_ADDR']; ?>">
+                        <input type="hidden" name="accuracy_m" value="">
                          <input type="hidden" name="device_type" value="<?php echo $_SERVER['HTTP_USER_AGENT']; ?>">
                         <input type="hidden" name="device_fingerprint" value="">
 
@@ -134,7 +137,7 @@
                       } ?>
                     </div>
                     <div class="bottom_co_btn_item">
-                      <?php if ($type_check_in_out == 1 || $allows_updating_check_in_time == 1 || is_admin()) {
+                      <?php if ($type_check_in_out == 1 || is_admin()) {
                         echo form_open(admin_url('timesheets/check_in_ts'), array('id' => 'timesheets-form-check-out'));
                       ?>
                         <input type="hidden" name="staff_id" value="<?php echo get_staff_user_id(); ?>">
@@ -144,6 +147,8 @@
                         <input type="hidden" name="location_user" value="">
                           <input type="hidden" name="ip" value="<?php echo $_SERVER['REMOTE_ADDR']; ?>">
                           <input type="hidden" name="device_type" value="<?php echo $_SERVER['HTTP_USER_AGENT']; ?>">
+                          <input type="hidden" name="accuracy_m" value="">
+
                            <input type="hidden" name="device_fingerprint" value="">
                         <button class="btn btn-warning check_out"><?php echo _l('check_out'); ?></button>
                       <?php echo form_close();
@@ -185,3 +190,106 @@
       }
       echo form_hidden('enable_get_location', $enable_get_location);
       ?>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

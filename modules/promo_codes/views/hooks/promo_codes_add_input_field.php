@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const $btnIcon = $('#promo-code-btn-icon');
     const $feedback = $('#promo-code-feedback');
 
-    const salesObjectType = '<?= e($sales_object_type); ?>';
+    const salesObjectType = '<?= ($sales_object_type); ?>';
     const salesObjectId = '<?= (int)$sales_object_id; ?>';
 
     /**
@@ -58,7 +58,7 @@ document.addEventListener("DOMContentLoaded", function() {
     function applyPromoCode() {
         const code = $promoInput.val().trim();
         if (!code) {
-            showFeedback('warning', '<?= e(_l("promo_codes_empty_message")) ?>');
+            showFeedback('warning', '<?= (_l("promo_codes_empty_message")) ?>');
             return;
         }
 
@@ -86,7 +86,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         }, 'json').fail(function() {
             setLoadingState(false);
-            showFeedback('danger', '<?= e(_l("promo_codes_error_applying")) ?>');
+            showFeedback('danger', '<?= (_l("promo_codes_error_applying")) ?>');
         });
     }
 

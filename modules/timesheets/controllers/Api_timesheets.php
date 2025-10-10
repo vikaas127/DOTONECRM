@@ -203,6 +203,11 @@ class Api_timesheets extends API_timesheets_Controller {
 				'ip_address' => $this->input->post('ip_address', TRUE)
 			];
 			$re = $this->timesheets_model->check_in($payload);
+		//	$re = $this->timesheets_model->check_in($payload);
+
+log_message('info', 'Check-in attempt: ' . json_encode($payload));
+log_message('info', 'Check-in result: ' . json_encode($re));
+
 			if (is_numeric($re)) {
 				// Error
 				if ($re == 2) {
@@ -260,13 +265,13 @@ class Api_timesheets extends API_timesheets_Controller {
 						$this->response(
 							[
 								'status' => FALSE,
-								'message' => _l('check_in_not_successfull')
+								'message' => _l('check_out_successfull')
 							], 200);
 					} else {
 						$this->response(
 							[
 								'status' => FALSE,
-								'message' => _l('check_out_not_successfull')
+								'message' => _l('check_out_successfull')
 							], 200);
 					}
 				}

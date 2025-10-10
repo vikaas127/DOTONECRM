@@ -71,7 +71,7 @@ foreach ($rResult as $aRow) {
 
 		}elseif ($aColumns[$i] == 'product_id') {
 
-			$code = mrp_get_product_name($aRow['product_id']) ;
+			$code = mrp_get_custom_product_name($aRow['product_id']) ;
 			$code .= '<div class="row-options">';
 
 			if (has_permission('manufacturing', '', 'edit')&&has_permission('bill_of_material', '', 'edit') || is_admin()) {

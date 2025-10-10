@@ -23,7 +23,7 @@ done
 cd /var/www/html
 git add db_backups/*.gz
 git commit -m "Auto DB backup on $DATE"
-git push origin main
+git push origin ayesha
 
 # === Auto-delete old backups (15+ days) ===
 find $BACKUP_DIR -name "*.gz" -type f -mtime +15 -delete

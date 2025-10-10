@@ -4065,16 +4065,18 @@ public function check_in_ts() {
 		$type = $data['type_check'];
 		$data['send_notify'] = true;
 		$re = $this->timesheets_model->check_in($data);
+		log_message('info', 'Check-in attempt: ' . json_encode($re));
+        log_message('info', 'Check-in result: ' . json_encode($re));
 		if (is_numeric($re)) {
 			// Error
 			if ($re == 2) {
-				set_alert('warning', _l('your_current_location_is_not_allowed_to_take_attendance'));
+			//	set_alert('warning', _l('your_current_location_is_not_allowed_to_take_attendance'));
 			}
 			if ($re == 3) {
-				set_alert('warning', _l('location_information_is_unknown'));
+			//	set_alert('warning', _l('location_information_is_unknown'));
 			}
 			if ($re == 4) {
-				set_alert('warning', _l('route_point_is_unknown'));
+			//	set_alert('warning', _l('route_point_is_unknown'));
 			}
 			if ($re == 5) {
 				set_alert('danger', _l('ts_access_denie'));

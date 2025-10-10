@@ -3035,7 +3035,7 @@ public function check_in($data)
 	$address = $this->getAddressFromLatLong($latitude, $longitude);
 	$data['address']= $address;
 
-
+    unset($data['accuracy_m']);
    if ($data['type_check'] == 2) { // Check-out
     $staff_id = $data['staff_id'];
     $current_date = date('Y-m-d', strtotime($data['date']));
