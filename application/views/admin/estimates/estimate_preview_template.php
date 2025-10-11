@@ -246,7 +246,7 @@
                                 </li>
                             </ul>
                         </div>
-                        <div>
+                        <div class="btn-group pull-right mleft5">
                             <button type="button" class="btn btn-success" data-toggle="modal" data-target="#estimate_convert_to_mo"
                                 aria-haspopup="true" aria-expanded="false">
                                 <?php echo _l('estimate_convert_to_mo'); ?>
@@ -275,16 +275,13 @@
                                                         <th class="not-export sorting_disabled">
                                                             <div class="checkbox mass_select_all_wrap">
                                                                 <input type="checkbox" id="mass_select_all">
-                                                                <label for="mass_select_all">Select All</label>
+                                                                <label for="mass_select_all"></label>
                                                             </div>
                                                         </th>
                                                         <th align="center">#</th>
                                                         <th>Item</th>
                                                         <th>Qty</th>
                                                         <th class="text-center">Rate</th>
-                                                        <th class="text-center">Discount %</th>
-                                                        <th class="text-center">Tax</th>
-                                                        <th class="text-right">Amount</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -292,7 +289,7 @@
                                                         <tr>
                                                             <td>
                                                                 <div class="checkbox">
-                                                                    <input type="checkbox" class="row-checkbox" name="selected_items[]" value="<?php echo $item['item_id']; ?>">
+                                                                    <input type="checkbox" class="row-checkbox" name="selected_items[]" value="<?php echo $item['id']; ?>">
                                                                     <label></label>
                                                                 </div>
                                                             </td>
@@ -300,16 +297,10 @@
                                                             <td><?php echo $item['description']; ?></td>
                                                             <td><?php echo $item['qty']; ?>&nbsp;<?php echo $item['unit']; ?></td>
                                                             <td class="text-center"><?php echo $item['rate']; ?></td>
-                                                            <td class="text-center"><?php echo $item['line_discount_rate']; ?></td>
-                                                            <td class="text-center"><?php echo $item['tax']; ?></td>
-                                                            <td class="text-center"></td>
-                                                            <td class="text-right"><?php echo $item['rate']; ?></td>
                                                         </tr>
                                                     <?php } ?>
                                                 </tbody>
                                             </table>
-
-                                            
                                         </div>
 
                                         <div class="modal-footer">
@@ -705,17 +696,27 @@ schedule_estimate_send(<?php echo ($estimate->id); ?>);
 <?php } ?>
 </script>
 <script>
-    document.getElementById('mass_select_all').addEventListener('change', function() {
-        let all = document.querySelectorAll('.row-checkbox');
-        all.forEach(cb => cb.checked = this.checked);
+    var selectAll = document.getElementById('mass_select_all');
+    var rowCheckboxes = document.querySelectorAll('.row-checkbox');
+
+    selectAll.addEventListener('change', function() {
+        rowCheckboxes.forEach(cb => cb.checked = this.checked);
     });
 
-    document.querySelectorAll('.row-checkbox').forEach(cb => {
+    rowCheckboxes.forEach(cb => {
         cb.addEventListener('change', function() {
             if (!this.checked) {
-                document.getElementById('mass_select_all').checked = false;
+                selectAll.checked = false;
+            } else {
+                const allChecked = Array.from(rowCheckboxes).every(cb => cb.checked);
+                selectAll.checked = allChecked;
             }
         });
+    });
+
+    $('#estimate_convert_to_mo').on('hidden.bs.modal', function () {
+        selectAll.checked = false;
+        rowCheckboxes.forEach(cb => cb.checked = false);
     });
 </script>
 

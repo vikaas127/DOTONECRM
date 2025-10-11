@@ -639,15 +639,140 @@ class Estimates extends AdminController
             }
         }
     }
+
     public function convertToMo()
     {
-        $selectedItems = $this->input->post();
-        echo "<pre>";
-        print_r($selectedItems);
-        echo "</pre>";
-        die;
-        
+        $selectedItems = $this->input->post('selected_items');
 
+        if (empty($selectedItems)) {
+            set_alert('warning', 'No items selected for conversion.');
+            redirect(admin_url('estimates'));
+        }
+
+        $updated = 0;
+        $skipped = 0;
+
+        foreach ($selectedItems as $id) {
+
+            $item = $this->db->where('id', $id)->get(db_prefix().'itemable')->row();
+            if (!$item) continue;
+
+            $bom = $this->db->where('product_id', $item->item_id)
+                            ->get(db_prefix().'mrp_bill_of_materials')
+                            ->row();
+
+            if (!$bom) {
+                $skipped++;
+                continue;
+            }
+
+            $estimate = $this->db->where('id', $item->rel_id)
+                                ->get(db_prefix().'estimates')
+                                ->row();
+
+            $product = $this->db->where('id', $item->item_id)
+                                ->get(db_prefix().'items')
+                                ->row();
+
+            $unit_id = null;
+            if (!empty($product->unit)) {
+                $unit = $this->db->group_start()
+                                    ->where('unit_name', $product->unit)
+                                    ->or_where('unit_symbol', $product->unit)
+                                    ->group_end()
+                                ->get(db_prefix().'ware_unit_type')
+                                ->row();
+
+                if ($unit) {
+                    $unit_id = $unit->unit_type_id;
+                }
+            }
+
+            $this->load->model('manufacturing/manufacturing_model');
+
+            $manufacturingCode = $this->manufacturing_model->create_code('mo_code');
+
+            $moData = [
+                'manufacturing_order_code'       => $manufacturingCode,
+                'product_id'                     => $item->item_id,
+                'product_qty'                    => $item->qty,
+                'unit_id'                        => $unit_id,
+                'bom_id'                         => $bom->id,
+                'routing_id'                     => $bom->routing_id ?? null,
+                'date_deadline'                  => $estimate ? $estimate->expirydate : null,
+                'date_plan_from'                 => date('Y-m-d H:i:s'),
+                'date_planned_start'             => date('Y-m-d H:i:s'),
+                'date_planned_finished'          => null,
+                'status'                         => 'draft',
+                'material_availability_status'   => 'waiting',
+                'staff_id'                       => get_staff_user_id(),
+                'components_warehouse_id'        => null,
+                'finished_products_warehouse_id' => null,
+                'purchase_request_id'            => null,
+                'contact_id'                     => $estimate ? $estimate->clientid : null,
+                'labour_charges'                 => 0.00,
+                'machinery_charges'              => 0.00,
+                'electricity_charges'            => 0.00,
+                'other_charges'                  => 0.00,
+                'expected_labour_charges'        => 0.00,
+                'expected_machinery_charges'     => 0.00,
+                'expected_electricity_charges'   => 0.00,
+                'expected_other_charges'         => 0.00,
+                'estimate_id'                    => $item->rel_id,
+            ];
+
+            $this->db->insert(db_prefix().'mrp_manufacturing_orders', $moData);
+            $moId = $this->db->insert_id();
+
+            $modData = [
+                'manufacturing_order_id'  => $moId,
+                'product_id'              => $item->item_id,
+                'unit_id'                 => $unit_id,
+                'qty_to_consume'          => $item->qty,
+                'qty_reserved'            => 0.00,
+                'qty_done'                => 0.00,
+                'check_inventory_qty'     => null,
+                'warehouse_id'            => null,
+                'lot_number'              => null,
+                'expiry_date'             => null,
+                'available_quantity'      => 0.00,
+            ];
+
+            $this->db->insert(db_prefix().'mrp_manufacturing_order_details', $modData);
+            $insert_id = $this->db->insert_id();
+
+            if($insert_id){
+                $this->manufacturing_model->update_prefix_number(['mo_number' =>  get_mrp_option('mo_number')+1]);
+            }
+
+            $existing = !empty($item->production_status)
+                        ? json_decode($item->production_status, true)
+                        : [];
+
+            $nextIndex = count($existing) + 1;
+            $existing[$nextIndex] = [
+                'status' => 'assigned to production',
+                'date'   => date('Y-m-d'),
+                'mo_id'  => $moId,
+            ];
+
+            $this->db->where('id', $id)
+                    ->update(db_prefix().'itemable', [
+                        'production_status' => json_encode($existing),
+                    ]);
+
+            $updated++;
+        }
+
+        if ($updated > 0) {
+            set_alert('success', "$updated item(s) successfully converted to Manufacturing Orders.");
+        }
+
+        if ($skipped > 0) {
+            set_alert('warning', "$skipped item(s) skipped (no BOM found).");
+        }
+
+        redirect(admin_url('estimates'));
     }
 
 }
